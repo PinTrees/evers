@@ -158,7 +158,9 @@ class DialogIT extends StatelessWidget {
                           onPressed: () async {
                             if(item.name == '') { WidgetT.showSnackBar(context, text: '품목 이름을 입력해 주세요.'); return; }
                             if(item.unit == '') { WidgetT.showSnackBar(context, text: '품목 단위를 입력해 주세요.'); return; }
-                            if(item.unitPrice == 0) { WidgetT.showSnackBar(context, text: '품목 단가를 입력해 주세요.'); return; }
+                            
+                            // 요청사항 반영 - 품목 단가가 0원일 경우도 품목으로 인정 후 데이터베이스에 추가 
+                            //if(item.unitPrice == 0) { WidgetT.showSnackBar(context, text: '품목 단가를 입력해 주세요.'); return; }
 
                             var alert = await DialogT.showAlertDl(context, title: item.name ?? 'NULL');
                             if(alert == false) {
