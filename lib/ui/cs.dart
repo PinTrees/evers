@@ -1055,6 +1055,7 @@ class DialogCS extends StatelessWidget {
 
   /// 고객 매입 관리화면
   /// 매입 정렬 완료
+  /// 03.08 요청사항 반영 - 지불현황에서 지급추가 버튼 활성화
   static dynamic showPurInCs(BuildContext context, Customer cs) async {
     WidgetT.loadingBottomSheet(context);
     var dividHeight = 6.0;
@@ -1446,7 +1447,10 @@ class DialogCS extends StatelessWidget {
                             children: [
                               TextButton(
                                   onPressed: () async {
-                                    tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
+                                    // 03.08 요청사항 반영 - 지불현황에서 지급추가 버튼 활성화
+                                    // 신규 창에서 처리
+                                    // tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
+                                    
                                     FunT.setStateDT();
                                   },
                                   style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7),
