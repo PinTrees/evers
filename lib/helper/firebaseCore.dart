@@ -1518,12 +1518,14 @@ class FireStoreT {
       }
     } catch (e) {}
 
+    // 03.08 요청사항
+    // 거래처 대표명으로 검색 필요
+    // 데이터베이스 텍스트 검색 구조 변경
+    var searchText = data.getSearchText();
     await FireStoreHub.docUpdate('customer/${data.id}', 'CS.PATCH', data.toJson());
     await FireStoreHub.docUpdate('meta/customer', 'CS.PATCH',
-        { 'search\.${data.id}': data.businessName + '&:' + data.manager + '&:' + data.representative + '&:' + data.phoneNumber + '&:'+ data.companyPhoneNumber,
-          'updateAt': DateTime.now().microsecondsSinceEpoch, },
-      setJson: { 'search': { data.id: data.businessName + '&:' + data.manager + '&:' + data.representative + '&:' + data.phoneNumber + '&:'+ data.companyPhoneNumber, },
-        'updateAt': DateTime.now().microsecondsSinceEpoch, }
+        { 'search\.${data.id}': searchText, 'updateAt': DateTime.now().microsecondsSinceEpoch, },
+      setJson: { 'search': { searchText }, 'updateAt': DateTime.now().microsecondsSinceEpoch, }
     );
   }
   static dynamic initStreamCSMeta() async {
