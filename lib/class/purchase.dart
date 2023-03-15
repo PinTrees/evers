@@ -83,6 +83,8 @@ class Purchase {
       date = '';
     }
 
+    // 03.08 요청사항 추후 반영
+    // 거래처 대표자명 검색 텍스트에 추가 - 데이터베이스 구조 변경
     return cs.businessName + '&:' + ct.ctName + '&:' + it.toString() + '&:' + memo + '&:' + date;
   }
 
