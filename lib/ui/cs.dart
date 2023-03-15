@@ -1447,9 +1447,19 @@ class DialogCS extends StatelessWidget {
                             children: [
                               TextButton(
                                   onPressed: () async {
-                                    // 03.08 요청사항 반영 - 지불현황에서 지급추가 버튼 활성화
-                                    // 신규 창에서 처리
+                                    // 03.08 요청사항 반영 --------
+                                    // 지불현황에서 지급추가 버튼 활성화 - 신규 창에서 처리
                                     // tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
+                                    var tsCreate = await WidgetPR.showCreateTS(context);
+                                    if(tsCreate != null) {
+                                      // 신규 거래 추가됨
+                                      // 데이터베이스 스트림
+                                      // 거래기록 거래처 별 데이터 고도화 필요
+                                      Map<dynamic, TS> tsMap = await FireStoreT.getTS_CS_PU_date(cs.id);
+                                      // 추구 cs.getTransration() 으로 가져오도록 변경
+                                      tslist = tsMap.values.toList();
+                                    }
+                                    // 03.08 요청사항 반영 --------
                                     
                                     FunT.setStateDT();
                                   },
