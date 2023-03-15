@@ -119,6 +119,8 @@ class Customer {
       'filesMap': filesMap as Map,
     };
   }
+  
+  // Firebase Core 함수 삭제
   dynamic update() async {
     Customer? data = await FireStoreT.getCustomerDoc(id);
     if(data != null) fromDatabase(data.toJson());
@@ -155,7 +157,7 @@ class Customer {
   
   // 03.08 요청사항 추가
   // 고객관리 메모 검색 요청
-  dynamic getSearchText() {
+  String getSearchText() {
     return businessName + '&:' + manager + '&:' + representative + '&:' + phoneNumber + '&:'+ companyPhoneNumber + &: memo;
   }
 }
