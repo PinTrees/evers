@@ -152,4 +152,10 @@ class Customer {
 
     return data;
   }
+  
+  // 03.08 요청사항 추가
+  // 고객관리 메모 검색 요청
+  dynamic getSearchText() {
+    return businessName + '&:' + manager + '&:' + representative + '&:' + phoneNumber + '&:'+ companyPhoneNumber + &: memo;
+  }
 }
