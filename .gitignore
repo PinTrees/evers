@@ -1,8 +1,9 @@
 # See https://www.dartlang.org/guides/libraries/private-files
-lib/main.dart
 <<<<<<< HEAD
 =======
 web/index.html
+lib/main.dart
+
 >>>>>>> 7cc9f071f9f9aa265d5663f89da88fb76d691fbb
 
 # Files and directories created by pub
