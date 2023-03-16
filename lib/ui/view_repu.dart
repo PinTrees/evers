@@ -419,12 +419,17 @@ class View_REPU extends StatelessWidget {
                     ),
                     InkWell(
                       onTap: () async {
-                        var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
-                        if(aa) {
-                          await FireStoreT.deleteRevenue(rev);
-                          WidgetT.showSnackBar(context, text: '매출 데이터를 삭제했습니다.');
-                          clear();
+                        if(!await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?')) {
+                          WidgetT.showSnackBar(context, text: '취소됨');
+                          return;
                         }
+                         var task = await rev.delete();
+                        if(!task) {
+                          WidgetT.showSnackBar(context, text: '삭제에 실패했습니다. 나중에 다시 시도하세요.');
+                          return;
+                        }
+                        WidgetT.showSnackBar(context, text: '매출 데이터를 삭제했습니다.');
+                        clear();
                       },
                       child: WidgetT.iconMini(Icons.delete, size: 32),
                     ),

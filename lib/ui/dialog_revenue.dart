@@ -67,9 +67,8 @@ class DialogRE extends StatelessWidget {
 
               List<Widget> widgetReW = [];
               widgetReW.add(WidgetUI.titleRowNone(['순번', '거래처', '매출일자', '품목', '단위', '수량', '단가', '공급가액', '부가세', '합계', '메모', ''],
-                  [ 32, 250, 100, 999, 50, 80, 80, 80, 80, 80, 999, 32 ]));
+                  [ 32, 250, 100, 999, 50, 80, 80, 80, 80, 80, 999, 32 ], background: true));
               for(int i = 0; i < revenueList.length; i++) {
-                if(i == 0) widgetReW.add(WidgetT.dividHorizontal(size: 0.7));
                 var re = revenueList.elementAt(i);
                 var curItem = SystemT.getItem(re.item);
 
@@ -128,11 +127,11 @@ class DialogRE extends StatelessWidget {
                             re.unitPrice = int.tryParse(data) ?? 0;
                           },
                           text: StyleT.krw(re.unitPrice.toString()), value: re.unitPrice.toString()),
-                        WidgetT.excelGrid(textLite: true, width: 80, text: StyleT.krw(re.getSupplyPrice().toString()),),
+                        WidgetT.excelGrid(textLite: true, width: 80, text: StyleT.krw(re.supplyPrice.toString()),),
                         WidgetT.excelGrid(textLite: true,  width: 80,
                           text: StyleT.krw(re.vat.toString(),),
                         ),
-                        WidgetT.excelGrid(textLite: true, width: 80,text: StyleT.krw(re.getTotalPrice().toString()),),
+                        WidgetT.excelGrid(textLite: true, width: 80,text: StyleT.krw(re.totalPrice.toString()),),
                         Expanded(
                           child: WidgetT.excelInput(context, '$i::메모', width: 200, index: i,
                             onEdite: (i, data) { re.memo  = data ?? ''; },
@@ -156,6 +155,7 @@ class DialogRE extends StatelessWidget {
               }
 
               var gridStyle = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.02), stroke: 2, strokeColor: StyleT.titleColor.withOpacity(0.1));
+              var divCol = SizedBox(height:  dividHeight * 8,);
 
               return AlertDialog(
                 backgroundColor: StyleT.white.withOpacity(1),
@@ -172,9 +172,9 @@ class DialogRE extends StatelessWidget {
                     padding: EdgeInsets.all(dividHeight * 3),
                     child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        WidgetT.title('매출목록', size: 18),
+                        WidgetT.title('매출목록', size: StyleT.subTitleSize),
                         SizedBox(height: dividHeight,),
-                        Container(decoration: gridStyle, child: Column(children: widgetReW,),),
+                        Container( child: Column(children: widgetReW,),),
                         SizedBox(height: dividHeight,),
                         Row(
                           children: [
@@ -225,12 +225,8 @@ class DialogRE extends StatelessWidget {
                           ],
                         ),
 
-                        SizedBox(height: dividHeight * 3,),
-                        Row(
-                          children: [
-                            WidgetT.title('지불관련', size: 18),
-                          ],
-                        ),
+                        divCol,
+                        WidgetT.title('지불관련', size: StyleT.subTitleSize),
                         SizedBox(height: dividHeight,),
                         Row(
                           children: [
@@ -325,8 +321,15 @@ class DialogRE extends StatelessWidget {
                                 var revenue = revenueList[i];
                                 revenue.ctUid = revContract[i].id;
                                 revenue.csUid = revContract[i].csUid;
-                                await FireStoreT.updateRevenue(revenue);
-                                if(payment == '즉시') await FireStoreT.updateTransaction(TS.fromRe(revenue, payType, now: true));
+                                var task = await revenue.update();
+
+                                if(task) {
+                                  if(payment == '즉시') await FireStoreT.updateTransaction(TS.fromRe(revenue, payType, now: true));
+                                }
+                                else {
+                                  WidgetT.showSnackBar(context, text: '저장에 실패했습니다. 나중에 다시 시도해 주세요');
+                                  Navigator.pop(context);
+                                }
                               }
 
                               //SystemT.contract.add(pu);
@@ -721,6 +724,7 @@ class DialogRE extends StatelessWidget {
         });
     return aa;
   }
+
   /// 매출 개별 수정 창
   static dynamic showInfoRe(BuildContext context, { Revenue? org }) async {
     var dividHeight = 6.0;
@@ -791,11 +795,11 @@ class DialogRE extends StatelessWidget {
                             re.unitPrice = int.tryParse(data) ?? 0;
                           },
                           text: StyleT.krw(re.unitPrice.toString()), value: re.unitPrice.toString()),
-                      WidgetT.excelGrid(textLite: true, width: 100, text: StyleT.krw(re.getSupplyPrice().toString()),),
+                      WidgetT.excelGrid(textLite: true, width: 100, text: StyleT.krw(re.supplyPrice.toString()),),
                       WidgetT.excelGrid(textLite: true,  width: 100,
                         text: StyleT.krw(re.vat.toString(),),
                       ),
-                      WidgetT.excelGrid(textLite: true, width: 100,text: StyleT.krw(re.getTotalPrice().toString()),),
+                      WidgetT.excelGrid(textLite: true, width: 100,text: StyleT.krw(re.totalPrice.toString()),),
                       Expanded(
                         child: WidgetT.excelInput(context, 'rev.info::메모', width: 200,
                           onEdite: (i, data) { re.memo  = data ?? ''; },
@@ -809,8 +813,15 @@ class DialogRE extends StatelessWidget {
                               return;
                             }
                             WidgetT.loadingBottomSheet(context, text:'삭제중');
-                            await FireStoreT.deleteRevenue(re,);
+                            var task =  await re.delete();
                             Navigator.pop(context);
+
+                            if(!task) {
+                              WidgetT.showSnackBar(context, text: '삭제에 실패했습니다. 나중에 다시 시도하세요.');
+                              Navigator.pop(context, re);
+                              return;
+                            }
+
                             WidgetT.showSnackBar(context, text: '삭제됨');
                             Navigator.pop(context, re);
                           },
@@ -872,33 +883,7 @@ class DialogRE extends StatelessWidget {
                           ],),),
 
                         SizedBox(height: 18,),
-                        Row(
-                          children: [
-                            WidgetT.title('매출 상세 정보', size: 18 ),
-                            /*Container(
-                              padding: EdgeInsets.only(right: dividHeight),
-                              child: TextButton(
-                                  onPressed: () {
-                                    var p = Revenue.fromDatabase({});
-                                    p.revenueAt = DateTime.now().microsecondsSinceEpoch;
-                                    res.add(p);
-                                    FunT.setState();
-                                  },
-                                  style: StyleT.buttonStyleOutline(round: 0, elevation: 8, padding: 0,
-                                      color: StyleT.backgroundColor.withOpacity(0.5), strock: 1.4),
-                                  child: Container(padding: EdgeInsets.all(0), child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container( height: 28, width: 28,
-                                        child: WidgetT.iconMini(Icons.add_box),),
-                                      WidgetT.title('목록추가'),
-                                      SizedBox(width: 6,),
-                                    ],
-                                  ))
-                              ),
-                            ),*/
-                          ],
-                        ),
+                        WidgetT.title('매출 상세 정보', size: StyleT.subTitleSize ),
                         SizedBox(height: dividHeight,),
                         Container(decoration: gridStyle, child: Column(children: widgetReW,),),
                         SizedBox(height: dividHeight,),
@@ -921,7 +906,15 @@ class DialogRE extends StatelessWidget {
                               }
 
                               WidgetT.loadingBottomSheet(context, text:'저장중');
-                              await FireStoreT.updateRevenue(re, org: org_check);
+
+                              var task = await re.update(org: org_check);
+                              if(task) {
+                                Navigator.pop(context);
+                                Navigator.pop(context, re);
+                                WidgetT.showSnackBar(context, text: '저장에 실패했습니다. 나중에 다시 시도해 주세요');
+                                return;
+                              }
+
                               Navigator.pop(context);
                               WidgetT.showSnackBar(context, text: '저장됨');
 

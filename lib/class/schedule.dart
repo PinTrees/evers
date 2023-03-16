@@ -100,7 +100,7 @@ class Schedule {
     if(ctUid != '') ref['ctDetail']  = db.collection('contract/$ctUid/ct-dateH-schedule').doc(dateIdHarp);
     if(ctUid != '' && org != null) ref['orgCsDetail'] = db.collection('contract/${org.ctUid}/cs-dateH-schedule').doc(orgDateIdHarp);
 
-    db.runTransaction((transaction) async {
+    await db.runTransaction((transaction) async {
       Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
       final  docRefSn = await transaction.get(docRef);
       if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);
@@ -144,7 +144,7 @@ class Schedule {
     if(ctUid != '') ref['ct']  = db.collection('contract').doc(ctUid);
     if(ctUid != '') ref['ctDetail']  = db.collection('contract/$ctUid/ct-dateH-schedule').doc(dateIdHarp);
 
-    db.runTransaction((transaction) async {
+    await db.runTransaction((transaction) async {
       Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
       final  docRefSn = await transaction.get(docRef);
       if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);

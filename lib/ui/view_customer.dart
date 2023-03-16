@@ -266,7 +266,11 @@ class View_CS extends StatelessWidget {
                       onTap: () async {
                         var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
                         if(aa) {
-                          await FireStoreT.deleteRevenue(rev);
+                          var task = await rev.delete();
+                          if(!task) {
+                            WidgetT.showSnackBar(context, text: '삭제에 실패했습니다. 나중에 다시 시도하세요.');
+                            return;
+                          }
                           WidgetT.showSnackBar(context, text: '매출 데이터를 삭제했습니다.');
                         }
                       },

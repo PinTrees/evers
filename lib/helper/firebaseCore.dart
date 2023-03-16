@@ -71,62 +71,7 @@ class FireStoreT {
     }
   }
 
-  static dynamic updateRevenue(Revenue data, { Revenue? org }) async {
-    var create = false;
-    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(data.revenueAt));
-    if(data.id == '')  { data.id = generateRandomString(16);  create = true; }
 
-    CollectionReference coll = await FirebaseFirestore.instance.collection('revenue');
-    CollectionReference coll2 = await FirebaseFirestore.instance.collection('meta/date-m/revenue');
-    CollectionReference coll3 = await FirebaseFirestore.instance.collection('customer/${data.csUid}/detail');
-    CollectionReference coll4 = await FirebaseFirestore.instance.collection('meta/search/revenue');
-    CollectionReference coll5 = await FirebaseFirestore.instance.collection('customer');
-
-    if(org != null) {
-      var orgDateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(org.revenueAt));
-      if(dateId != orgDateId) {
-        await FireStoreHub.docUpdate('meta/date-m/revenue', 'RE-Date.DELETE', {'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,},
-          setJson:  {'list' : { org.id: null, }, 'updateAt': DateTime.now().microsecondsSinceEpoch,}, );
-      }
-    }
-
-    /// 기본 컬렉션에 저장 - 데이터 무결성
-    try { await coll.doc(data.id).update(data.toJson()); } catch (e) { print(e); await coll.doc(data.id).set(data.toJson()); }
-
-    /// 날짜 기준 저장 - 읽기 효율성
-    try { await coll2.doc(dateId).update({
-      'list\.${data.id}': data.toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,
-    }); }
-    catch (e) { print(e);  await coll2.doc(dateId).set({
-      'list': { data.id: data.toJson() }, 'updateAt': DateTime.now().microsecondsSinceEpoch,
-    }); }
-
-    /// 거래처 기준 저장 - 읽기 효율성
-    try { await coll3.doc('revenue-0').update({
-      'list\.${data.id}': data.toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,
-    }); }
-    catch (e) { print(e); await coll3.doc('revenue-0').set({
-      'list': { data.id: data.toJson() }, 'updateAt': DateTime.now().microsecondsSinceEpoch,
-    }); }
-    /// 거래처 매출 추가시 개수 업데이트
-    if(create) {
-      try { await coll5.doc(data.csUid).update({
-        'reCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,
-      }); }
-      catch (e) { print(e); }
-    }
-
-    /// 검색 데이터 검색어 메타데이터 저장 - 읽기 및 검색 효율성
-    var searchText = await data.getSearchText();
-    await getReMetaCountCheck();
-    if(data.scUid == '') data.scUid = SystemT.searchMeta.reCursor.toString();
-    try { await coll4.doc(data.scUid).update({
-      'list\.${data.id}': searchText, 'updateAt': DateTime.now().microsecondsSinceEpoch,
-    }); }
-    catch (e) { print(e); await coll4.doc(data.scUid).set({
-      'list': { data.id: searchText }, 'updateAt': DateTime.now().microsecondsSinceEpoch,
-    }); }
-  }
   static dynamic getReMetaCountCheck() async {
     var aaa = 0;
     CollectionReference coll = await FirebaseFirestore.instance.collection('meta/search/revenue-meta');
@@ -194,39 +139,6 @@ class FireStoreT {
       FunT.setStateMain();
     });
   }
-
-
-  static dynamic deleteRevenue(Revenue data,) async {
-    if(data.id == '') data.id = generateRandomString(16);
-    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(data.revenueAt));
-
-    CollectionReference coll = await FirebaseFirestore.instance.collection('revenue');
-    CollectionReference collCount = await FirebaseFirestore.instance.collection('meta');
-    CollectionReference coll2 = await FirebaseFirestore.instance.collection('customer');
-
-    data.state = 'DEL';
-    await FireStoreHub.docUpdate('revenue/${data.id}', 'RE.DELETE', data.toJson());
-    await FireStoreHub.docUpdate('meta/date-m/revenue/$dateId', 'RE-Date.DELETE',
-      { 'list\.${data.id}': null,
-        'updateAt': DateTime.now().microsecondsSinceEpoch, },
-      setJson: {},
-    );
-    await collCount.doc('meta').update({'reCount': FieldValue.increment(-1),});
-    await coll2.doc(data.csUid).update({'reCount': FieldValue.increment(-1),});
-  }
-  static dynamic deleteReDate(Revenue org ) async {
-    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(org.revenueAt));
-    CollectionReference coll = await FirebaseFirestore.instance.collection('meta/date-m/revenue');
-    try {
-      await coll.doc(dateId).update({
-        'list\.${org.id}': null,
-        'updateAt': DateTime.now().microsecondsSinceEpoch,
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
-
 
   /// 검색 메타정보 테스트 - 추후 알고리아 또는 타입신스를 통한 고도화
   static dynamic updatePurchase(Purchase data, { Purchase? org,  Map<String, Uint8List>? files, }) async {
@@ -1221,6 +1133,23 @@ class FireStoreT {
       }
     }
 
+    return data;
+  }
+  static dynamic getRevenueAll({ String? startAt, int? startDate, int? lastDate,}) async {
+    List<Revenue> data = [];
+    CollectionReference coll = FirebaseFirestore.instance.collection('revenue');
+
+    await coll.orderBy('state').orderBy('revenueAt', descending: true)
+        .where('state', isNotEqualTo: 'DEL').get().then((value) {
+      if(value.docs == null) return false;
+      print(value.docs.length);
+
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+        var ct = Revenue.fromDatabase(a.data() as Map);
+        data.add(ct);
+      }
+    });
     return data;
   }
 

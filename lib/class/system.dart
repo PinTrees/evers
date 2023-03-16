@@ -252,7 +252,8 @@ class SystemT {
       if(searchKey.length > 25) break;
       var meta = a as Map;
       meta.forEach((k, e) {
-        if(regExp.hasMatch(e)) searchKey.add(k);
+        if(e != null)
+          if(regExp.hasMatch(e)) searchKey.add(k);
       });
     }
     print('purchase search res');
@@ -373,7 +374,7 @@ class SystemT {
 }
 
 class Version {
-  static var thisVersion = '0.1.7';
+  static var thisVersion = '0.1.8';
   static var current = '';
   static var release = '';
 
