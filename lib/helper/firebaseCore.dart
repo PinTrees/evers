@@ -2017,15 +2017,7 @@ class FireStoreT {
     });
   }
 
-  static dynamic updateSchedule(Schedule data,) async {
-    if(data.id == '') data.id = generateRandomString(16);
-    CollectionReference coll = await FirebaseFirestore.instance.collection('schedule');
-    try {
-      await coll.doc(data.id).update(data.toJson());
-    } catch (e) {
-      await coll.doc(data.id).set(data.toJson());
-    }
-  }
+
   static dynamic getSchedule() async {
     List<Schedule> data = [];
     CollectionReference coll = await FirebaseFirestore.instance.collection('schedule');

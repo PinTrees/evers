@@ -158,6 +158,6 @@ class Customer {
   // 03.08 요청사항 추가
   // 고객관리 메모 검색 요청
   String getSearchText() {
-    return businessName + '&:' + manager + '&:' + representative + '&:' + phoneNumber + '&:'+ companyPhoneNumber + &: memo;
+    return businessName + '&:' + manager + '&:' + representative + '&:' + phoneNumber + '&:'+ companyPhoneNumber + '&:' + memo;
   }
 }

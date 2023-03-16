@@ -667,7 +667,7 @@ class WidgetT extends StatelessWidget {
                 children: [
                   SizedBox(width: 18, height: 18, child: CircularProgressIndicator(),),
                   SizedBox(height: 8,),
-                  WidgetT.titleT(text ?? '서버에서 데이터를 가져오는 중입니다.', size: 12, color: StyleT.backgroundColor),
+                  WidgetT.titleT(text ?? '로딩중...', size: 12, color: StyleT.backgroundColor),
                 ],
               ),
             );

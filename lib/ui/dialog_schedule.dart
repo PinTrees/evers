@@ -11,6 +11,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../class/Customer.dart';
 import '../class/contract.dart';
@@ -18,6 +19,7 @@ import '../class/purchase.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/transaction.dart';
+import '../helper/aes.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
@@ -26,6 +28,7 @@ import 'dialog_contract.dart';
 import 'dl.dart';
 import 'package:http/http.dart' as http;
 
+import 'ip.dart';
 import 'ux.dart';
 
 class DialogSHC extends StatelessWidget {
@@ -33,6 +36,7 @@ class DialogSHC extends StatelessWidget {
   static dynamic showSCHCreate(BuildContext context, { String ctUid='', DateTime? setDate, }) async {
     var dividHeight = 6.0;
 
+    Map<String, Uint8List> fileByteList = {};
     var date = DateTime.now();
     if(setDate != null) date = setDate;
     var time = TimeOfDay.now();
@@ -60,6 +64,7 @@ class DialogSHC extends StatelessWidget {
                 title: WidgetDT.dlTitle(context, title: '스케쥴 및 메모', ),
                 content: SingleChildScrollView(
                   child: Container(
+                    width: 1280,
                     padding: EdgeInsets.all(18),
                     child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -145,15 +150,128 @@ class DialogSHC extends StatelessWidget {
                           ],
                         ),
                         SizedBox(height: dividHeight,),
-                        Row(
-                          children: [
-                            WidgetT.title('메모', width: 100),
-                            Expanded(child: WidgetT.textInput(context, '메모', width: 250, height: 64, isMultiLine: true,
-                              onEdite: (i, data) { schedule.memo = data; },
-                              text: schedule.memo,
-                            ),)
-                          ],
+
+                        Container(
+                          decoration: StyleT.inkStyle(stroke: 0.35, color: Colors.transparent),
+                          child: Row(
+                            children: [
+                              WidgetT.title('메모', width: 100),
+                              Expanded(child: WidgetTF.textTitInput(context, '메모',  height: 64, isMultiLine: true,
+                                onEdite: (i, data) { schedule.memo = data; },
+                                text: schedule.memo,
+                              ),)
+                            ],
+                          ),
                         ),
+                        SizedBox(height: dividHeight,),
+                        Container(
+                          decoration: StyleT.inkStyle(stroke: 0.35, color: Colors.transparent),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              children: [
+                                SizedBox(height: 32,),
+                                WidgetT.text('첨부파일', width: 100),
+                                Expanded(
+                                    child: Container(
+                                      padding: EdgeInsets.all(dividHeight),
+                                      child: Wrap(
+                                        runSpacing: dividHeight, spacing: dividHeight * 3,
+                                        children: [
+                                          for(int i = 0; i < schedule.filesMap.length; i++)
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                InkWell(
+                                                    onTap: () async {
+                                                      var downloadUrl = schedule.filesMap.values.elementAt(i);
+                                                      var fileName = schedule.filesMap.keys.elementAt(i);
+                                                      var ens = ENAES.fUrlAES(downloadUrl);
+
+                                                      var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                                      print(url);
+                                                      await launchUrl( Uri.parse(url),
+                                                        webOnlyWindowName: true ? '_blank' : '_self',
+                                                      );
+                                                    },
+                                                    child: Container(
+                                                        decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            SizedBox(width: 6,),
+                                                            WidgetT.title(schedule.filesMap.keys.elementAt(i),),
+                                                            TextButton(
+                                                                onPressed: () {
+                                                                  WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+                                                                  FunT.setStateDT();
+                                                                },
+                                                                style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
+                                                                child: Container( height: 28, width: 28,
+                                                                  child: WidgetT.iconMini(Icons.cancel),)
+                                                            ),
+                                                          ],
+                                                        ))
+                                                ),
+                                              ],
+                                            ),
+                                          for(int i = 0; i < fileByteList.length; i++)
+                                            Row(
+                                              children: [
+                                                SizedBox(width: dividHeight * 0.5),
+                                                InkWell(
+                                                    onTap: () {
+                                                      PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
+                                                    },
+                                                    child: Container(
+                                                        decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            SizedBox(width: 6,),
+                                                            WidgetT.title(fileByteList.keys.elementAt(i),),
+                                                            TextButton(
+                                                                onPressed: () {
+                                                                  fileByteList.remove(fileByteList.keys.elementAt(i));
+                                                                  FunT.setStateDT();
+                                                                },
+                                                                style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
+                                                                child: Container( height: 28, width: 28,
+                                                                  child: WidgetT.iconMini(Icons.cancel),)
+                                                            ),
+                                                          ],
+                                                        ))
+                                                ),
+                                              ],
+                                            ),
+                                        ],
+                                      ),)),
+                              ],
+                            ),
+                          )
+                        ),
+                        SizedBox(height: dividHeight,),
+                        Row(children: [
+                          TextButton(onPressed: () async {
+                            FilePickerResult? result = await FilePicker.platform.pickFiles();
+                            if( result != null && result.files.isNotEmpty ){
+                              String fileName = result.files.first.name;
+                              print(fileName);
+                              Uint8List fileBytes = result.files.first.bytes!;
+                              fileByteList[fileName] = fileBytes;
+                              print(fileByteList[fileName]!.length);
+                              FunT.setStateDT();
+                            }
+                          },
+                            style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7),
+                            child: Container( height: 28,
+                                child: Row(
+                                  children: [
+                                    WidgetT.iconMini(Icons.file_copy_rounded),
+                                    WidgetT.title('첨부파일추가',),
+                                    SizedBox(width: dividHeight,),
+                                  ],
+                                )),),
+                        ],),
                       ],
                     ),
                   ),
@@ -174,9 +292,12 @@ class DialogSHC extends StatelessWidget {
                               return;
                             }
 
+                            WidgetT.loadingBottomSheet(context);
                             schedule.date = date.microsecondsSinceEpoch;
-                            await FireStoreT.updateSchedule(schedule);
-                            WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
+                            await schedule.update(files: fileByteList);
+                            Navigator.pop(context);
+                            WidgetT.showSnackBar(context, text: '저장됨');
+
                             Navigator.pop(context, schedule);
                           },
                           style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
@@ -264,6 +385,7 @@ class DialogSHC extends StatelessWidget {
                 );
                 chW.add(w);
               }
+
 
               return AlertDialog(
                 backgroundColor: StyleT.white.withOpacity(1),
@@ -356,6 +478,7 @@ class DialogSHC extends StatelessWidget {
   }
   static dynamic showSCHEdite(BuildContext context, Schedule org,) async {
     var dividHeight = 6.0;
+    Map<String, Uint8List> fileByteList = {};
 
     var date = DateTime.fromMicrosecondsSinceEpoch(org.date);
     var title = StyleT.dateFormat(date);
@@ -376,7 +499,7 @@ class DialogSHC extends StatelessWidget {
               List<Widget> chW = [];
               chW.add(WidgetT.title('스케쥴 상세 정보', size: StyleT.subTitleSize));
               chW.add(SizedBox(height: dividHeight,));
-              chW.add(WidgetUI.titleRowNone([ '', '구분', '계약', '메모', '첨부파일', '' ], [ 32, 100, 200, 999, 999, 36 ], background: true));
+              chW.add(WidgetUI.titleRowNone([ '', '구분', '계약', '', '' ], [ 32, 100, 250, 999, 36 ], background: true));
               Widget ctLink = SizedBox();
               var ct = SystemT.getCt(sch.ctUid);
               if(sch.ctUid != '') {
@@ -404,13 +527,8 @@ class DialogSHC extends StatelessWidget {
                               sch.type = data;
                             },
                             text: MetaT.schTypeName[sch.type.toString()] ?? '-', width: 100),
-                        Container(width: 200, child: ctLink),
-                        Expanded(child:WidgetT.excelInput(context, 'sch.edite::meno',
-                            onEdite: (i, data) {
-                              sch.memo = data;
-                            },
-                            text: sch.memo)),
-                        Expanded(child:WidgetT.excelGrid(textLite: true, text: '파일첨부기능 개발중')),
+                        Container(width: 250, child: ctLink),
+                        Expanded(child: SizedBox()),
                         InkWell(
                           onTap: () async {
                             if(!await DialogT.showAlertDl(context, text: '스케쥴을 삭제하시겠습니까?')) {
@@ -431,6 +549,138 @@ class DialogSHC extends StatelessWidget {
               );
               chW.add(w);
 
+
+              var sw = [];
+              sw.add(
+                  Column(
+                    children: [
+                      Container(
+                        decoration: StyleT.inkStyle(stroke: 0.35, color: Colors.transparent),
+                        child: Row(
+                          children: [
+                            WidgetT.title('메모', width: 100),
+                            Expanded(child: WidgetTF.textTitInput(context, '메모',  height: 64, isMultiLine: true,
+                              onEdite: (i, data) { sch.memo = data; },
+                              text: sch.memo,
+                            ),)
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: dividHeight,),
+                      Container(
+                          decoration: StyleT.inkStyle(stroke: 0.35, color: Colors.transparent),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              children: [
+                                SizedBox(height: 32,),
+                                WidgetT.text('첨부파일', width: 100),
+                                Expanded(
+                                    child: Container(
+                                      padding: EdgeInsets.all(dividHeight),
+                                      child: Wrap(
+                                        runSpacing: dividHeight, spacing: dividHeight * 3,
+                                        children: [
+                                          for(int i = 0; i < sch.filesMap.length; i++)
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                InkWell(
+                                                    onTap: () async {
+                                                      var downloadUrl = sch.filesMap.values.elementAt(i);
+                                                      var fileName = sch.filesMap.keys.elementAt(i);
+                                                      var ens = ENAES.fUrlAES(downloadUrl);
+
+                                                      var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                                      print(url);
+                                                      await launchUrl( Uri.parse(url),
+                                                        webOnlyWindowName: true ? '_blank' : '_self',
+                                                      );
+                                                    },
+                                                    child: Container(
+                                                        decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            SizedBox(width: 6,),
+                                                            WidgetT.title(sch.filesMap.keys.elementAt(i),),
+                                                            TextButton(
+                                                                onPressed: () {
+                                                                  WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+                                                                  FunT.setStateDT();
+                                                                },
+                                                                style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
+                                                                child: Container( height: 28, width: 28,
+                                                                  child: WidgetT.iconMini(Icons.cancel),)
+                                                            ),
+                                                          ],
+                                                        ))
+                                                ),
+                                              ],
+                                            ),
+                                          for(int i = 0; i < fileByteList.length; i++)
+                                            Row(
+                                              children: [
+                                                SizedBox(width: dividHeight * 0.5),
+                                                InkWell(
+                                                    onTap: () {
+                                                      PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
+                                                    },
+                                                    child: Container(
+                                                        decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
+                                                        child: Row(
+                                                          mainAxisSize: MainAxisSize.min,
+                                                          children: [
+                                                            SizedBox(width: 6,),
+                                                            WidgetT.title(fileByteList.keys.elementAt(i),),
+                                                            TextButton(
+                                                                onPressed: () {
+                                                                  fileByteList.remove(fileByteList.keys.elementAt(i));
+                                                                  FunT.setStateDT();
+                                                                },
+                                                                style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
+                                                                child: Container( height: 28, width: 28,
+                                                                  child: WidgetT.iconMini(Icons.cancel),)
+                                                            ),
+                                                          ],
+                                                        ))
+                                                ),
+                                              ],
+                                            ),
+                                        ],
+                                      ),)),
+                              ],
+                            ),
+                          )
+                      ),
+                      SizedBox(height: dividHeight,),
+                      Row(children: [
+                        TextButton(onPressed: () async {
+                          FilePickerResult? result = await FilePicker.platform.pickFiles();
+                          if( result != null && result.files.isNotEmpty ){
+                            String fileName = result.files.first.name;
+                            print(fileName);
+                            Uint8List fileBytes = result.files.first.bytes!;
+                            fileByteList[fileName] = fileBytes;
+                            print(fileByteList[fileName]!.length);
+                            FunT.setStateDT();
+                          }
+                        },
+                          style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7),
+                          child: Container( height: 28,
+                              child: Row(
+                                children: [
+                                  WidgetT.iconMini(Icons.file_copy_rounded),
+                                  WidgetT.title('첨부파일추가',),
+                                  SizedBox(width: dividHeight,),
+                                ],
+                              )),),
+                      ],),
+                    ],
+                  )
+              );
+
+              var divWidget = SizedBox(height: dividHeight * 4,);
+
               return AlertDialog(
                 backgroundColor: StyleT.white.withOpacity(1),
                 elevation: 36,
@@ -447,39 +697,8 @@ class DialogSHC extends StatelessWidget {
                     child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         for(var w in chW) w,
-                        /*   DropTarget(
-                          onDragDone: (detail) {
-                            _list.addAll(detail.files);
-                            setStateS(() {});
-                          },
-                          onDragEntered: (detail) {
-                            _dragging = true;
-                            setStateS(() {});
-                          },
-                          onDragExited: (detail) {
-                            _dragging = false;
-                            setStateS(() {});
-                          },
-                          child: Container(
-                            height: 128, width: 458, padding: EdgeInsets.all(dividHeight),
-                            color: _dragging ? Colors.blue.withOpacity(0.4) : StyleT.accentColor.withOpacity(0.07),
-                            child: _list.isEmpty
-                                ? const Center(child: Text("Drop here"))
-                                : Wrap(
-                              runSpacing: 6, spacing: 6,
-                                  children: [
-                                    for(var f in _list)
-                                      TextButton(
-                                        onPressed: () {
-                                          PDFX.showPDFtoDialog(context, path: f.path, name: f.name);
-                                        },
-                                          style: StyleT.buttonStyleOutline(padding: 0, color: StyleT.accentLowColor, strock: 1),
-                                          child: Container(padding: EdgeInsets.all(6), child: WidgetT.textLight(f.name,))
-                                      ),
-                                  ],
-                                ),
-                          ),
-                        ),*/
+                        divWidget,
+                        for(var w in sw) w,
                       ],
                     ),
                   ),
@@ -496,7 +715,7 @@ class DialogSHC extends StatelessWidget {
                             }
 
                             WidgetT.loadingBottomSheet(context, text: '저장중');
-                            var data = await FireStoreT.updateSchedule(sch);
+                            var data = sch.update(files: fileByteList);
                             Navigator.pop(context);
                             WidgetT.showSnackBar(context, text: '저장됨');
 

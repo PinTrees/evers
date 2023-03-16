@@ -337,37 +337,94 @@ class DialogCT extends StatelessWidget {
               for(int i = 0; i < sch_list.length; i++) {
                 var sch = sch_list[i];
 
-                var w = Container(
-                  height: heightSized,
-                  child: Row(
-                      children: [
-                        WidgetT.title('', width: 28),
-                        WidgetT.excelGrid(label:'${i + 1}', width: 28),
-                        WidgetT.excelGrid(textLite: true, text: StyleT.dateFormatAtEpoch(sch.date.toString()), width: 150, ),
-                        WidgetT.excelGrid(textLite: false, text: StyleT.getSCHTag(sch.type), width: 150,),
-                        Expanded(child: WidgetT.excelGrid(textLite: true, width: 250, text: sch.memo,),),
-                        InkWell(
-                            onTap: () {
+                var w = Column(
+                  children: [
+                    Container(
+                      child: IntrinsicHeight(
+                        child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: heightSized,),
+                              WidgetT.title('', width: 28),
+                              WidgetT.excelGrid(label:'${i + 1}', width: 28),
+                              WidgetT.excelGrid(textLite: true, text: StyleT.dateFormatAtEpoch(sch.date.toString()), width: 150, ),
+                              WidgetT.excelGrid(textLite: false, text: StyleT.getSCHTag(sch.type), width: 150,),
+                              Expanded(child: WidgetT.excelGrid(textLite: true, width: 250,
+                                alignment: Alignment.centerLeft, text: sch.memo,),),
+                              InkWell(
+                                  onTap: () async {
+                                    var data = await DialogSHC.showSCHEdite(context, sch);
+                                    FunT.setStateD = setData;
 
-                            },
-                            child: Container( height: 28, width: 28,
-                              child: WidgetT.iconMini(Icons.open_in_new),)
+                                    if(data != null) {
+                                      sch_list = await FireStoreT.getSCH_CT(ct.id);
+                                      FunT.setStateDT();
+                                    }
+                                  },
+                                  child: Container( height: 28, width: 28,
+                                    child: WidgetT.iconMini(Icons.create),)
+                              ),
+                            ]
                         ),
-                        InkWell(
-                            onTap: () async {
-                              var data = await DialogSHC.showSCHEdite(context, sch);
-                              FunT.setStateD = setData;
+                      ),
+                    ),
+                    if(sch.filesMap.isNotEmpty)
+                      Container(
+                        height: heightSized,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 32, width: 32,),
+                            WidgetT.text('첨부파일',),
+                            SizedBox(width: 32,),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  for(int i = 0; i < sch.filesMap.length; i++)
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        InkWell(
+                                            onTap: () async {
+                                              var downloadUrl = sch.filesMap.values.elementAt(i);
+                                              var fileName = sch.filesMap.keys.elementAt(i);
+                                              var ens = ENAES.fUrlAES(downloadUrl);
 
-                              if(data != null) {
-                                sch_list = await FireStoreT.getSCH_CT(ct.id);
-                                FunT.setStateDT();
-                              }
-                            },
-                            child: Container( height: 28, width: 28,
-                              child: WidgetT.iconMini(Icons.create),)
+                                              var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                              print(url);
+                                              await launchUrl( Uri.parse(url),
+                                                webOnlyWindowName: true ? '_blank' : '_self',
+                                              );
+                                            },
+                                            child: Container(
+                                                height: 24,
+                                                decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    SizedBox(width: 6,),
+                                                    WidgetT.title(sch.filesMap.keys.elementAt(i), size: 12),
+                                                    InkWell(
+                                                        onTap: () {
+                                                          WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+                                                          FunT.setStateDT();
+                                                        },
+                                                        child: Container( height: 24, width: 24,
+                                                          child: WidgetT.iconMini(Icons.cancel),)
+                                                    ),
+                                                  ],
+                                                ))
+                                        ),
+                                        SizedBox(width: dividHeight*2,),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                            )
+                          ],
                         ),
-                      ]
-                  ),
+                      ),
+                  ],
                 );
                 schW.add(w);
                 schW.add(WidgetT.dividHorizontal(size: 0.35));
@@ -392,7 +449,7 @@ class DialogCT extends StatelessWidget {
                 ],
               );
               var btnStyle =  StyleT.buttonStyleOutline(round: 8, elevation: 0, padding: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7);
-              var gridStyle = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.00), stroke: 0.1, strokeColor: StyleT.titleColor.withOpacity(0.1));
+              var gridStyle = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.00), stroke: 0.01, strokeColor: StyleT.titleColor.withOpacity(0.0));
               var gridStyleT = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.03), stroke: 2, strokeColor: StyleT.titleColor.withOpacity(0.1));
               var btnStyleT = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.1),
                   stroke: 0.35,);

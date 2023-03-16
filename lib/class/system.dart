@@ -373,7 +373,7 @@ class SystemT {
 }
 
 class Version {
-  static var thisVersion = '0.1.6';
+  static var thisVersion = '0.1.7';
   static var current = '';
   static var release = '';
 
