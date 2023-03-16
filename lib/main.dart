@@ -77,7 +77,7 @@ void main() async {
   await Firebase.initializeApp(
       options: FirebaseOptions(
           apiKey: "asdcdcasdcassadc",
-          authDomain: "",
+          authDomain: "dd",
           databaseURL: "",
           projectId: "",
           storageBucket: "",
