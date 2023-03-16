@@ -42,6 +42,34 @@ class _HomePageState extends State<HomePage> {
       children: [
         Column(
           children: [
+            // 홈페이지 수정부분 - 추후 수정 / 03.16
+            Row(
+              chidren: [
+                Expanded(
+                  child: Container(
+                    height: 512, width: double.maxFinde,
+                    child: CachedNetworImage(imageUrl:'', fit: BoxFit.cover);
+                  )
+                )
+              ]
+            ),
+            
+            Row(
+               chidren: [
+                Expanded(
+                  child: Container(
+                    height: 512, width: double.maxFinde,
+                    child: Column(
+                      children: [
+                        
+                      ]
+                    )
+                  )
+                )
+              ]
+            )
+            
+            
             Icon(Icons.home,),
           ],
         )

@@ -21,7 +21,16 @@ class _NonePageState extends State<NonePage> {
       children: [
         Column(
           children: [
+            Row(),
+            SizedBox(height: 18);
+            WidgetT.text('페이지를 찾을 수 없습니다.', size: 18);
+            SizedBox(height: 6 * 8 );
             Icon(Icons.close,),
+            
+            // 메인홈페이지로 리깅
+            // 아예 페이지를 찾을 수 없을을 메시지로 표시 후 홈페이지로 리깅
+            // context.go();
+            // urlLauncer를 통해 Url 변경
           ],
         )
       ],

@@ -99,8 +99,6 @@ class _LogInPageState extends State<LogInPage> {
                 print(currentUser?.email);
 
                 if(currentUser != null) {
-                  //await FirebaseAuth.instance.currentUser?.updatePassword('12345678');
-                  //await FirebaseAuth.instance.currentUser?.updateEmail('taegi_0@taegi.com');
                   await WidgetT.showSnackBar(context, text: '로그인 성공',);
                   context.pop();
                   context.go('/work/u');
@@ -146,8 +144,6 @@ class _LogInPageState extends State<LogInPage> {
               print(currentUser?.email);
 
               if(currentUser != null) {
-                //await FirebaseAuth.instance.currentUser?.updatePassword('12345678');
-                //await FirebaseAuth.instance.currentUser?.updateEmail('taegi_0@taegi.com');
                 await WidgetT.showSnackBar(context, text: '로그인 성공',);
                 context.pop();
                 context.go('/work/u');

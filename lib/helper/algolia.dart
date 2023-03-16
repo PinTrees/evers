@@ -25,8 +25,8 @@ import 'function.dart';
 
 class Algolia {
   static final contractSearch = HitsSearcher(
-    applicationID: 'NPJYQ36957',
-    apiKey: '1b03dbd461c435d42f4547c1161d0762',
+    applicationID: '',
+    apiKey: '',
     indexName: 'contract',
   );
   static dynamic initSearchContract() async {
