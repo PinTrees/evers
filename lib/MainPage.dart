@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evers/helper/dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -44,21 +45,21 @@ class _HomePageState extends State<HomePage> {
           children: [
             // 홈페이지 수정부분 - 추후 수정 / 03.16
             Row(
-              chidren: [
+              children: [
                 Expanded(
                   child: Container(
-                    height: 512, width: double.maxFinde,
-                    child: CachedNetworImage(imageUrl:'', fit: BoxFit.cover);
+                    height: 512, width: double.maxFinite,
+                    child: CachedNetworkImage(imageUrl:'', fit: BoxFit.cover),
                   )
                 )
               ]
             ),
             
             Row(
-               chidren: [
+                children: [
                 Expanded(
                   child: Container(
-                    height: 512, width: double.maxFinde,
+                    height: 512, width: double.maxFinite,
                     child: Column(
                       children: [
                         
@@ -67,9 +68,7 @@ class _HomePageState extends State<HomePage> {
                   )
                 )
               ]
-            )
-            
-            
+            ),
             Icon(Icons.home,),
           ],
         )

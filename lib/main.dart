@@ -76,7 +76,7 @@ void main() async {
   await initializeDateFormatting('ko_KR');
   await Firebase.initializeApp(
       options: FirebaseOptions(
-          apiKey: "",
+          apiKey: "asdcdcasdcassadc",
           authDomain: "",
           databaseURL: "",
           projectId: "",
