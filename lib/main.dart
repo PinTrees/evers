@@ -76,14 +76,14 @@ void main() async {
   await initializeDateFormatting('ko_KR');
   await Firebase.initializeApp(
       options: FirebaseOptions(
-          apiKey: "asdcdcasdcassadc",
-          authDomain: "dd",
-          databaseURL: "",
-          projectId: "",
-          storageBucket: "",
-          messagingSenderId: "",
-          appId: "",
-          measurementId: ""
+          apiKey: "AIzaSyDCcboNL_upOFv4ahA6g2PvW5zsfLTWDCQ",
+          authDomain: "evers-925f6.firebaseapp.com",
+          databaseURL: "https://evers-925f6-default-rtdb.firebaseio.com",
+          projectId: "evers-925f6",
+          storageBucket: "evers-925f6.appspot.com",
+          messagingSenderId: "463371337608",
+          appId: "1:463371337608:web:f6cb68304d43373cf9843d",
+          measurementId: "G-LJYWK3N274"
       )
   );
   //setUrlStrategy(PathUrlStrategy());
