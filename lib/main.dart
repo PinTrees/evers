@@ -82,7 +82,7 @@ void main() async {
           projectId: "evers-925f6",
           storageBucket: "evers-925f6.appspot.com",
           messagingSenderId: "463371337608",
-          appId: "1:463371337608:web:f6cb68304d43373cf9843d", 
+          appId: "1:463371337608:web:f6cb68304d43373cf9843d",
           measurementId: "G-LJYWK3N274"
       )
   );
