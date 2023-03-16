@@ -135,7 +135,7 @@ class _WorkPageState extends State<WorkPage> {
   var sortMenu_FD_Date_current = '';
   var sortMenu_FD = false;
 
-  var isDev = false;
+  var isDev = true;
 
   TextEditingController searchInput = TextEditingController();
 
@@ -1338,10 +1338,11 @@ class _WorkPageState extends State<WorkPage> {
         }
 
         if(isDev) {
-          childrenW.add(WidgetT.excelInput(context, 'version.title', width: 500, isMain: true,
+          childrenW.add(WidgetTF.textTitInput(context, 'version.titleacascasdc',
           onEdite: (i, data) {
             version.name = data;
           }, text: version.name));
+
           childrenW.add(
               Row(
                 children: [
