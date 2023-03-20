@@ -638,11 +638,16 @@ class View_REPU extends StatelessWidget {
                       child: WidgetT.iconMini(Icons.open_in_new, size: 36),
                   ),
                   WidgetEX.excelButtonIcon(icon: Icons.delete, onTap: () async {
-                    var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
-                    if(aa) {
-                      await FireStoreT.deleteTs(tmpTs);
-                      WidgetT.showSnackBar(context, text: '거래 데이터를 삭제했습니다.');
+                    if(!await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?')){
+                      WidgetT.showSnackBar(context, text: '삭제 취소됨');
+                      return;
                     }
+                    WidgetT.loadingBottomSheet(context, text: '삭제중');
+                    var ret = await tmpTs.delete();
+                    Navigator.pop(context);
+
+                    if(ret) WidgetT.showSnackBar(context, text: '삭제됨');
+                    else WidgetT.showSnackBar(context, text: '삭제에 실패했습니다. 나중에 다시 시도해 주세요.');
                   }),
                 ]
             ),

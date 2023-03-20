@@ -352,7 +352,7 @@ class View_CS extends StatelessWidget {
                   WidgetEX.excelButtonIcon(icon: Icons.delete, onTap: () async {
                     var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
                     if(aa) {
-                      await FireStoreT.deleteTs(tmpTs);
+                      await tmpTs.delete();
                       WidgetT.showSnackBar(context, text: '거래 데이터를 삭제했습니다.');
                     }
                   }),

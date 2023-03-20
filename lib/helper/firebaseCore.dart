@@ -470,31 +470,6 @@ class FireStoreT {
     }
   }
 
-  static dynamic deleteTs(TS data) async {
-    data.type = 'DEL';
-    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(data.transactionAt));
-
-    var db = FirebaseFirestore.instance;
-    final batch = db.batch();
-
-    var main = db.collection('transaction').doc(data.id);
-    batch.update(main, data.toJson());
-
-    var dateRef = db.collection('meta/date-m/transaction').doc(dateId);
-    batch.update(dateRef, {'list\.${data.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
-
-    var csRef = db.collection('customer').doc(data.csUid);
-    batch.update(csRef, {'tsCount': FieldValue.increment(-1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
-
-    if(data.scUid != '') {
-      var searchRef = db.collection('meta/search/transaction').doc(data.scUid);
-      batch.update(searchRef, {'list\.${data.id}': '', 'updateAt': DateTime.now().microsecondsSinceEpoch,});
-    }
-
-    batch.commit().then((_) {});
-    print(data.toJson());
-  }
-
   static dynamic getTransaction({ String? startAt, int? startDate, int? lastDate, }) async {
     List<TS> tsList = [];
     if(startAt != null) {

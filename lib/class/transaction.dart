@@ -245,7 +245,7 @@ class TS {
       }
 
       if(ref['ct'] != null) {
-        if(create) if(sn['ct']!.exists) transaction.update(ref['ct']!, {'reCount': FieldValue.increment(1),});
+        if(create) if(sn['ct']!.exists) transaction.update(ref['ct']!, {'tsCount': FieldValue.increment(1),});
 
         if(sn['ctDetail']!.exists) transaction.update(ref['ctDetail']!, { id: toJson(), });
         else transaction.set(ref['ctDetail']!, { id: toJson(), });
@@ -261,8 +261,76 @@ class TS {
         onError: (e) { print("Error update transaction() $e"); return false; }
     );
   }
-  dynamic delete() {
+  dynamic delete() async {
+    type = 'DEL';
 
+    if(id == '') return false;
+    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));
+
+    var dateIdHarp = DateStyle.dateYearsHarp(transactionAt);
+    var dateIdQuarter = DateStyle.dateYearsQuarter(transactionAt);
+
+    Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
+    var db = FirebaseFirestore.instance;
+    /// 메인문서 기록
+    final docRef = db.collection("transaction").doc(id);
+    final dateRef = db.collection('meta/date-m/transaction').doc(dateId);
+
+    if(account != '') ref['account'] =  db.collection('meta/account/${account}').doc(dateIdQuarter);
+    if(csUid != '') ref['cs'] = db.collection('customer').doc(csUid);
+    if(csUid != '') ref['csDetail'] = db.collection('customer/${csUid}/cs-dateH-transaction').doc(dateIdHarp);
+    if(ctUid != '') ref['ct'] = db.collection('contract').doc(ctUid);
+    if(ctUid != '') ref['ctDetail'] = db.collection('contract/${ctUid}/ct-dateH-transaction').doc(dateIdHarp);
+    /// 검색 기록 문서 경로로
+    final searchRef = db.collection('meta/search/dateQ-transaction').doc(dateIdQuarter);
+
+    return await db.runTransaction((transaction) async {
+      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
+      final  docRefSn = await transaction.get(docRef);
+      final  docDateRefSn = await transaction.get(dateRef);
+      final  searchSn = await transaction.get(searchRef);
+
+      if(ref['account'] != null) sn['account'] = await transaction.get(ref['account']!);
+      if(ref['cs'] != null) sn['cs'] = await transaction.get(ref['cs']!);
+      if(ref['csDetail'] != null) sn['csDetail'] = await transaction.get(ref['csDetail']!);
+
+      if(ref['ct'] != null) sn['ct'] = await transaction.get(ref['ct']!);
+      if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);
+
+
+
+      /// 기초 거래기록 저장 컬렉션에서 데이터 삭제
+      if(docRefSn.exists) transaction.update(docRef, toJson());
+
+      /// 일자별 거래기록에 추가된 데이터 삭제
+      if(docDateRefSn.exists) {
+        transaction.update(dateRef, { 'list\.${id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+      }
+
+      /// 계좌 정보에 추가된 금액 삭제
+      if(sn['account'] != null) {
+        print('ascdascsadcsad');
+        if(sn['account']!.exists) transaction.update(ref['account']!, { id: FieldValue.delete(), },);
+      }
+
+      /// 거래처 개별기록에 추가된 데이터 삭제 및 개수 감소
+      if(ref['cs'] != null) {
+        transaction.update(ref['cs']!, {'tsCount': FieldValue.increment(-1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: FieldValue.delete(), });
+      }
+
+      /// 계약 개별기록에 추가된 데이터 삭제 및 개수 감소
+      if(ref['ct'] != null) {
+        if(sn['ct']!.exists) transaction.update(ref['ct']!, {'tsCount': FieldValue.increment(-1),});
+        if(sn['ctDetail']!.exists) transaction.update(ref['ctDetail']!, { id: FieldValue.delete(), });
+      }
+
+      /// 검색 메타데이터 데이터 삭제
+      if(searchSn.exists)  transaction.update(searchRef, { id : FieldValue.delete(), },);
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated!"); return true; },
+        onError: (e) { print("Error delete transaction() $e"); return false; }
+    );
   }
 }
 

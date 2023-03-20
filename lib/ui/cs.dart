@@ -1069,6 +1069,7 @@ class DialogCS extends StatelessWidget {
     List<TS> tslist = [];
     List<TS> tslistCr = [];
 
+    var pageLimit = 10;
     var puIndex = 0;
     var tsIndex = 0;
 
@@ -1093,7 +1094,11 @@ class DialogCS extends StatelessWidget {
               List<Widget> puW = [];
               puW.add(WidgetUI.titleRowNone([ '', '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
                   [ 28, 28, 100, 150 + 28 * 2, 50, 80, 80 + 28, 80, 80, 80, 999 ], background: true));
-              for(int i = 0; i < purs.length; i++) {
+
+              int startIndex = puIndex * pageLimit;
+              for(int i = startIndex; i < startIndex + pageLimit; i++) {
+                if(i >= purs.length) break;
+
                 Widget w = SizedBox();
                 var pu = purs[i];
                 var item = SystemT.getItem(pu.item);
@@ -1172,17 +1177,14 @@ class DialogCS extends StatelessWidget {
                         ),
                       ),
                     ),
-
-                    if(pu.filesMap.isNotEmpty)
-                      WidgetT.dividHorizontal(size: 0.35),
                     if(pu.filesMap.isNotEmpty)
                       Container(
-                      height: 28,
+                      height: 36, padding: EdgeInsets.only(bottom: dividHeight),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              WidgetT.excelGrid( width: 150 + 28 * 2, label: '거래명세서 첨부파일', ),
-                              WidgetT.dividViertical(height: 28),
-                              Expanded(child: Container( padding: EdgeInsets.all(0),  child: Wrap(
+                              WidgetT.excelGrid( textLite: true, width: 150 + 28 * 2, text: '거래명세서 첨부파일', ),
+                              Expanded(child: Container(   child: Wrap(
                                 runSpacing: dividHeight * 2, spacing: dividHeight * 2,
                                 children: [
                                   for(int i = 0; i < pu.filesMap.length; i++)
@@ -1200,11 +1202,14 @@ class DialogCS extends StatelessWidget {
                                           );
                                           FunT.setStateMain();
                                         },
-                                        child: Container(padding: EdgeInsets.all(0), child: Row(
+                                        child: Container(
+                                          color: Colors.grey.withOpacity(0.15),
+                                            padding: EdgeInsets.all(0), 
+                                            child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             WidgetT.iconMini(Icons.cloud_done, size: 28),
-                                            WidgetT.title(pu.filesMap.keys.elementAt(i),),
+                                            WidgetT.text(pu.filesMap.keys.elementAt(i), size: 12),
                                             SizedBox(width: dividHeight,)
                                           ],
                                         ))
@@ -1219,10 +1224,36 @@ class DialogCS extends StatelessWidget {
                 puW.add(w);
                 puW.add(WidgetT.dividHorizontal(size: 0.35));
               }
+              puW.add(SizedBox(height: dividHeight,));
+              puW.add(
+                Row(
+                  children: [
+                    for(int i = 0; i < (purs.length / pageLimit).ceil(); i++)
+                      Container(
+                        padding: EdgeInsets.only(left: dividHeight),
+                        child: InkWell(
+                          onTap: () {
+                            puIndex = i;
+                            FunT.setStateDT();
+                          },
+                          child: Container(
+                            width: 32, height: 32,
+                            alignment: Alignment.center,
+                            color: Colors.grey.withOpacity(0.15),
+                            child: WidgetT.title('${i + 1}'),
+                          ),
+                        ),
+                      )
+                  ],
+                )
+              );
 
               List<Widget> tsW = [];
               tsW.add(WidgetUI.titleRowNone([ '', '순번', '거래일자', '구분', '적요', '결재', '금액', '메모', ], [ 28, 28, 100, 100, 200, 150 + 28, 100, 999,], background: true),);
-              for(int i = 0; i < tslist.length; i++) {
+              startIndex = tsIndex * pageLimit;
+              for(int i = startIndex; i < startIndex + pageLimit; i++) {
+                if(i >= tslist.length) break;
+
                 var tmpTs = tslist[i];
                 allPayedAmount += tmpTs.amount;
                 var w = InkWell(
@@ -1260,6 +1291,29 @@ class DialogCS extends StatelessWidget {
                 tsW.add(w);
                 tsW.add(WidgetT.dividHorizontal(size: 0.35));
               }
+              tsW.add(SizedBox(height: dividHeight,));
+              tsW.add(
+                  Row(
+                    children: [
+                      for(int i = 0; i < (tslist.length / pageLimit).ceil(); i++)
+                        Container(
+                          padding: EdgeInsets.only(left: dividHeight),
+                          child: InkWell(
+                            onTap: () {
+                              tsIndex = i;
+                              FunT.setStateDT();
+                            },
+                            child: Container(
+                              width: 32, height: 32,
+                              alignment: Alignment.center,
+                              color: Colors.grey.withOpacity(0.15),
+                              child: WidgetT.title('${i + 1}'),
+                            ),
+                          ),
+                        )
+                    ],
+                  )
+              );
 
               List<Widget> tsCW = [];
               for(int i = 0; i < tslistCr.length; i++) {

@@ -210,20 +210,26 @@ class View_Delete extends StatelessWidget {
               ),
               InkWell(
                 onTap: () async {
+
+
                   if(!await DialogT.showAlertDl(context, text: '수납정보를 삭제하시겠습니까?')) {
                     WidgetT.showSnackBar(context, text: '삭제 취소됨');
                     return;
                   }
 
-                  WidgetT.loadingBottomSheet(context, text: '수납 삭제중');
+                  WidgetT.loadingBottomSheet(context, text: '삭제중');
                   var dataList = await FireStoreT.getTransactionCs(cs.id);
 
-                  for(var data in dataList) {
-                    await FireStoreT.deleteTs(data);
+                  var ret = true;
+                  for(TS data in dataList) {
+                     var a = await data.delete();
+                     if(!a) ret = a;
                   }
 
                   Navigator.pop(context);
-                  WidgetT.showSnackBar(context, text: '삭제됨');
+
+                  if(ret) WidgetT.showSnackBar(context, text: '삭제됨');
+                  else WidgetT.showSnackBar(context, text: '하나 이상의 수납정보를 삭제하는데 실패했습니다. 관리자에 문의하세요.');
                 },
                 child: Row(
                   children: [
