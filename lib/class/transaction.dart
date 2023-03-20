@@ -143,6 +143,12 @@ class TS {
     }
     return cs.businessName + '&:' + summary + '&:' + memo + '&:' + date;
   }
+  
+  dynamic update() {
+  }
+  
+  dynamic delete() {
+  }
 }
 
 /// 품목 리스트
