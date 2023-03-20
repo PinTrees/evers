@@ -1,6 +1,8 @@
 
+import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/helper/style.dart';
 import 'package:flutter/material.dart';
@@ -144,10 +146,123 @@ class TS {
     return cs.businessName + '&:' + summary + '&:' + memo + '&:' + date;
   }
   
-  dynamic update() {
+  dynamic update({TS? org, Map<String, Uint8List>? files, }) async {
+    var create = false;
+    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));
+    if(id == '')  { id = FireStoreT.generateRandomString(16);  create = true; }
+
+    var orgDateId = '-';
+    var orgDateQuarterId = '-';
+    var orgDateIdHarp = '-';
+    if(org != null) {
+      orgDateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(org.transactionAt));
+      orgDateQuarterId = DateStyle.dateYearsQuarter(org.transactionAt);
+      orgDateIdHarp = DateStyle.dateYearsHarp(org.transactionAt);
+    }
+
+    var dateIdHarp = DateStyle.dateYearsHarp(transactionAt);
+    var dateIdQuarter = DateStyle.dateYearsQuarter(transactionAt);
+    var searchText = await getSearchText();
+
+    Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
+    var db = FirebaseFirestore.instance;
+    /// 메인문서 기록
+    final docRef = db.collection("transaction").doc(id);
+    final dateRef = db.collection('meta/date-m/transaction').doc(dateId);
+    if(org != null) ref['orgDate'] = db.collection('meta/date-m/transaction').doc(orgDateId);
+    if(org != null) ref['orgSearch'] = db.collection('meta/search/dateQ-transaction').doc(orgDateQuarterId);
+    if(org != null) {
+      if(org.csUid != '') ref['orgCsDetail'] = db.collection('customer/${org.csUid}/cs-dateH-transaction').doc(orgDateIdHarp);
+      if(org.ctUid != '') ref['orgCtDetail'] = db.collection('contract/${org.ctUid}/ct-dateH-transaction').doc(orgDateIdHarp);
+      if(org.getAmount() != 0 && org.account != '') ref['orgAccount'] =  db.collection('meta/account/${account}').doc(orgDateQuarterId);
+    }
+    if(getAmount() != 0 && account != '') ref['account'] =  db.collection('meta/account/${account}').doc(dateIdQuarter);
+    if(csUid != '') ref['cs'] = db.collection('customer').doc(csUid);
+    if(csUid != '') ref['csDetail'] = db.collection('customer/${csUid}/cs-dateH-transaction').doc(dateIdHarp);
+    if(ctUid != '') ref['ct'] = db.collection('contract').doc(ctUid);
+    if(ctUid != '') ref['ctDetail'] = db.collection('contract/${ctUid}/ct-dateH-transaction').doc(dateIdHarp);
+    /// 검색 기록 문서 경로로
+    final searchRef = db.collection('meta/search/dateQ-transaction').doc(dateIdQuarter);
+
+    return await db.runTransaction((transaction) async {
+      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
+      final  docRefSn = await transaction.get(docRef);
+      final  docDateRefSn = await transaction.get(dateRef);
+      final  searchSn = await transaction.get(searchRef);
+      if(ref['orgDate'] != null) sn['orgDate'] = await transaction.get(ref['orgDate']!);
+      if(ref['orgSearch'] != null) sn['orgSearch'] = await transaction.get(ref['orgSearch']!);
+      if(ref['orgCsDetail'] != null) sn['orgCsDetail'] = await transaction.get(ref['orgCsDetail']!);
+      if(ref['orgCtDetail'] != null) sn['orgCtDetail'] = await transaction.get(ref['orgCtDetail']!);
+      if(ref['orgAccount'] != null) sn['orgAccount'] = await transaction.get(ref['orgAccount']!);
+
+      if(ref['account'] != null) sn['account'] = await transaction.get(ref['account']!);
+      if(ref['cs'] != null) sn['cs'] = await transaction.get(ref['cs']!);
+      if(ref['csDetail'] != null) sn['csDetail'] = await transaction.get(ref['csDetail']!);
+
+      if(ref['ct'] != null) sn['ct'] = await transaction.get(ref['ct']!);
+      if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);
+
+      if(org != null) {
+        if(sn['orgDate']!.exists && dateId != orgDateId && orgDateId != '-')
+          transaction.update(ref['orgDate']!, {'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+
+        if(sn['orgCsDetail'] != null) {
+          if(sn['orgCsDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-') {
+            transaction.update(ref['orgCsDetail']!, { org.id: FieldValue.delete(), });
+          }
+        }
+        if(sn['orgCtDetail'] != null) {
+          if(sn['orgCtDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-') {
+            transaction.update(ref['orgCtDetail']!, { org.id: FieldValue.delete() });
+          }
+        }
+
+        if(dateIdQuarter != orgDateQuarterId) {
+          if(sn['orgSearch']!.exists) transaction.update(ref['orgSearch']!, { id: FieldValue.delete(), });
+          if(sn['orgAccount'] != null) if(sn['orgAccount']!.exists) transaction.update(ref['orgAccount']!, { id: FieldValue.delete(), });
+        }
+      }
+
+      if(docRefSn.exists)  transaction.update(docRef, toJson());
+      else  transaction.set(docRef, toJson());
+
+      if(docDateRefSn.exists) {
+        transaction.update(dateRef, { 'list\.${id}': toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+      } else {
+        transaction.set(dateRef, {  'list': { id: toJson() },  'updateAt': DateTime.now().microsecondsSinceEpoch, });
+      }
+
+      if(sn['account'] != null) {
+        if(sn['account']!.exists) transaction.update(ref['account']!, { id: getAmount(), },);
+        else transaction.set(ref['account']!, { id: getAmount() },);
+      }
+
+      if(ref['cs'] != null) {
+        if(create) transaction.update(ref['cs']!, {'tsCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+
+        if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: toJson(), });
+        else transaction.set(ref['csDetail']!, { id: toJson(), });
+      }
+
+      if(ref['ct'] != null) {
+        if(create) if(sn['ct']!.exists) transaction.update(ref['ct']!, {'reCount': FieldValue.increment(1),});
+
+        if(sn['ctDetail']!.exists) transaction.update(ref['ctDetail']!, { id: toJson(), });
+        else transaction.set(ref['ctDetail']!, { id: toJson(), });
+      }
+
+      if(searchSn.exists) {
+        transaction.update(searchRef, { id : searchText, },);
+      } else {
+        transaction.set(searchRef, { id : searchText },);
+      }
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated!"); return true; },
+        onError: (e) { print("Error update transaction() $e"); return false; }
+    );
   }
-  
   dynamic delete() {
+
   }
 }
 
@@ -300,7 +415,6 @@ class ItemTS {
 }
 
 
-
 class Account {
   var id = '';
   var type = '';
@@ -362,6 +476,7 @@ class LTS {
   }
 
 }
+
 class Balance {
   var balance = 0;
   var cash = 0;

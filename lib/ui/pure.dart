@@ -615,7 +615,7 @@ class WidgetPR extends StatelessWidget {
                               /// 매입정보 추가 - 매입데이터 및 거래명세서 파일 데이터
                               await FireStoreT.updatePurchase(p, files: files);
                               /// 지불 정보 문서 추가
-                              if(payment == '즉시') await FireStoreT.updateTransaction(TS.fromPu(p, payType, now: true));
+                              if(payment == '즉시') await TS.fromPu(p, payType, now: true).update();
                             }
 
                             //SystemT.contract.add(pu);
@@ -1008,13 +1008,13 @@ class WidgetPR extends StatelessWidget {
                               return;
                             }
 
-                            for(var t in tslistCr) {
+                            for(var ts in tslistCr) {
                               if(isNoCs) {
-                                await FireStoreT.updateTransaction(t);
+                                await ts.update();
                               } else {
-                                t.csUid = cs!.id;
-                                if(isCt) { t.csUid = ct!.csUid; t.ctUid = ct!.id; }
-                                await FireStoreT.updateTransaction(t);
+                                ts.csUid = cs!.id;
+                                if(isCt) { ts.csUid = ct!.csUid; ts.ctUid = ct!.id; }
+                                await ts.update();
                               }
                             }
 

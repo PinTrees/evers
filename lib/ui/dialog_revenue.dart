@@ -324,7 +324,7 @@ class DialogRE extends StatelessWidget {
                                 var task = await revenue.update();
 
                                 if(task) {
-                                  if(payment == '즉시') await FireStoreT.updateTransaction(TS.fromRe(revenue, payType, now: true));
+                                  if(payment == '즉시') await TS.fromRe(revenue, payType, now: true).update();
                                 }
                                 else {
                                   WidgetT.showSnackBar(context, text: '저장에 실패했습니다. 나중에 다시 시도해 주세요');

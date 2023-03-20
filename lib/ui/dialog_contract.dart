@@ -997,7 +997,7 @@ class DialogCT extends StatelessWidget {
                                     for(var ts in tslistCr) {
                                       ts.ctUid = ct.id;
                                       ts.csUid = ct.csUid;
-                                      await FireStoreT.updateTransaction(ts);
+                                      await ts.update();
                                     }
 
                                     tslist = await FireStoreT.getTransactionCt(ct.id);

@@ -494,60 +494,7 @@ class FireStoreT {
     batch.commit().then((_) {});
     print(data.toJson());
   }
-  static dynamic updateTransaction(TS ts, { TS? org }) async {
-    if(org != null) {
-      var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(org.transactionAt));
-      var tsDateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(ts.transactionAt));
 
-      /// 같은 날짜가 아닌경우 기존 날짜의 데이터를 제거
-      if(tsDateId != dateId) {
-        await FireStoreHub.docUpdate('meta/date-m/transaction/${dateId}', 'TS-Date.DELETE',
-          { 'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch, },
-          setJson: {'list': { null }, 'updateAt': DateTime.now().microsecondsSinceEpoch,},
-        );
-      }
-      /// 수입 및 지출 또는 금액에 변동사항이 있을 수 있으므로 기존의 계좌 거래기록을 변경
-      if(ts.account != org.account /*|| ts.type != org.type || ts.amount != org.amount*/) {
-        if(org.getAmount() != 0 && org.account != '' && org.scUid != '') {
-          await FireStoreHub.docUpdate('meta/account/${org.account}/${org.scUid}', 'TS-Account.PATCH',
-            { 'list\.${ts.id}': 0, 'date': org.transactionAt, },
-            setJson: {'list': { org.id: 0 }, 'date': org.transactionAt,},
-          );
-        }
-      }
-    }
-
-    if(ts.id == '') ts.id = generateRandomString(16);
-    await getTsMetaCountCheck();
-    if(ts.scUid == '') ts.scUid = SystemT.searchMeta.tsCursor.toString();
-    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(ts.transactionAt));
-
-    await FireStoreHub.docUpdate('transaction/${ts.id}', 'TS.PATCH', ts.toJson());
-    await FireStoreHub.docUpdate('meta/date-m/transaction/${dateId}', 'TS-Date.PATCH',
-      { 'list\.${ts.id}': ts.toLJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch, },
-      setJson: {'list': { ts.id: ts.toLJson() }, 'updateAt': DateTime.now().microsecondsSinceEpoch,},
-    );
-
-    if(ts.getAmount() != 0 && ts.account != '') {
-      await FireStoreHub.docUpdate('meta/account/${ts.account}/${ts.scUid}', 'TS-Account.PATCH',
-        { 'list\.${ts.id}': ts.getAmount(), 'date': ts.transactionAt, },
-        setJson: {'list': { ts.id: ts.getAmount() }, 'date': ts.transactionAt,},
-      );
-    }
-
-    if(ts.csUid != '') {
-      await FireStoreHub.docUpdate('customer/${ts.csUid}/detail/transaction-${ts.scUid}', 'TS-Customer.PATCH',
-        { 'list\.${ts.id}': ts.toLJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,},
-        setJson: { 'list': { ts.id: ts.toLJson() }, 'updateAt': DateTime.now().microsecondsSinceEpoch, },
-      );
-    }
-
-    var searchText = await ts.getSearchText();
-    await FireStoreHub.docUpdate('meta/search/transaction/${ts.scUid}', 'TS-Search.PATCH',
-      { 'list\.${ts.id}': searchText, 'updateAt': DateTime.now().microsecondsSinceEpoch, },
-      setJson: {'list': { ts.id: searchText, }, 'updateAt': DateTime.now().microsecondsSinceEpoch,},
-    );
-  }
   static dynamic getTransaction({ String? startAt, int? startDate, int? lastDate, }) async {
     List<TS> tsList = [];
     if(startAt != null) {
@@ -690,16 +637,14 @@ class FireStoreT {
   }
   static dynamic getAmountAccount(String id) async {
     var amount = 0;
-    await FirebaseFirestore.instance.collection('meta/account/${id}')
-        .orderBy('date', descending: true).get().then((value) {
+    await FirebaseFirestore.instance.collection('meta/account/${id}').limit(25).get().then((value) {
       print('get account ts data');
       if(value.docs == null) return false;
       print(value.docs.length);
       for(var a in value.docs) {
         if(a.data() == null) continue;
-        if(a.data()['list'] == null) continue;
 
-        var map = a.data()['list'] as Map;
+        var map = a.data() as Map;
         map.forEach((key, value) {
           amount += value as int;
         });

@@ -1395,7 +1395,7 @@ class DialogCS extends StatelessWidget {
 
                     for(var t in tslistCr) {
                       t.csUid = cs.id;
-                      await FireStoreT.updateTransaction(t);
+                      await t.update();
                     }
                     //await FireStoreT.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
                     //original.fromJson(ct.toJson());
@@ -1519,7 +1519,7 @@ class DialogCS extends StatelessWidget {
 
                                 for(var t in tslistCr) {
                                   t.csUid = cs.id;
-                                  await FireStoreT.updateTransaction(t);
+                                  await t.update();
                                 }
                                 //await FireStoreT.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
                                 //original.fromJson(ct.toJson());
@@ -1859,7 +1859,7 @@ class DialogCS extends StatelessWidget {
 
                     for(var t in tslistCr) {
                       t.csUid = cs.id;
-                      await FireStoreT.updateTransaction(t);
+                      await t.update();
                     }
                     //await FireStoreT.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
                     //original.fromJson(ct.toJson());
@@ -1977,7 +1977,7 @@ class DialogCS extends StatelessWidget {
 
                                 for(var t in tslistCr) {
                                   t.csUid = cs.id;
-                                  await FireStoreT.updateTransaction(t);
+                                  await t.update();
                                 }
                                 //await FireStoreT.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
                                 //original.fromJson(ct.toJson());

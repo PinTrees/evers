@@ -155,7 +155,7 @@ class DialogTS extends StatelessWidget {
 
                               WidgetT.loadingBottomSheet(context, text:'로딩중');
 
-                              await FireStoreT.updateTransaction(ts, org: org);
+                              await ts.update(org: org);
                               WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                               Navigator.pop(context); Navigator.pop(context, ts);
                             },
