@@ -6,9 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/Customer.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/helper/firebaseCore.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_acrylic/flutter_acrylic.dart';
-import 'package:intl/intl.dart';
 
 import '../helper/style.dart';
 import 'contract.dart';
