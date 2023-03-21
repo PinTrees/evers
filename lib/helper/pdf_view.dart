@@ -1,10 +1,14 @@
 import 'dart:math';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evers/helper/interfaceUI.dart';
 import 'package:evers/helper/style.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf_render/pdf_render_widgets.dart';
+
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 import 'package:evers/helper/dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -31,6 +35,7 @@ class PdfViewPage extends StatefulWidget{
 class _PdfViewPageState extends State<PdfViewPage> {
   _PdfViewPageState();
   Uint8List? byteData;
+  var imageUrl;
   var type = '';
   Widget main = SizedBox();
 
@@ -47,7 +52,6 @@ class _PdfViewPageState extends State<PdfViewPage> {
       context.go('/login/o');
       setState(() {});
     }
-
     initAsync();
   }
 
@@ -59,13 +63,13 @@ class _PdfViewPageState extends State<PdfViewPage> {
       final key=en.Key.fromUtf8('dTk2jQ2A1d5TPkp7');
       final iv=en.IV.fromLength(16);
       final encrypter= en.Encrypter(en.AES(key));
-      final texten =encrypter.decrypt64(url, iv: iv);
-      print('-------복호화값: ${texten}');
+      imageUrl =encrypter.decrypt64(url, iv: iv);
+      //print('-------복호화값: ${texten}');
 
       type = widget.fileName!.split('.').last;
       print(type);
 
-      var res = await http.get(Uri.parse(texten));
+      var res = await http.get(Uri.parse(imageUrl));
       var bodyBytes = res.bodyBytes;
       byteData = bodyBytes;
       print(bodyBytes.length);
@@ -107,6 +111,22 @@ class _PdfViewPageState extends State<PdfViewPage> {
       );
     }
     else if(type == 'jpg') {
+      main = ListView(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(),
+              Container(
+                color: Colors.black26,
+                width: 768,
+                child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain,),
+              ),
+            ],
+          )
+        ],
+      );
     }
 
     setState(() {});
@@ -131,7 +151,18 @@ class _PdfViewPageState extends State<PdfViewPage> {
                 SizedBox(width: dividSize * 4,),
                 TextButton(
                   onPressed: () async {
-                    await Printing.layoutPdf(onLayout: (format) async => byteData!);
+                    if(type == 'pdf' || type == 'pdfx') await Printing.layoutPdf(onLayout: (format) async => byteData!);
+                    if(type == 'jpg') {
+                      final doc = pw.Document();
+                      final image = pw.MemoryImage(byteData!,);
+                      doc.addPage(pw.Page(
+                          build: (pw.Context context) {
+                            return pw.Center(
+                              child: pw.Image(image),
+                            ); // Center
+                          })); // P
+                      await Printing.layoutPdf(onLayout: (format) async => doc.save());
+                    }
                   },
                   style: StyleT.buttonStyleNone(color: Colors.transparent, padding:0, elevation: 0),
                   child: WidgetT.iconNormal(Icons.print, size: 48, color: Colors.white),

@@ -97,4 +97,12 @@ class Purchase {
     if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
     return totalPrice;
   }
+
+  dynamic update() {
+
+  }
+
+  dynamic delete() {
+
+  }
 }

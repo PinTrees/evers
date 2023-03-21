@@ -81,7 +81,7 @@ class WidgetT extends StatelessWidget {
   }
 
   static Widget excelGrid({ String? text, bool textLite=false, String? value,
-    double? width, double? height, String? label, Color? color, Color? textColor,  Alignment? alignment }) {
+    double? width, double? height, String? label, Color? color, Color? textColor, double? textSize,  Alignment? alignment }) {
     var w = Container(
       width: width, height: height, alignment: alignment ?? Alignment.center,
       color: color ?? Colors.transparent,
@@ -95,14 +95,15 @@ class WidgetT extends StatelessWidget {
             SizedBox(width: 4,),
 
           if(!textLite)
-            WidgetT.titleT(text ?? '', color: textColor),
+            WidgetT.titleT(text ?? '', color: textColor, size: textSize),
           if(textLite)
-            WidgetT.text(text ?? '', size:12),
+            WidgetT.text(text ?? '', size:textSize ?? 12),
         ],
       ),
     );
     return w;
   }
+
   static Widget textInput(BuildContext context, String key, {int? index, Function(int, dynamic)? onEdite, Function? setState,
     String? text, String? value,
     double? width, double? height, String? hint, bool? first=false, bool isMultiLine=false, String? label, double? labelSize}) {

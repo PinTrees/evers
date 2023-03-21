@@ -53,8 +53,6 @@ class SystemT {
 
   static var searchText = '';
 
-  static Map<dynamic, StreamSubscription<QuerySnapshot>> stream = {};
-
   static dynamic init() async {
     await FireStoreT.initStreamVersion();
     if(!Version.checkVersion()) {
@@ -79,7 +77,7 @@ class SystemT {
      await FireStoreT.initStreamCSMeta();
      await FireStoreT.initStreamContract();
 
-     stream['ts-meta'] = await FireStoreT.initStreamTsMeta();
+     await FireStoreT.initStreamTsMeta();
      await FireStoreT.initStreamPuMeta();
 
      await FireStoreT.initStreamReMeta();
@@ -91,11 +89,6 @@ class SystemT {
 
      await EmployeeSystem.init();
      await UserSystem.init();
-  }
-  static dynamic exiteStream() {
-    for(var st in stream.values) {
-      if(st != null) st.cancel();
-    }
   }
 
   static initREPU() {
@@ -203,28 +196,26 @@ class SystemT {
     } catch (e) {
       print(e); return [];
     }
+
     List<SortKey> searchMap = [];
-    for(var a in transactionSearch.values) {
-      if(searchMap.length > 25) break;
-      var meta = a as Map;
-      meta.forEach((k, e) {
+    transactionSearch.forEach((k, e) {
+      if(searchMap.length > 25) return;
+      if(e == null) return;
 
-        if(regExp.hasMatch(e)) {
-          var sort = SortKey();
-          sort.id = k;
-          try {
-            sort.data = e.toString().split('&:')[3];
-          } catch (e) {
-            sort.data = '';
-          }
-
-          if(startAt != null)
-            if(sort.data.compareTo(startAt) < 0) return;
-
-          searchMap.add(sort);
+      if(regExp.hasMatch(e.toString())) {
+        var sort = SortKey();
+        sort.id = k;
+        try {
+          sort.data = e.toString().split('&:')[3];
+        } catch (e) {
+          sort.data = '';
         }
-      });
-    }
+        if(startAt != null)
+          if(sort.data.compareTo(startAt) < 0) return;
+
+        searchMap.add(sort);
+      }
+    });
 
     searchMap.sort((a, b) => b.data.compareTo(a.data));
 
@@ -374,7 +365,7 @@ class SystemT {
 }
 
 class Version {
-  static var thisVersion = '0.2.0';
+  static var thisVersion = '0.2.1';
   static var current = '';
   static var release = '';
 
@@ -448,6 +439,5 @@ class SortKey {
   var data = '';
   SortKey() {}
   SortKey.fromData(Map) {
-
   }
 }

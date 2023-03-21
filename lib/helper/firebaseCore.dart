@@ -1276,22 +1276,18 @@ class FireStoreT {
     return search;
   }
   static dynamic initStreamTsMeta() async {
-    CollectionReference coll = await FirebaseFirestore.instance.collection('meta/search/transaction');
+    CollectionReference coll = await FirebaseFirestore.instance.collection('meta/search/dateQ-transaction');
     return coll.snapshots().listen((value) {
-      print('ts-search listen data changed');
       if(value.docs == null) return;
+      print('initStream Ts: ${value.docs.length}');
 
       for(var a in value.docs) {
         if(a.data() == null) continue;
         var searchMap = a.data() as Map;
-        var headers = searchMap['list'] as Map;
-        SystemT.transactionSearch[a.id] = headers;
-
-        FireStoreHub.docUpdate('meta/search/transaction-meta/${a.id}', 'TS-SearchCount.PATCH',
-          { 'count':  headers.length, },
-          setJson: { 'count':  headers.length, },
-        );
+        for(var s in searchMap.keys)
+          SystemT.transactionSearch[s.toString()] = searchMap[s].toString();
       }
+
       FunT.setStateMain();
     });
   }
