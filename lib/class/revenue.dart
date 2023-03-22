@@ -118,10 +118,22 @@ class Revenue {
     return cs.businessName + '&:' + ct.ctName + '&:' + it + '&:' + memo;
   }
 
-  // 2023.03.22 요청사항
-  dynamic createUid() {
+  // 2023.03.22 요청사항 문서 UID 발급 함수
+  dynamic createUid() async {
     // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
     var dateIdDay = DateStyle.dateYearMD(revenueAt);
+    
+    var currentRevenueCount = 0;
+    var data = await FirebaseFirestore.instance.collection('meta/uid/dateD-revenue${csUid}')..doc(dateIdDay).get();
+    currentRevenueCount = (data as Map)[csUid] as int;
+    currentRevenueCount++;
+    
+    if(currentRevenueCount != null) {
+      if(currentRevenueCount != 0) return false;
+    }
+    
+    // 문자열 보완
+    id = 'R-$dateIdDay-$currentRevenueCount';
     
     Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
     var db = FirebaseFirestore.instance;
@@ -131,17 +143,13 @@ class Revenue {
       Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
       if(ref['csMetaCount'] != null) sn['csMetaCount'] = await transaction.get(ref['csMetaCount']!);
       
-   
       if(ref['cs'] != null) 
       {
-         // Get
-         var currentRevenueCount = 0;
-         if(sn['csMetaCount']!.exists) currentRevenueCount = ((await sn['csMetaCount']!.get()).data() as Map)[csUid] as int;
-         else currentRevenueCount++:
-         
-         // 데이터베이스 트랜잭션 읽기 쓰기순으로 실행됨으로 누락 가능성 / 보완
-         if(sn['csMetaCount']!.exists) sn['csMetaCount']!.update(ref['csMetaCount'], { csUid: FieldValue.increment(1) });
-         else sn['csMetaCount']!.set(ref['csMetaCount'], { csUid: 1 });
+        // 개수는 100% 트랜잭션을 보장할 수 없음
+        // 고유한 형식만 보장
+        // 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
+        if(sn['csMetaCount']!.exists) sn['csMetaCount']!.update(ref['csMetaCount'], { csUid: FieldValue.increment(1) });
+        else sn['csMetaCount']!.set(ref['csMetaCount'], { csUid: 1 });
       }
     }).then(
           (value) { print("DocumentSnapshot successfully updated createUid!"); return true; },
@@ -156,7 +164,11 @@ class Revenue {
     
     // 추후 아이디 발급 형태 
     if(id == '')  { id = FireStoreT.generateRandomString(16);  create = true; }
-
+    if(create) await createUid();
+    
+    // 현재까지 정상적으로 실행된 경우
+    // id 존재
+    
     var orgDateId = '-';
     var orgDateQuarterId = '-';
     var orgDateIdHarp = '-';
@@ -228,8 +240,10 @@ class Revenue {
         }
       }
 
+      // 매출UID 중복에러 - 가능성 없지만 구현
+      if(create && docRefSn.exists) return false;
       if(docRefSn.exists)  transaction.update(docRef, toJson());
-      else  transaction.set(docRef, toJson());
+      else transaction.set(docRef, toJson());
 
       if(docDateRefSn.exists) {
         transaction.update(dateRef, { 'list\.${id}': toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
@@ -238,24 +252,11 @@ class Revenue {
       }
 
       // 2023.03.22 
-      if(ref['cs'] != null) 
-      {
+      if(ref['cs'] != null) {
          if(create) transaction.update(ref['cs']!, {'reCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
         
          if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: toJson(), });
          else transaction.set(ref['csDetail']!, { id: toJson(), });
-         
-         // 메인문서 트랜잭션과 동시 수행될 수 
-         // Get
-         var currentRevenueCount = 0;
-         if(sn['csMetaCount']!.exists) currentRevenueCount = ((await sn['csMetaCount']!.get()).data() as Map)[csUid] as int;
-         else currentRevenueCount++:
-         
-         if(create)
-        
-         // 데이터베이스 트랜잭션 읽기 쓰기순으로 실행됨으로 누락 가능성 / 보완
-         if(sn['csMetaCount']!.exists) sn['csMetaCount']!.update(ref['csMetaCount'], { csUid: FieldValue.increment(1) });
-         else sn['csMetaCount']!.set(ref['csMetaCount'], { csUid: 1 });
       }
 
       if(ref['ct'] != null) {
@@ -276,7 +277,7 @@ class Revenue {
     );
   }
   
-  // 데이터베이스 삭제 호출 
+  // 데이터베이스 삭제 호출 - 트랜잭션 구현됨
   dynamic delete() async {
     state = 'DEL';
     if(id == '')  { return false; }
