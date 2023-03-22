@@ -112,7 +112,7 @@ class FireStoreT {
       print('get res doc data');
       if(!value.exists) return false;
 
-      var  rev = Revenue.fromDatabase(value.data() as Map);
+      var rev = Revenue.fromDatabase(value.data() as Map);
       if(rev.state == 'DEL') return false;
 
       data = rev;
@@ -120,7 +120,7 @@ class FireStoreT {
     return data;
   }
   static dynamic initStreamReMeta() async {
-    CollectionReference coll = await FirebaseFirestore.instance.collection('meta/search/revenue');
+    CollectionReference coll = await FirebaseFirestore.instance.collection('meta/search/dateQ-revenue');
     await coll.snapshots().listen((value) {
       print('revenue search snapshots listen data changed');
       if(value.docs == null) return;
@@ -130,11 +130,6 @@ class FireStoreT {
         var searchMap = a.data() as Map;
         var headers = searchMap['list'] as Map;
         SystemT.revSearch[a.id] = headers;
-
-        FireStoreHub.docUpdate('meta/search/revenue-meta/${a.id}', 'RE.META-COUNT.PATCH',
-          { 'count':  headers.length, },
-          setJson: { 'count':  headers.length, },
-        );
       }
       FunT.setStateMain();
     });

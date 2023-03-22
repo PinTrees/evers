@@ -39,6 +39,9 @@ class View_REPU extends StatelessWidget {
   var st_sc_hr = ScrollController();
   var divideHeight = 6.0;
 
+  var sizePrice = 80.0;
+  var sizeDate = 80.0;
+
   List<Purchase> pur_list = [];
   List<Revenue> rev_list = [];
 
@@ -85,6 +88,7 @@ class View_REPU extends StatelessWidget {
       else if (currentView == '매출') {
         crRpmenuRp = ''; pur_query = '';
         rev__sort_list = await SystemT.searchReMeta(search,);
+        print(rev__sort_list.length);
       }
     }
     else if(menu == '수납관리') {
@@ -299,17 +303,18 @@ class View_REPU extends StatelessWidget {
               decoration: StyleT.inkStyleNone(color: Colors.transparent),
               child: Row(
                   children: [
-                    WidgetT.excelGrid(label: '${i + 1}', width: 32),
-                    WidgetT.excelGrid(textLite: true, text: StyleT.dateFormatAtEpoch(pu.purchaseAt.toString()), width: 100, ),
-                    WidgetT.excelGrid(textLite: false,text: '매입', width: 80, textColor: Colors.redAccent.withOpacity(0.5) ),
-                    WidgetT.excelGrid(textLite: true,text: '${cs.businessName}',  width: 200 + 28, textSize: 10 ),
+                    WidgetT.excelGrid(textSize: 8, label: '${i + 1}', width: 32),
+                    WidgetT.excelGrid(textSize: 8, textLite: true, text: pu.id, width: sizeDate, ),
+                    WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(pu.purchaseAt.toString()), width: sizeDate, ),
+                    WidgetT.excelGrid(textSize: 10,textLite: false,text: '매입', width: 50, textColor: Colors.redAccent.withOpacity(0.5) ),
+                    Expanded(child: WidgetT.excelGrid(textSize: 10, textLite: true,text: '${cs.businessName}',  width: 999,)),
                     Expanded(child: WidgetT.excelGrid(textLite: false, width: 999, text: itemName, textSize: 10)),
-                    WidgetT.excelGrid(textLite: true, text:item?.unit, width: 50),
-                    WidgetT.excelGrid(textLite: true,width: 50,  text: StyleT.krw(pu.count.toString()),),
-                    WidgetT.excelGrid(textLite: true,width: 100,  text: StyleT.krw(pu.unitPrice.toString()),),
-                    WidgetT.excelGrid(textLite: true,width: 100,  text: StyleT.krw(pu.supplyPrice.toString()),),
-                    WidgetT.excelGrid(textLite: true,width: 100,  text: StyleT.krw(pu.vat.toString()), ),
-                    WidgetT.excelGrid(textLite: true,width: 100, text: StyleT.krw(pu.totalPrice.toString()),),
+                    WidgetT.excelGrid(textSize: 10, textLite: true, text:item?.unit, width: 50),
+                    WidgetT.excelGrid(textSize: 10, textLite: true,width: 50,  text: StyleT.krw(pu.count.toString()),),
+                    WidgetT.excelGrid(textSize: 10, textLite: true,width: sizePrice,  text: StyleT.krw(pu.unitPrice.toString()),),
+                    WidgetT.excelGrid(textSize: 10, textLite: true,width: sizePrice,  text: StyleT.krw(pu.supplyPrice.toString()),),
+                    WidgetT.excelGrid(textSize: 10, textLite: true,width: sizePrice,  text: StyleT.krw(pu.vat.toString()), ),
+                    WidgetT.excelGrid(textSize: 10, textLite: true,width: sizePrice, text: StyleT.krw(pu.totalPrice.toString()),),
                     if(pu.filesMap.length > 0)
                       WidgetT.iconMini(Icons.file_copy_rounded, size: 32),
                     if(pu.filesMap.length == 0)
@@ -380,7 +385,6 @@ class View_REPU extends StatelessWidget {
           var ct = await SystemT.getCt(rev.ctUid) ?? Contract.fromDatabase({});
 
           var item = SystemT.getItem(rev.item);
-          var unitPrice = rev.unitPrice; // = item.unitPrice; //int.tryParse((ctl['unitPrice'] != '') ? ctl['unitPrice'] : item?.unitPrice.toString()) ?? 0;
           var itemName = (item == null) ? rev.item : item!.name;
 
           w = InkWell(
@@ -392,23 +396,25 @@ class View_REPU extends StatelessWidget {
               decoration: StyleT.inkStyleNone(color: Colors.transparent),
               child: Row(
                   children: [
-                    WidgetT.excelGrid(label: '${i + 1}', width: 32),
-                    WidgetT.excelGrid(textLite: true, text: StyleT.dateFormatAtEpoch(rev.revenueAt.toString()), width: 100,),
-                    WidgetT.excelGrid(textLite: false, text: '매출', width: 80, textColor: Colors.blueAccent.withOpacity(0.5)),
-                    WidgetT.excelGrid(textLite: true, text: '${cs.businessName} / ${ct.ctName}',  width: 200),
-                    InkWell(
-                        onTap: () async {
-                          await DialogCT.showInfoCt(context, ct);
-                        },
-                        child: WidgetT.iconMini(Icons.link, size: 28)
+                    WidgetT.excelGrid(textSize: 8, textLite: true, text: '${i + 1}', width: 32,),
+                    WidgetT.excelGrid(textSize: 8, textLite: true, text: rev.id.toString(), width: sizeDate,),
+                    WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(rev.revenueAt.toString()), width: sizeDate,),
+                    WidgetT.excelGrid(textSize: 10, textLite: false, text: '매출', width: 50, textColor: Colors.blueAccent.withOpacity(0.5)),
+                    Expanded(
+                      child: InkWell(
+                          onTap: () async {
+                            await DialogCT.showInfoCt(context, ct);
+                          },
+                          child: WidgetT.excelGrid(textSize: 10, textLite: true, text: '${cs.businessName} / ${ct.ctName}',  width: 200),
+                      ),
                     ),
-                    Expanded(child: WidgetT.excelGrid( width: 999,  text: itemName,)),
+                    Expanded(child: WidgetT.excelGrid(textSize: 10, width: 999,  text: itemName,)),
                     WidgetT.excelGrid(textLite: true,  text:item?.unit, width: 50),
-                    WidgetT.excelGrid(textLite: true, width: 50,text: StyleT.krw(rev.count.toString()),),
-                    WidgetT.excelGrid(textLite: true, width: 100, text: StyleT.krw(rev.unitPrice.toString()),),
-                    WidgetT.excelGrid(textLite: true, width: 100,  text: StyleT.krw(rev.supplyPrice.toString()),),
-                    WidgetT.excelGrid(textLite: true,  width: 100,  text: StyleT.krw(rev.vat.toString()), ),
-                    WidgetT.excelGrid(textLite: true, width: 100, text: StyleT.krw(rev.totalPrice.toString()),),
+                    WidgetT.excelGrid(textSize: 10, textLite: true, width: 50,text: StyleT.krw(rev.count.toString()),),
+                    WidgetT.excelGrid(textSize: 10, textLite: true, width: sizePrice, text: StyleT.krw(rev.unitPrice.toString()),),
+                    WidgetT.excelGrid(textSize: 10, textLite: true, width: sizePrice,  text: StyleT.krw(rev.supplyPrice.toString()),),
+                    WidgetT.excelGrid(textSize: 10, textLite: true,  width: sizePrice,  text: StyleT.krw(rev.vat.toString()), ),
+                    WidgetT.excelGrid(textSize: 10, textLite: true, width: sizePrice, text: StyleT.krw(rev.totalPrice.toString()),),
                     SizedBox(height: 28,width: 32,),
                     InkWell(
                       onTap: () async {
@@ -703,9 +709,10 @@ class View_REPU extends StatelessWidget {
                     titleMenu,
                     //searchMenuW,
                     if(menu == '매입매출관리')
-                      Container( padding: EdgeInsets.fromLTRB(divideHeight * 4, 0, divideHeight * 4, divideHeight),
-                        child: WidgetUI.titleRowNone([ '순번', '거래일', '구분', '거래처 및 계약', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '' ],
-                            [ 32, 100, 80, 200 + 28, 999, 50, 50, 100, 100, 100, 100, 64 + 32, 32 ]),
+                      Container( padding: EdgeInsets.fromLTRB(divideHeight * 1, 0, divideHeight * 1, divideHeight),
+                        child: WidgetUI.titleRowNone([ '순번', '거래번호', '거래일', '구분', '거래처 및 계약', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '' ],
+                            [ 32, sizeDate, sizeDate, 50, 999, 999, 50, 50,
+                              sizePrice, sizePrice, sizePrice, sizePrice, 64 + 32, 32 ]),
                       ),
                     if(menu == '수납관리')
                       Container( padding: EdgeInsets.fromLTRB(divideHeight * 4, 0, divideHeight * 4, divideHeight),

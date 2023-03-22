@@ -31,3 +31,28 @@ class VersionInfo {
     };
   }
 }
+
+class Version {
+  static var thisVersion = '0.2.2';
+  static var current = '';
+  static var release = '';
+
+  Version.fromDatabase(Map<dynamic, dynamic> json) {
+    current = json['current'] ?? '';
+    release = json['release'] ?? '';
+  }
+  static bool checkVersion() {
+    if(current == '') return true;
+
+    else if(current != thisVersion)  {
+      var c = int.tryParse(current.replaceAll('.', '')) ?? 0;
+      var t = int.tryParse(thisVersion.replaceAll('.', '')) ?? 0;
+      if(c > t) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+    return true;
+  }
+}

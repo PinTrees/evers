@@ -11,6 +11,7 @@ import 'package:evers/class/revenue.dart';
 import 'package:evers/class/schedule.dart';
 import 'package:evers/class/transaction.dart';
 import 'package:evers/class/user.dart';
+import 'package:evers/class/version.dart';
 import 'package:evers/helper/algolia.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/system/product.dart';
@@ -272,7 +273,7 @@ class SystemT {
       if(searchKey.length > 25) break;
       var meta = a as Map;
       meta.forEach((k, e) {
-        if(regExp.hasMatch(e)) searchKey.add(k);
+        if(e != null) if(regExp.hasMatch(e)) searchKey.add(k);
       });
     }
     print('res search res');
@@ -361,31 +362,6 @@ class SystemT {
     //const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     const _chars = '0123456789';
     return List.generate(len, (index) => _chars[r.nextInt(_chars.length)]).join();
-  }
-}
-
-class Version {
-  static var thisVersion = '0.2.1';
-  static var current = '';
-  static var release = '';
-
-  Version.fromDatabase(Map<dynamic, dynamic> json) {
-    current = json['current'] ?? '';
-    release = json['release'] ?? '';
-  }
-  static bool checkVersion() {
-    if(current == '') return true;
-
-    else if(current != thisVersion)  {
-      var c = int.tryParse(current.replaceAll('.', '')) ?? 0;
-      var t = int.tryParse(thisVersion.replaceAll('.', '')) ?? 0;
-      if(c > t) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-    return true;
   }
 }
 

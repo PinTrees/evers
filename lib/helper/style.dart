@@ -369,8 +369,11 @@ class DateStyle {
 
     return '${date.year}-${quarter}Q';
   }
-  
-  
+
+  static String dateYearMM(int ephoce) {
+    var date = DateTime.fromMicrosecondsSinceEpoch(ephoce);
+    return DateFormat('yyyy-MM').format(date);
+  }
   static String dateYearMD(int ephoce) {
     var date = DateTime.fromMicrosecondsSinceEpoch(ephoce);
     return DateFormat('yyyyMMdd').format(date);

@@ -130,37 +130,35 @@ class Revenue {
   dynamic createUid() async {
     // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
     var dateIdDay = DateStyle.dateYearMD(revenueAt);
-    
-    var currentRevenueCount = 0;
-    var data = await FirebaseFirestore.instance.collection('meta/uid/dateD-revenue${csUid}')..doc(dateIdDay).get();
-    currentRevenueCount = (data as Map)[csUid] as int;
-    currentRevenueCount++;
-    
-    if(currentRevenueCount != null) {
-      if(currentRevenueCount != 0) return false;
-    }
-    
-    // 문자열 보완
-    id = 'R-$dateIdDay-$currentRevenueCount';
-    
-    Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
+    var dateIdMonth = DateStyle.dateYearMM(revenueAt);
+
     var db = FirebaseFirestore.instance;
-    if(csUid != '') ref['csMetaCount'] = db.collection('meta/uid/dateD-revenue${csUid}').doc(dateIdDay);
+    final refMeta = db.collection('meta/uid/dateM-revenue').doc(dateIdMonth);
   
     return await db.runTransaction((transaction) async {
-      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
-      if(ref['csMetaCount'] != null) sn['csMetaCount'] = await transaction.get(ref['csMetaCount']!);
-      
-      if(ref['cs'] != null) 
-      {
-        // 개수는 100% 트랜잭션을 보장할 수 없음
-        // 고유한 형식만 보장
-        // 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
-        if(sn['csMetaCount']!.exists) sn['csMetaCount']!.update(ref['csMetaCount'], { csUid: FieldValue.increment(1) });
-        else sn['csMetaCount']!.set(ref['csMetaCount'], { csUid: 1 });
+      final snMeta = await transaction.get(refMeta);
+
+      // 개수는 100% 트랜잭션을 보장할 수 없음
+      // 고유한 형식만 보장
+      // 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
+
+      if(snMeta.exists) {
+        if((snMeta.data() as Map)[dateIdDay] != null) {
+          var currentRevenueCount = (snMeta.data() as Map)[dateIdDay] as int;
+          currentRevenueCount++;
+          id = 'R-$dateIdDay-$currentRevenueCount';
+          transaction.update(refMeta, { dateIdDay: FieldValue.increment(1)});
+        }
+        else {
+          id = 'R-$dateIdDay-1';
+          transaction.update(refMeta, { dateIdDay: 1});
+        }
+      } else {
+        id = 'R-$dateIdDay-1';
+        transaction.set(refMeta, { dateIdDay: 1 });
       }
     }).then(
-          (value) { print("DocumentSnapshot successfully updated createUid!"); return true; },
+    (value) { print("DocumentSnapshot successfully updated createUid!"); return true; },
       onError: (e) { print("Error createUid() $e"); return false; }
     );
   }
@@ -171,9 +169,9 @@ class Revenue {
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(revenueAt));
     
     // 추후 아이디 발급 형태 
-    if(id == '')  { id = FireStoreT.generateRandomString(16);  create = true; }
+    if(id == '')  { create = true; }
     if(create) await createUid();
-    
+    if(id == '') return false;
     // 현재까지 정상적으로 실행된 경우
     // id 존재
     
@@ -188,8 +186,7 @@ class Revenue {
 
     var dateIdHarp = DateStyle.dateYearsHarp(revenueAt);
     var dateIdQuarter = DateStyle.dateYearsQuarter(revenueAt);
-    var dateIdDay = DateStyle.dateYearMD(revenueAt);
-    
+
     var searchText = await getSearchText();
 
     Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
@@ -206,8 +203,7 @@ class Revenue {
 
     if(csUid != '') ref['cs'] = db.collection('customer').doc(csUid);
     if(csUid != '') ref['csDetail'] = db.collection('customer/${csUid}/cs-dateH-revenue').doc(dateIdHarp);
-    if(csUid != '') ref['csMetaCount'] = db.collection('meta/uid/dateD-revenue${csUid}').doc(dateIdDay);
-    
+
     if(ctUid != '') ref['ct'] = db.collection('contract').doc(ctUid);
     if(ctUid != '') ref['ctDetail'] = db.collection('contract/${ctUid}/ct-dateH-revenue').doc(dateIdHarp);
     /// 검색 기록 문서 경로로
@@ -225,7 +221,6 @@ class Revenue {
 
       if(ref['cs'] != null) sn['cs'] = await transaction.get(ref['cs']!);
       if(ref['csDetail'] != null) sn['csDetail'] = await transaction.get(ref['csDetail']!);
-      if(ref['csMetaCount'] != null) sn['csMetaCount'] = await transaction.get(ref['csMetaCount']!);
 
       if(ref['ct'] != null) sn['ct'] = await transaction.get(ref['ct']!);
       if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);

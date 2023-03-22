@@ -14,74 +14,76 @@ import '../helper/interfaceUI.dart';
 class WidgetDT extends StatelessWidget {
 
   static Widget dlTitle(BuildContext context, {String? title, String? subTitle, Function? onSave, bool full=true, bool close=true}) {
-    return Material(
-      elevation: 3,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-              colors: [
-                const Color(0xFF009fdf).withOpacity(0.35),
-                const Color(0xFF1855a5).withOpacity(0.35),
-                //StyleT.subTabBarColor.withOpacity(0.1),
-                //StyleT.subTabBarColor.withOpacity(0.5),
-              ],
-              begin: const FractionalOffset(0.0, 0.0),
-              end: const FractionalOffset(1.0, 0.0),
-              stops: [0.0, 1.0],
-              tileMode: TileMode.clamp),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(width: 6 * 3,),
-            Expanded(
-              child: Container( height: 44, alignment: Alignment.centerLeft,
-                child: Column( mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    WidgetT.title(title ?? '타이틀', size: 14 ),
-                    WidgetT.text(subTitle ?? title ?? '타이틀', size: 10),
-                  ],
+    return Column(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF1855a5).withOpacity(0.5),
+                  const Color(0xFF009fdf).withOpacity(0.7),
+                  const Color(0xFF1855a5).withOpacity(0.5),
+                  //StyleT.subTabBarColor.withOpacity(0.1),
+                  //StyleT.subTabBarColor.withOpacity(0.5),
+                ],
+                begin: const FractionalOffset(0.0, 0.0),
+                end: const FractionalOffset(1.0, 0.0),
+                tileMode: TileMode.clamp),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(width: 6 * 3,),
+              Expanded(
+                child: Container( height: 28, alignment: Alignment.centerLeft,
+                  child: Column( mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      WidgetT.title(title ?? '타이틀', size: 12 ),
+                      //WidgetT.text(subTitle ?? title ?? '타이틀', size: 10),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            if(onSave != null)
-              Container( height: 32, width: 32,
+              if(onSave != null)
+                Container( height: 28, width: 28,
+                  child: TextButton(
+                      onPressed: () async {
+                        if(onSave != null) await onSave();
+                      },
+                      style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 1, elevation: 0,
+                          color: StyleT.accentColor.withOpacity(0.1)),
+                      child: WidgetT.iconMini(Icons.save),
+                  ),
+                ),
+              if(full)
+                Container( height: 28, width: 28,
                 child: TextButton(
-                    onPressed: () async {
-                      if(onSave != null) await onSave();
-                    },
-                    style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 1, elevation: 0,
-                        color: StyleT.accentColor.withOpacity(0.1)),
-                    child: WidgetT.iconMini(Icons.save),
-                ),
-              ),
-            if(full)
-              Container( height: 32, width: 32,
-              child: TextButton(
-                onPressed: () {
-                  //Navigator.pop(context);
-                },
-                style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 1, elevation: 0,
-                    color: Colors.black.withOpacity(0.1)),
-                child: WidgetT.iconMini(Icons.fullscreen),
-              ),
-            ),
-          if(close)
-            Container( height: 32, width: 32,
-              child: TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    //Navigator.pop(context);
                   },
                   style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 1, elevation: 0,
-                      color: Colors.redAccent.withOpacity(0.5)),
-                  child: WidgetT.iconMini(Icons.close),
+                      color: Colors.black.withOpacity(0.1)),
+                  child: WidgetT.iconMini(Icons.fullscreen),
+                ),
               ),
-            ),
-          ],
+            if(close)
+              Container( height: 28, width: 28,
+                child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 1, elevation: 0,
+                        color: Colors.redAccent.withOpacity(0.7)),
+                    child: WidgetT.iconMini(Icons.close),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
+        WidgetT.dividHorizontal(size: 0.35, color: Colors.black),
+      ],
     );
   }
   static Widget dlTitleLow(BuildContext context, {String? title, Function? onSave, bool full=true,}) {
