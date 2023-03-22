@@ -118,9 +118,12 @@ class Revenue {
     return cs.businessName + '&:' + ct.ctName + '&:' + it + '&:' + memo;
   }
 
+  // 데이터베이스 접근 함수
   dynamic update({Revenue? org, Map<String, Uint8List>? files, }) async {
     var create = false;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(revenueAt));
+    
+    // 추후 아이디 발급 형태 
     if(id == '')  { id = FireStoreT.generateRandomString(16);  create = true; }
 
     var orgDateId = '-';
@@ -134,6 +137,8 @@ class Revenue {
 
     var dateIdHarp = DateStyle.dateYearsHarp(revenueAt);
     var dateIdQuarter = DateStyle.dateYearsQuarter(revenueAt);
+    var dateIdDay = DateStyle.dateYearMD(revenueAt);
+    
     var searchText = await getSearchText();
 
     Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
@@ -150,6 +155,8 @@ class Revenue {
 
     if(csUid != '') ref['cs'] = db.collection('customer').doc(csUid);
     if(csUid != '') ref['csDetail'] = db.collection('customer/${csUid}/cs-dateH-revenue').doc(dateIdHarp);
+    if(csUid != '') ref['csMetaCount'] = db.collection('meta/uid/dateD-revenue${csUid}').doc(dateIdDay);
+    
     if(ctUid != '') ref['ct'] = db.collection('contract').doc(ctUid);
     if(ctUid != '') ref['ctDetail'] = db.collection('contract/${ctUid}/ct-dateH-revenue').doc(dateIdHarp);
     /// 검색 기록 문서 경로로
@@ -167,6 +174,7 @@ class Revenue {
 
       if(ref['cs'] != null) sn['cs'] = await transaction.get(ref['cs']!);
       if(ref['csDetail'] != null) sn['csDetail'] = await transaction.get(ref['csDetail']!);
+      if(ref['csMetaCount'] != null) sn['csMetaCount'] = await transaction.get(ref['csMetaCount']!);
 
       if(ref['ct'] != null) sn['ct'] = await transaction.get(ref['ct']!);
       if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);
@@ -198,9 +206,13 @@ class Revenue {
         transaction.set(dateRef, {  'list': { id: toJson() },  'updateAt': DateTime.now().microsecondsSinceEpoch, });
       }
 
-      if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: toJson(), });
-      else transaction.set(ref['csDetail']!, { id: toJson(), });
-
+      // 2023.03.22 
+      if(ref['cs'] != null) 
+      {
+         if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: toJson(), });
+         else transaction.set(ref['csDetail']!, { id: toJson(), });
+      }
+    
       if(create) transaction.update(ref['cs']!, {'reCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
 
       if(ref['ct'] != null) {
