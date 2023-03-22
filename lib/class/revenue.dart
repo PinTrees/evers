@@ -28,18 +28,21 @@ class RevPur {
 }
 
 class Revenue {
-  var selectIsTaxed = false;
-  var isTaxed = false;
-  var state = '';
+  var selectIsTaxed = false;    // - ???
+  var isTaxed = false;          // 세금계산서 마감
+  var initVat = true;          // 부가세 자동 계산 - 변수명 변경 필요
+  var initSup = true;          // 공급가액 자동 계산 - 변수명 변경 필요
+
+  var state = '';       /// 상태
 
   var csUid = '';       /// 거래처번호
-  var scUid = '';       /// 거래처번호
+  var scUid = '';       /// 검색 메타데이터 번호 - 삭제 예정
 
   var ctUid = '';       /// 계약번호
-  var tsUid = '';
+  var tsUid = '';       /// 계좌이체 번호
   var id = '';          /// 고유번호
 
-  var ctIndexId = '';
+  var ctIndexId = '';   
   var item = '';        /// 품목
 
   var vatType = 0;        /// 0 포함, 1 미포함
@@ -96,20 +99,25 @@ class Revenue {
       'isTaxed': isTaxed,
     };
   }
-  int getSupplyPrice() {
-    var a = count * unitPrice - vat;
-    return a;
-  }
+
+  // 부가세 직접 입력시 자동계산 수식 수정
+  // 부가세 직접 입력 구분값 추가 저장
   int init() {
-    if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
-    if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
+    if(initVat && initSup) {
+      if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
+    } else if(!initVat) {
+      // 부가세가 변경될 경우 데이터를 보장할 수 없음
+      if(vatType == 0) { totalPrice = unitPrice * count;  vat; supplyPrice = totalPrice - vat; }
+      if(vatType == 1) { vat; totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
+    } else if(!initSup) {
+      // 공급가액이 변경될 경우 데이터를 보장할 수 없음 - 공식 수정 필요
+      if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice; }
+    }
     return totalPrice;
   }
-  int getTotalPrice() {
-    var a = count * unitPrice + vat;
-    return a;
-  }
-
+  
   Future<String> getSearchText() async {
     var cs = await SystemT.getCS(csUid) ?? Customer.fromDatabase({});
     var ct = await SystemT.getCt(ctUid) ?? Contract.fromDatabase({});
