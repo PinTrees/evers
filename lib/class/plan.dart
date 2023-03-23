@@ -11,14 +11,24 @@ import 'package:intl/intl.dart';
 
 import '../helper/firebaseCore.dart';
 
+// 일정 클래스
+// 추후 생성자, JSON직렬화 함수 재구축
 class Plan {
   var id = '';
   var ctUid = '';
   var type = '0';
   var managers = [];
+  
+  var tag = [];
+  
+  var title = '';
   var memo = '';
+  
   var date = 0;
-
+  var endDate = 0;
+  
+  // userUid - eyeem
+  var userGroup = {};
   var filesMap = {};
 
   Plan.fromDatabase(Map<dynamic, dynamic> json) {
@@ -41,13 +51,14 @@ class Plan {
       'filesMap': filesMap as Map,
     };
   }
+
   
-  DateTime? getDate() {
-    var d = new DateTime.fromMicrosecondsSinceEpoch(date);
-    return d;
-  }
-
-
+  
+  
+  
+  
+  
+  
  /* // 추후 날짜 수정이 필요할 경우를 대비해 org 매개변수를 추가
   dynamic update({ Plan? org,  Map<String, Uint8List>? files, }) async {
     var create = false;
