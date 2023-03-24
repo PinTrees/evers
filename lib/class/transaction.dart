@@ -146,6 +146,45 @@ class TS {
     return cs.businessName + '&:' + summary + '&:' + memo + '&:' + date;
   }
   
+  
+  // 2023.03.23 요청사항 거래 UID 발급 함수
+  dynamic createUid() async {
+    // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
+    var dateIdDay = DateStyle.dateYearMD(revenueAt);
+    var dateIdMonth = DateStyle.dateYearMM(revenueAt);
+
+    var db = FirebaseFirestore.instance;
+    final refMeta = db.collection('meta/uid/dateM-revenue').doc(dateIdMonth);
+  
+    return await db.runTransaction((transaction) async {
+      final snMeta = await transaction.get(refMeta);
+
+      // 개수는 100% 트랜잭션을 보장할 수 없음
+      // 고유한 형식만 보장
+      // 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
+
+      if(snMeta.exists) {
+        if((snMeta.data() as Map)[dateIdDay] != null) {
+          var currentRevenueCount = (snMeta.data() as Map)[dateIdDay] as int;
+          currentRevenueCount++;
+          id = 'R-$dateIdDay-$currentRevenueCount';
+          transaction.update(refMeta, { dateIdDay: FieldValue.increment(1)});
+        }
+        else {
+          id = 'R-$dateIdDay-1';
+          transaction.update(refMeta, { dateIdDay: 1});
+        }
+      } else {
+        id = 'R-$dateIdDay-1';
+        transaction.set(refMeta, { dateIdDay: 1 });
+      }
+    }).then(
+    (value) { print("DocumentSnapshot successfully updated createUid!"); return true; },
+      onError: (e) { print("Error createUid() $e"); return false; }
+    );
+  }
+  
+  
   dynamic update({TS? org, Map<String, Uint8List>? files, }) async {
     var create = false;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));
