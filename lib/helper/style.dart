@@ -378,6 +378,10 @@ class DateStyle {
     var date = DateTime.fromMicrosecondsSinceEpoch(ephoce);
     return DateFormat('yyyyMMdd').format(date);
   }
+  static String dateEphoceD(int ephoce) {
+    var data = ephoce.toString().substring(0, 8);
+    return data ?? '';
+  }
 }
 
 class ConvertT {
