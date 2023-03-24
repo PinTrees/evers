@@ -150,11 +150,11 @@ class TS {
   // 2023.03.23 요청사항 거래 UID 발급 함수
   dynamic createUid() async {
     // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
-    var dateIdDay = DateStyle.dateYearMD(revenueAt);
-    var dateIdMonth = DateStyle.dateYearMM(revenueAt);
+    var dateIdDayEp = DateStyle.dateEphoceD(transactionAt);
+    var dateIdMonth = DateStyle.dateYearMM(transactionAt);
 
     var db = FirebaseFirestore.instance;
-    final refMeta = db.collection('meta/uid/dateM-revenue').doc(dateIdMonth);
+    final refMeta = db.collection('meta/uid/dateM-transaction').doc(dateIdMonth);
   
     return await db.runTransaction((transaction) async {
       final snMeta = await transaction.get(refMeta);
@@ -164,32 +164,35 @@ class TS {
       // 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
 
       if(snMeta.exists) {
-        if((snMeta.data() as Map)[dateIdDay] != null) {
-          var currentRevenueCount = (snMeta.data() as Map)[dateIdDay] as int;
-          currentRevenueCount++;
-          id = 'R-$dateIdDay-$currentRevenueCount';
-          transaction.update(refMeta, { dateIdDay: FieldValue.increment(1)});
+        if((snMeta.data() as Map)[dateIdDayEp] != null) {
+          var currentTsCount = (snMeta.data() as Map)[dateIdDayEp] as int;
+          currentTsCount++;
+          id = 'T-$dateIdDayEp-$currentTsCount';
+          transaction.update(refMeta, { dateIdDayEp: FieldValue.increment(1)});
         }
         else {
-          id = 'R-$dateIdDay-1';
-          transaction.update(refMeta, { dateIdDay: 1});
+          id = 'T-$dateIdDayEp-1';
+          transaction.update(refMeta, { dateIdDayEp: 1});
         }
       } else {
-        id = 'R-$dateIdDay-1';
-        transaction.set(refMeta, { dateIdDay: 1 });
+        id = 'T-$dateIdDayEp-1';
+        transaction.set(refMeta, { dateIdDayEp: 1 });
       }
     }).then(
     (value) { print("DocumentSnapshot successfully updated createUid!"); return true; },
-      onError: (e) { print("Error createUid() $e"); return false; }
+      onError: (e) { print("Error ts.createUid() $e"); return false; }
     );
   }
   
   
   dynamic update({TS? org, Map<String, Uint8List>? files, }) async {
-    var create = false;
+    var create = (id == '');
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));
-    if(id == '')  { id = FireStoreT.generateRandomString(16);  create = true; }
 
+    if(create) createUid();
+    if(id == '') return;
+    
+    
     var orgDateId = '-';
     var orgDateQuarterId = '-';
     var orgDateIdHarp = '-';
