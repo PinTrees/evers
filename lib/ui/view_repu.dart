@@ -614,7 +614,6 @@ class View_REPU extends StatelessWidget {
       var datas = sort ? ts_sort_list : ts_list;
       for(int i = 0; i < datas.length; i++) {
         var tmpTs = datas[i];
-        Account? account = SystemT.getAccount(tmpTs.account);
         Widget w = SizedBox();
         var cs = await SystemT.getCS(tmpTs.csUid);
 
@@ -628,15 +627,14 @@ class View_REPU extends StatelessWidget {
             child: Row(
                 children: [
                   WidgetT.excelGrid(label: '${i}', width: 32),
-                  WidgetT.excelGrid(textLite: true, text: StyleT.dateFormatAtEpoch(tmpTs.transactionAt.toString()), width: 100, ),
-                  WidgetT.excelGrid(textLite: true, text: '${(cs.businessName == '') ? 'ㅡ' : cs.businessName }', width: 200,),
-                  Expanded(child: WidgetT.excelGrid(textLite: false, text: tmpTs.summary, width: 999,)),
-                  WidgetT.excelGrid(text: (tmpTs.type != 'PU') ? StyleT.krwInt(tmpTs.amount) : '', width: 100,
-                      textColor: (tmpTs.type != 'PU') ? Colors.blue.withOpacity(1) : null),
-                  WidgetT.excelGrid(text: (tmpTs.type != 'RE') ? StyleT.krwInt(tmpTs.amount) : '', width: 100,
-                      textColor: (tmpTs.type != 'RE') ? Colors.red.withOpacity(1) : null),
-                  WidgetT.excelGrid(textLite: true, text: SystemT.getAccountName(tmpTs.account), width: 200, ),
-                  Expanded(child: WidgetT.excelGrid(textLite: true, text: tmpTs.memo, width: 999,)),
+                  WidgetT.excelGrid(textSize: 10, textLite: true, label: tmpTs.id, width: 80),
+                  WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(tmpTs.transactionAt.toString()), width: 80, ),
+                  WidgetT.excelGrid(textSize: 10, textLite: true, text: '${(cs.businessName == '') ? 'ㅡ' : cs.businessName }', width: 200,),
+                  Expanded(child: WidgetT.excelGrid(textSize: 10, textLite: false, text: tmpTs.summary, width: 999,)),
+                    WidgetT.excelGrid(textSize: 10, text: StyleT.krwInt(tmpTs.amount), width: 100,
+                        textColor: (tmpTs.type != 'RE') ? Colors.red.withOpacity(1).withOpacity(0.7) : Colors.blue.withOpacity(1).withOpacity(0.7)),
+                  WidgetT.excelGrid(textSize: 10, textLite: true, text: SystemT.getAccountName(tmpTs.account), width: 100, ),
+                  Expanded(child: WidgetT.excelGrid(textSize: 10, textLite: true, text: tmpTs.memo, width: 999,)),
                   InkWell(
                       onTap: () {
 
@@ -715,9 +713,9 @@ class View_REPU extends StatelessWidget {
                               sizePrice, sizePrice, sizePrice, sizePrice, 64 + 32, 32 ]),
                       ),
                     if(menu == '수납관리')
-                      Container( padding: EdgeInsets.fromLTRB(divideHeight * 4, 0, divideHeight * 4, divideHeight),
-                        child: WidgetUI.titleRowNone([ '순번', '거래일자', '거래처', '적요', '수입', '지출', '계좌', '메모', '', ],
-                            [ 32, 100, 200, 999, 100, 100, 200, 999, 64, 0,  ]),
+                      Container( padding: EdgeInsets.fromLTRB(divideHeight * 1, 0, divideHeight * 1, divideHeight),
+                        child: WidgetUI.titleRowNone([ '순번', '거래번호', '거래일자', '거래처', '적요', '수입/지출', '계좌', '메모', '', ],
+                            [ 32, 80, 80, 200, 999, 100, 100, 999, 64,  ]),
                       ),
                     WidgetT.dividHorizontal(size: 0.7),
                     Expanded(

@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 
 import '../class/Customer.dart';
 import '../class/contract.dart';
+import '../class/plan.dart';
 import '../class/purchase.dart';
 import '../class/revenue.dart';
 import '../class/schedule.dart';

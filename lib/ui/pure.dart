@@ -1000,7 +1000,9 @@ class WidgetPR extends StatelessWidget {
                             if(tslistCr.length < 1) { WidgetT.showSnackBar(context, text: '최소 1개 이상의 거래기록을 입력 후 시도해주세요.'); return; }
                             for(var t in tslistCr) {
                               if(t.amount < 1) { WidgetT.showSnackBar(context, text: '하나 이상의 거래데이터의 금액이 비정상 적입니다. ( 0원 )'); return; }
+                              if(t.transactionAt == 0) {WidgetT.showSnackBar(context, text: '날짜를 정확히 입력해 주세요.'); return; }
                             }
+
 
                             var alert = await DialogT.showAlertDl(context, title: '수납현황' ?? 'NULL');
                             if(alert == false) {

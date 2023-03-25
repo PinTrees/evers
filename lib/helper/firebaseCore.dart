@@ -607,7 +607,7 @@ class FireStoreT {
   }
   static dynamic getAmountAccount(String id) async {
     var amount = 0;
-    await FirebaseFirestore.instance.collection('meta/account/${id}').limit(25).get().then((value) {
+    await FirebaseFirestore.instance.collection('balance/dateM-account/${id}').limit(100).get().then((value) {
       print('get account ts data');
       if(value.docs == null) return false;
       print(value.docs.length);
@@ -617,6 +617,28 @@ class FireStoreT {
         var map = a.data() as Map;
         map.forEach((key, value) {
           amount += value as int;
+        });
+      }
+    });
+    return amount;
+  }
+  static dynamic getAmountAccountWithDate(String id, String startAt, String lastAt) async {
+    var amount = 0;
+    await FirebaseFirestore.instance.collection('balance/dateM-account/${id}').limit(100).get().then((value) {
+      print('get balance in account');
+      if(value.docs == null) return false;
+      print(value.docs.length);
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+
+        var map = a.data() as Map;
+        map.forEach((key, value) {
+          var aa = key.toString().split('-');
+          if(aa.length < 3)
+            amount += value as int;
+          else if(startAt.compareTo(aa[1]) > 0) return;
+          else if(lastAt.compareTo(aa[1]) < 0) return;
+          else amount += value as int;
         });
       }
     });

@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../class/Customer.dart';
@@ -304,6 +305,10 @@ class DialogRE extends StatelessWidget {
                               for(int i = 0; i < revenueList.length; i++) {
                                 if(revContract[i].ctName == '') {
                                   WidgetT.showSnackBar(context, text: '모든 매출에 거래처를 선택해 주세요');
+                                  return;
+                                }
+                                if(revContract[i].reactive == 0) {
+                                  WidgetT.showSnackBar(context, text: '날짜를 정확히 입력해 주세요.');
                                   return;
                                 }
                               }

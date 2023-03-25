@@ -152,6 +152,10 @@ class DialogTS extends StatelessWidget {
                                 WidgetT.showSnackBar(context, text: '저장을 취소했습니다.');
                                 return;
                               }
+                              if(ts.transactionAt == 0) {
+                                WidgetT.showSnackBar(context, text: '날짜를 정확히 입력해 주세요.');
+                                return;
+                              }
 
                               WidgetT.loadingBottomSheet(context, text:'로딩중');
 

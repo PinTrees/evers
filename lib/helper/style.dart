@@ -379,8 +379,20 @@ class DateStyle {
     return DateFormat('yyyyMMdd').format(date);
   }
   static String dateEphoceD(int ephoce) {
-    var data = ephoce.toString().substring(0, 8);
-    return data ?? '';
+    String date = DateTime.fromMicrosecondsSinceEpoch(ephoce).microsecondsSinceEpoch.toString();
+    if(date.length > 8) date = date.substring(0, 8);
+    return date;
+  }
+
+  static String startAtEpoch(DateTime aa) {
+    var date =  aa.microsecondsSinceEpoch.toString().substring(0, 8);
+    return date;
+  }
+  static String lastOneDayAtEpoch() {
+    var n = DateTime.now();
+    var yesterDay = new DateTime(n.year, n.month, n.day - 1, 23, 59, 59);
+    var date =  yesterDay.microsecondsSinceEpoch.toString().substring(0, 8);
+    return date;
   }
 }
 
