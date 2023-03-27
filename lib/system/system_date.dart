@@ -20,6 +20,8 @@ import 'package:korea_regexp/models/regexp_options.dart';
 
 class SystemDate {
   static DateTime selectWorkDate = DateTime.now();
+  static Map<String, DateTime> selectDate = {};
+
   static List<int> years = [ 1969, 2020, 2021, 2022, 2023, ];
   static List<int> months = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
   static var days = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,

@@ -1095,7 +1095,7 @@ class DialogCS extends StatelessWidget {
               puW.add(WidgetUI.titleRowNone([ '', '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
                   [ 28, 28, 100, 150 + 28 * 2, 50, 80, 80 + 28, 80, 80, 80, 999 ], background: true));
 
-              purs.forEach((e) => allPay += e.totalPrice; );
+              purs.forEach((e) => allPay += e.totalPrice );
               
               int startIndex = puIndex * pageLimit;
               for(int i = startIndex; i < startIndex + pageLimit; i++) {
@@ -1250,7 +1250,7 @@ class DialogCS extends StatelessWidget {
               );
 
               
-              tslist.forEach((e) => allPayedAmount += e.amount; );
+              tslist.forEach((e) => allPayedAmount += e.amount );
               
               List<Widget> tsW = [];
               tsW.add(WidgetUI.titleRowNone([ '', '순번', '거래일자', '구분', '적요', '결재', '금액', '메모', ], [ 28, 28, 100, 100, 200, 150 + 28, 100, 999,], background: true),);

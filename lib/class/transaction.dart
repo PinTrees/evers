@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/purchase.dart';
+import 'package:evers/helper/pdfx.dart';
 import 'package:evers/helper/style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
@@ -14,6 +15,10 @@ import 'Customer.dart';
 import 'contract.dart';
 import 'revenue.dart';
 import 'system.dart';
+
+
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class TS {
   var csUid = '';       /// 거래처번호
@@ -145,7 +150,8 @@ class TS {
     }
     return cs.businessName + '&:' + summary + '&:' + memo + '&:' + date;
   }
-  
+
+
   
   // 2023.03.23 요청사항 거래 UID 발급 함수
   dynamic createUid() async {
@@ -212,8 +218,8 @@ class TS {
     var db = FirebaseFirestore.instance;
     /// 메인문서 기록
     final docRef = db.collection("transaction").doc(id);
-    final dateRef = db.collection('meta/date-m/transaction').doc(dateId);
-    if(org != null) ref['orgDate'] = db.collection('meta/date-m/transaction').doc(orgDateId);
+    final dateRef = db.collection('meta/date-by/dateM-transaction').doc(dateId);
+    if(org != null) ref['orgDate'] = db.collection('meta/date-by/dateM-transaction').doc(orgDateId);
     if(org != null) ref['orgSearch'] = db.collection('meta/search/dateQ-transaction').doc(orgDateQuarterId);
     if(org != null) {
       if(org.csUid != '') ref['orgCsDetail'] = db.collection('customer/${org.csUid}/cs-dateH-transaction').doc(orgDateIdHarp);
@@ -255,7 +261,7 @@ class TS {
 
       if(org != null) {
         if(sn['orgDate']!.exists && dateId != orgDateId && orgDateId != '-')
-          transaction.update(ref['orgDate']!, {'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+          transaction.update(ref['orgDate']!, { org.id : FieldValue.delete(), });
 
         if(sn['orgCsDetail'] != null)
           if(sn['orgCsDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-')
@@ -279,9 +285,8 @@ class TS {
       if(docRefSn.exists)  transaction.update(docRef, toJson());
       else  transaction.set(docRef, toJson());
 
-      if(docDateRefSn.exists) transaction.update(dateRef, { 'list\.${id}': toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
-      else transaction.set(dateRef, {  'list': { id: toJson() },  'updateAt': DateTime.now().microsecondsSinceEpoch, });
-
+      if(docDateRefSn.exists) transaction.update(dateRef, { id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch});
+      else transaction.set(dateRef, {  id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch });
 
       if(sn['account'] != null) {
         if(sn['account']!.exists) transaction.update(ref['account']!, { id: getAmount(), },);
@@ -329,7 +334,7 @@ class TS {
     var db = FirebaseFirestore.instance;
     /// 메인문서 기록
     final docRef = db.collection("transaction").doc(id);
-    final dateRef = db.collection('meta/date-m/transaction').doc(dateId);
+    final dateRef = db.collection('meta/date-by/dateM-transaction').doc(dateId);
 
     if(account != '') ref['account']     = db.collection('meta/account/${account}').doc(dateIdQuarter);
     if(account != '') ref['accountDate'] = db.collection('balance/dateM-account/${account}').doc(dateIdMonth);
@@ -361,7 +366,7 @@ class TS {
 
       /// 일자별 거래기록에 추가된 데이터 삭제
       if(docDateRefSn.exists) {
-        transaction.update(dateRef, { 'list\.${id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        transaction.update(dateRef, { id: FieldValue.delete(), });
       }
 
       /// 계좌 정보에 추가된 금액 삭제
@@ -389,74 +394,50 @@ class TS {
         onError: (e) { print("Error delete transaction() $e"); return false; }
     );
   }
-  dynamic deleteEnd() async {
-    if(id == '') return false;
-    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));
 
-    var dateIdHarp = DateStyle.dateYearsHarp(transactionAt);
-    var dateIdQuarter = DateStyle.dateYearsQuarter(transactionAt);
-    var dateIdMonth = DateStyle.dateYearMM(transactionAt);
+  pw.Widget pdfView(int index) {
+    return pw.Column(
+      mainAxisSize: pw.MainAxisSize.min,
+        children: [
+          pw.Container(
+              height: 28,
+              child: pw.Row(
+                children: [
+                  WidgetP.excelGrid(text: '$index', width: 32),
+                  WidgetP.dividViertical(),
+                  WidgetP.excelGrid(text: '$id', width: 80),
+                  WidgetP.dividViertical(),
+                  WidgetP.excelGrid(text: StyleT.dateFormatYYMMDD(transactionAt), width: 80),
+                  WidgetP.dividViertical(),
+                  WidgetP.excelGrid(text: summary, width: 200),
+                  WidgetP.dividViertical(),
+                ],
+              )
+          ),
+          WidgetP.dividHorizontal(),
+        ]
+    );
+  }
+  dynamic getTable(int bal) async {
+    var cs = await SystemT.getCS(csUid);
+    return <String>[ StyleT.dateFormatYYMMDD(transactionAt), SystemT.getAccountName(account), cs.businessName, (type == 'RE') ? StyleT.krwInt(getAmount()) : '',
+      (type == 'PU') ? StyleT.krwInt(getAmount()) : '',  StyleT.krwInt(bal) , summary ];
+  }
+  dynamic updateDate() async {
+    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));
 
     Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
     var db = FirebaseFirestore.instance;
-    /// 메인문서 기록
-    final docRef = db.collection("transaction").doc(id);
-    final dateRef = db.collection('meta/date-m/transaction').doc(dateId);
-
-    if(account != '') ref['account']     = db.collection('meta/account/${account}').doc(dateIdQuarter);
-    if(account != '') ref['accountDate'] = db.collection('balance/dateM-account/${account}').doc(dateIdMonth);
-    if(csUid != '')   ref['cs']          = db.collection('customer').doc(csUid);
-    if(csUid != '')   ref['csDetail']    = db.collection('customer/${csUid}/cs-dateH-transaction').doc(dateIdHarp);
-    if(ctUid != '')   ref['ct']          = db.collection('contract').doc(ctUid);
-    if(ctUid != '')   ref['ctDetail']    = db.collection('contract/${ctUid}/ct-dateH-transaction').doc(dateIdHarp);
-    /// 검색 기록 문서 경로로
-    final searchRef = db.collection('meta/search/dateQ-transaction').doc(dateIdQuarter);
+    final dateRef = db.collection('meta/date-by/dateM-transaction').doc(dateId);
 
     return await db.runTransaction((transaction) async {
-      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
-      final  docRefSn = await transaction.get(docRef);
       final  docDateRefSn = await transaction.get(dateRef);
-      final  searchSn = await transaction.get(searchRef);
 
-      if(ref['account'] != null) sn['account'] = await transaction.get(ref['account']!);
-      if(ref['accountDate'] != null) sn['accountDate'] = await transaction.get(ref['accountDate']!);
-      if(ref['cs'] != null) sn['cs'] = await transaction.get(ref['cs']!);
-      if(ref['csDetail'] != null) sn['csDetail'] = await transaction.get(ref['csDetail']!);
-
-      if(ref['ct'] != null) sn['ct'] = await transaction.get(ref['ct']!);
-      if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);
-
-      /// 기초 거래기록 저장 컬렉션에서 데이터 삭제
-      if(docRefSn.exists) transaction.delete(docRef);
-
-      /// 일자별 거래기록에 추가된 데이터 삭제
-      if(docDateRefSn.exists) {
-        transaction.update(dateRef, { 'list\.${id}': null });
-      }
-
-      /// 계좌 정보에 추가된 금액 삭제
-      if(account != '') {
-        if(sn['account']!.exists) transaction.update(ref['account']!, { id: FieldValue.delete(), },);
-        if(sn['accountDate']!.exists) transaction.update(ref['accountDate']!, { id: FieldValue.delete(), },);
-      }
-
-      /// 거래처 개별기록에 추가된 데이터 삭제 및 개수 감소
-      if(ref['cs'] != null) {
-        transaction.update(ref['cs']!, {'tsCount': FieldValue.increment(-1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
-        if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: FieldValue.delete(), });
-      }
-
-      /// 계약 개별기록에 추가된 데이터 삭제 및 개수 감소
-      if(ref['ct'] != null) {
-        if(sn['ct']!.exists) transaction.update(ref['ct']!, {'tsCount': FieldValue.increment(-1),});
-        if(sn['ctDetail']!.exists) transaction.update(ref['ctDetail']!, { id: FieldValue.delete(), });
-      }
-
-      /// 검색 메타데이터 데이터 삭제
-      if(searchSn.exists)  transaction.update(searchRef, { id : FieldValue.delete(), },);
+      if(docDateRefSn.exists) transaction.update(dateRef, { id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch});
+      else transaction.set(dateRef, {  id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch });
     }).then(
-            (value) { print("DocumentSnapshot successfully updated!"); return true; },
-        onError: (e) { print("Error delete transaction() $e"); return false; }
+            (value) { print("successfully updated! - ts.date-by::$id"); return true; },
+        onError: (e) { print("Error update date transaction() $e"); return false; }
     );
   }
 }

@@ -14,6 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 
 import '../class/Customer.dart';
 import '../class/contract.dart';
@@ -466,13 +467,169 @@ class View_MO extends StatelessWidget {
         childrenW.add(w);
         childrenW.add(WidgetT.dividHorizontal(size: 0.35));
 
+        // 프린트할 거래기록의 시작날짜 / 서버안정성을 위해 기초값 최근 한달로 설정
+        SystemDate.selectDate['startDate'] ??= DateTime(DateTime.now().year, DateTime.now().month, 1);
+
+        List<TS> tsList = await FireStoreT.getTransactionWithDate(SystemDate.selectDate['startDate']!.microsecondsSinceEpoch,
+            SystemDate.selectWorkDate.microsecondsSinceEpoch);
+        tsList.sort((a, b) => b.transactionAt.compareTo(a.transactionAt));
 
         childrenW.add(SizedBox(height: divideHeight * 8,));
-        var aa = Column(
+        var printMenuTitle = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(),
             WidgetT.title('기간조회', size: 18),
+            SizedBox(height: divideHeight,),
+            Row(
+              children: [
+                WidgetT.titleT('잔고출력시작일자', size: 14, color: Colors.grey.withOpacity(0.75)),
+                SizedBox(width: divideHeight * 2,),
+                SizedBox(
+                  width: 100,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton2(
+                      focusColor: Colors.transparent,
+                      focusNode: FocusNode(),
+                      autofocus: false,
+                      customButton: Container(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Expanded(child: SizedBox()),
+                            WidgetT.title(SystemDate.dateFormat_YYYY_kr(SystemDate.selectDate['startDate']!), size: 14),
+                            Expanded(child: SizedBox()),
+                          ],
+                        ),
+                      ),
+                      items: SystemDate.years?.map((item) => DropdownMenuItem<dynamic>(
+                        value: item,
+                        child: Text(
+                          item.toString() + '년',
+                          style: StyleT.titleStyle(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )).toList(),
+                      onChanged: (value) async {
+                        var org = SystemDate.selectDate['startDate']!;
+                        SystemDate.selectDate['startDate'] = DateTime(value, org.month, org.day);
+                        await FunT.setStateMain();
+                      },
+                      itemHeight: 28,
+                      itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                      dropdownWidth: 100,
+                      dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                      dropdownDecoration: BoxDecoration(
+                        border: Border.all(
+                          width: 1.7,
+                          color: Colors.grey.withOpacity(0.5),
+                        ),
+                        borderRadius: BorderRadius.circular(0),
+                        color: Colors.white.withOpacity(0.95),
+                      ),
+                      dropdownElevation: 0,
+                      offset: const Offset(0, 0),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 60,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton2(
+                      focusColor: Colors.transparent,
+                      focusNode: FocusNode(),
+                      autofocus: false,
+                      customButton: Container(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Expanded(child: SizedBox()),
+                            WidgetT.title(SystemDate.dateFormat_MM_kr(SystemDate.selectDate['startDate']!), size: 14),
+                            Expanded(child: SizedBox()),
+                          ],
+                        ),
+                      ),
+                      items: SystemDate.months?.map((item) => DropdownMenuItem<dynamic>(
+                        value: item,
+                        child: Text(
+                          item.toString() + '월',
+                          style: StyleT.titleStyle(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )).toList(),
+                      onChanged: (value) async {
+                        var org = SystemDate.selectDate['startDate']!;
+                        SystemDate.selectDate['startDate'] = DateTime(org.year, value, org.day);
+                        await FunT.setStateMain();
+                      },
+                      itemHeight: 28,
+                      itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                      dropdownWidth: 60,
+                      dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                      dropdownDecoration: BoxDecoration(
+                        border: Border.all(
+                          width: 1.7,
+                          color: Colors.grey.withOpacity(0.5),
+                        ),
+                        borderRadius: BorderRadius.circular(0),
+                        color: Colors.white.withOpacity(0.95),
+                      ),
+                      dropdownElevation: 0,
+                      offset: const Offset(0, 0),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 60,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton2(
+                      focusColor: Colors.transparent,
+                      focusNode: FocusNode(),
+                      autofocus: false,
+                      customButton: Container(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Expanded(child: SizedBox()),
+                            WidgetT.title(SystemDate.selectDate['startDate']!.day.toString() + '일', size: 14),
+                            Expanded(child: SizedBox()),
+                          ],
+                        ),
+                      ),
+                      items: SystemDate.days?.map((item) => DropdownMenuItem<dynamic>(
+                        value: item,
+                        child: Text(
+                          item.toString() + '일',
+                          style: StyleT.titleStyle(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )).toList(),
+                      onChanged: (value) async {
+                        var org = SystemDate.selectDate['startDate']!;
+                        SystemDate.selectDate['startDate'] = DateTime(org.year, org.month, value);
+                        await FunT.setStateMain();
+                      },
+                      itemHeight: 28,
+                      itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                      dropdownWidth: 60,
+                      dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                      dropdownDecoration: BoxDecoration(
+                        border: Border.all(
+                          width: 1.7,
+                          color: Colors.grey.withOpacity(0.5),
+                        ),
+                        borderRadius: BorderRadius.circular(0),
+                        color: Colors.white.withOpacity(0.95),
+                      ),
+                      dropdownElevation: 0,
+                      offset: const Offset(0, 0),
+                    ),
+                  ),
+                ),
+                SizedBox(width: divideHeight * 2,),
+                WidgetT.text('잔고 계산에 영향을 끼치지 않으며 출력 결과 조정에만 사용됩니다.', size: 12, ),
+              ],
+            ),
             SizedBox(height: divideHeight,),
             Row(
               children: [
@@ -621,9 +778,17 @@ class View_MO extends StatelessWidget {
                 ),
               ],
             ),
+            SizedBox(height: divideHeight,),
+            Row(
+              children: [
+                WidgetT.titleT('기간 내 거래 목록', size: 14, color: Colors.grey.withOpacity(0.75)),
+                SizedBox(width: divideHeight * 2,),
+                WidgetT.title('${tsList.length} 개', size: 14,),
+              ],
+            ),
           ],
         );
-        childrenW.add(aa);
+        childrenW.add(printMenuTitle);
         childrenW.add(SizedBox(height: divideHeight * 2,));
 
         var selBalance = 0;
@@ -679,6 +844,177 @@ class View_MO extends StatelessWidget {
         childrenW.add(sW);
         childrenW.add(WidgetT.dividHorizontal(size: 0.35));
 
+        childrenW.add(SizedBox(height: divideHeight,));
+
+        // 03.27 금전출납부 PDF 인쇄 양식 추가
+        // 인쇄 버튼
+        var selBalanceCal = selBalance;
+        List<List<List<String>>> tableStringList = [];
+        for(int i = 0; i < (tsList.length / 35); i++) {
+          tableStringList.add([]);
+          for(int j = 0; j < 35; j++) {
+            if((i * 35) + j >= tsList.length) break;
+
+            tableStringList[i].add(await tsList[(i * 35) + j].getTable(selBalanceCal));
+            selBalanceCal += tsList[(i * 35) + j].getAmount();
+          }
+        }
+        childrenW.add(
+            Row(
+              children: [
+                InkWell(
+                  onTap: () async {
+                    final doc = pw.Document();
+
+                    bool lastPage = false;
+                    for(int i = 0; i < (tsList.length / 35); i++) {
+                      if(i >= ((tsList.length / 35) - 1) && !(tableStringList[i].length < 24))
+                        lastPage = true;
+
+                      doc.addPage(pw.Page(
+                          pageFormat: PdfPageFormat.a4,
+                          margin: const pw.EdgeInsets.all(24),
+                          build: (pw.Context context) {
+                            return pw.Column(
+                                children: [
+                                  if(i == 0) pw.Text('금전출납부 (에버스)', style: pw.TextStyle(font:  StyleT.font, fontSize: 18),),
+                                  pw.SizedBox(height: divideHeight * 4 ),
+                                  pw.Container(
+                                    decoration: pw.BoxDecoration(
+                                      border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                    ),
+                                    child: pw.Column(
+                                        mainAxisSize: pw.MainAxisSize.min,
+                                        children: [
+                                          pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 8),
+                                              headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                <String>['일자', '은행명', '예금주', '     수입     ', '     지출     ', '     잔고     ', '          적요 및 비고         '],
+                                                for(var rr in tableStringList[i])
+                                                  rr,
+                                              ]),
+                                        ]
+                                    ),
+                                  ),
+
+                                  if(i >= ((tsList.length / 35) - 1) && tableStringList[i].length < 24)
+                                    pw.Expanded(flex: 9, child: pw.SizedBox(height: divideHeight * 4 ),),
+                                  if(i >= ((tsList.length / 35) - 1) && tableStringList[i].length < 24)
+                                    pw.Row(
+                                        mainAxisAlignment: pw.MainAxisAlignment.end,
+                                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                                        children: [
+                                          pw.Container(
+                                            decoration: pw.BoxDecoration(
+                                              border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                            ),
+                                            child: pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font,
+                                                color: PdfColor.fromHex('#FFFFFF00'), fontSize: 8),
+                                                tableWidth: pw.TableWidth.min,
+                                                headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                  <String>['담당', '대표',],
+                                                  <String>['ㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\n', 'ㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\n',],
+                                                ]),
+                                          ),
+                                          pw.SizedBox(width: divideHeight * 4),
+                                          pw.Container(
+                                              width: 256,
+                                              decoration: pw.BoxDecoration(
+                                                border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                              ),
+                                              child: pw.Column(
+                                                  mainAxisSize: pw.MainAxisSize.min,
+                                                  children: [
+                                                    pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 12),
+                                                        headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                          <String>['잔고'],
+                                                        ]),
+                                                    pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10),
+                                                        headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                          for(var ac in selAccount.keys)
+                                                            <String>[SystemT.getAccountName(ac), '￦ ' + StyleT.krwInt(selAccount[ac])],
+                                                          <String>['합계', '￦ ' + StyleT.krwInt(selBalance)],
+                                                        ]),
+                                                  ]
+                                              )
+                                          )
+                                        ]
+                                    ),
+
+                                  pw.Expanded(flex: 1, child: pw.SizedBox(height: divideHeight * 4 ),),
+                                  pw.Text('${i + 1} / ${(tsList.length / 35).ceil()}', style: pw.TextStyle(font:  StyleT.font, fontSize: 8),),
+                                ]
+                            );
+                          }));
+                    }
+
+                    if(lastPage) {
+                      doc.addPage(pw.Page(
+                          pageFormat: PdfPageFormat.a4,
+                          margin: const pw.EdgeInsets.all(24),
+                          build: (pw.Context context) {
+                            return pw.Column(
+                                children: [
+                                  pw.Expanded(child: pw.SizedBox(height: divideHeight * 4 ),),
+                                  pw.Row(
+                                      mainAxisAlignment: pw.MainAxisAlignment.end,
+                                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                                      children: [
+                                        pw.Container(
+                                          decoration: pw.BoxDecoration(
+                                            border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                          ),
+                                          child: pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font,
+                                              color: PdfColor.fromHex('#FFFFFF00'), fontSize: 8),
+                                              tableWidth: pw.TableWidth.min,
+                                              headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                <String>['담당', '대표',],
+                                                <String>['ㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\n', 'ㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\n',],
+                                              ]),
+                                        ),
+                                        pw.SizedBox(width: divideHeight * 4),
+                                        pw.Container(
+                                            width: 256,
+                                            decoration: pw.BoxDecoration(
+                                              border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                            ),
+                                            child: pw.Column(
+                                                mainAxisSize: pw.MainAxisSize.min,
+                                                children: [
+                                                  pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 12),
+                                                      headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                        <String>['잔고'],
+                                                      ]),
+                                                  pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10),
+                                                      headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                        for(var ac in selAccount.keys)
+                                                          <String>[SystemT.getAccountName(ac), '￦ ' + StyleT.krwInt(selAccount[ac])],
+                                                        <String>['합계', '￦ ' + StyleT.krwInt(selBalance)],
+                                                      ]),
+                                                ]
+                                            )
+                                        )
+                                      ]
+                                  ),
+                                ]
+                            );
+                          }));
+                    }
+                    await Printing.layoutPdf(onLayout: (format) async => doc.save());
+                  },
+                  child: Container(
+                    child: Row(
+                      children: [
+                        WidgetT.iconMini(Icons.print, size: 36),
+                        WidgetT.title('인쇄', size: 12),
+                        SizedBox(width: divideHeight),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ));
+
+
         childrenW.add(SizedBox(height: divideHeight * 8,));
         childrenW.add(InkWell(
           onTap: () {
@@ -687,31 +1023,6 @@ class View_MO extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.all(18),
             child: WidgetT.title('차트로 보기', size: 12),
-          ),
-        ));
-        // 03.27 금전출납부 PDF 인쇄 양식 추가
-         childrenW.add(InkWell(
-          onTap: () {
-              final doc = pw.Document();
-              final image = pw.MemoryImage(byteData!,);
-              doc.addPage(pw.Page(
-                build: (pw.Context context) {
-                  return pw.Column(
-                      children: [
-                        pw.Container(
-                          child: pw.Text(''),
-                        ),
-                        pw.Center(
-                          child: pw.Image(image),
-                        ); // Center
-                      ]
-                    )
-                 })); // P
-              await Printing.layoutPdf(onLayout: (format) async => doc.save()); 
-          },
-          child: Container(
-            padding: EdgeInsets.all(18),
-            child: WidgetT.title('인쇄', size: 12),
           ),
         ));
       }

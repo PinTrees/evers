@@ -550,6 +550,30 @@ class FireStoreT {
     }
     return tsList;
   }
+
+  static dynamic getTransactionWithDate(int startAt, int lastAt) async {
+    List<TS> tsList = [];
+    var last = lastAt.toString().substring(0, 8);
+    await FirebaseFirestore.instance.collection('meta/date-by/dateM-transaction').orderBy('date', descending: true).
+        where('date', isGreaterThanOrEqualTo: startAt).where('date', isLessThanOrEqualTo: lastAt) .limit(20).get().then((value) {
+      print('get transaction data');
+      if(value.docs == null) return;
+
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+        var map = a.data() as Map;
+        for(var key in map.keys) {
+          if(key == 'date') continue;
+          var a = key.toString().split('-')[1];
+          if(a.compareTo(last) > 0) continue;
+
+          var ts = TS.fromDatabase(map[key]);
+          tsList.add(ts);
+        }
+      }
+    });
+    return tsList;
+  }
   static dynamic getTransactionAll() async {
     List<TS> tsList = [];
     await FirebaseFirestore.instance.collection('transaction').orderBy('transactionAt', descending: true)

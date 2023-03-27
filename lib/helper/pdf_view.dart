@@ -131,8 +131,7 @@ class _PdfViewPageState extends State<PdfViewPage> {
     else if(type == 'xlsx' || type == 'xls') {
       // https://pub.dev/packages/excel
       // 종속성 추가
-      var excel = Excel.decodeBytes(byteData);
-
+     /* var excel = Excel.decodeBytes(byteData);
       for (var table in excel.tables.keys) {
         print(table); //sheet Name
         print(excel.tables[table].maxCols);
@@ -140,7 +139,7 @@ class _PdfViewPageState extends State<PdfViewPage> {
         for (var row in excel.tables[table].rows) {
           print('$row');
         }
-      }
+      }*/
     }
     setState(() {});
   }

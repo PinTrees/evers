@@ -1,9 +1,15 @@
 
+import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
 
 class StyleT {
   static var backgroundColor = new Color(0xffF2E3D5);
@@ -40,11 +46,17 @@ class StyleT {
 
   static var white = Colors.white;
   static bool isDark = false;
+  static late var font;
 
   static Map<String, Color> scheduleColor = {};
   static Map<String, String> scheduleName = {};
 
-  static init() {
+  static init() async {
+    //font = await PdfGoogleFonts.nunitoExtraLight();
+    var aa = await rootBundle.load('assets/NanumSquareR.ttf');
+    final Uint8List fontData = aa.buffer.asUint8List();
+    font = pw.Font.ttf(fontData.buffer.asByteData(aa.offsetInBytes, aa.lengthInBytes));
+
     scheduleColor['0'] = Color(0xff293742);
     scheduleColor['1'] = Color(0xffFFDC95);
     scheduleColor['2'] = Color(0xffD98BA0);
