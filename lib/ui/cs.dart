@@ -1095,6 +1095,8 @@ class DialogCS extends StatelessWidget {
               puW.add(WidgetUI.titleRowNone([ '', '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
                   [ 28, 28, 100, 150 + 28 * 2, 50, 80, 80 + 28, 80, 80, 80, 999 ], background: true));
 
+              purs.forEach((e) => allPay += e.totalPrice);
+              
               int startIndex = puIndex * pageLimit;
               for(int i = startIndex; i < startIndex + pageLimit; i++) {
                 if(i >= purs.length) break;
@@ -1105,7 +1107,6 @@ class DialogCS extends StatelessWidget {
                 var itemName = (item == null) ? pu.item : item.name;
                 var itemUnit = (item == null) ? '' : item.unit;
 
-                allPay += pu.totalPrice;
                 w = Column(
                   children: [
                     InkWell(
@@ -1248,6 +1249,9 @@ class DialogCS extends StatelessWidget {
                 )
               );
 
+              
+              tslist.forEach((e) => allPayedAmount += e.amount; );
+              
               List<Widget> tsW = [];
               tsW.add(WidgetUI.titleRowNone([ '', '순번', '거래일자', '구분', '적요', '결재', '금액', '메모', ], [ 28, 28, 100, 100, 200, 150 + 28, 100, 999,], background: true),);
               startIndex = tsIndex * pageLimit;
@@ -1255,7 +1259,6 @@ class DialogCS extends StatelessWidget {
                 if(i >= tslist.length) break;
 
                 var tmpTs = tslist[i];
-                allPayedAmount += tmpTs.amount;
                 var w = InkWell(
                   onTap: () async {
                     TS? ts = await DialogTS.showInfoTs(context, org: tmpTs);
