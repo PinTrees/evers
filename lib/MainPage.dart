@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:seo/html/seo_widget.dart';
+import 'package:seo_renderer/renderers/image_renderer/image_renderer_web.dart';
 
 import 'helper/interfaceUI.dart';
 import 'helper/router.dart';
@@ -31,11 +32,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void didChangeDependencies() {
-    var user = FirebaseAuth.instance.currentUser;
-    if(user == null) {
-      context.push('/login/o');
-      setState(() {});
-    }
+    // var user = FirebaseAuth.instance.currentUser;
+    // if(user == null) {
+    //   context.push('/login/o');
+    //   setState(() {});
+    // }
   }
 
 
@@ -45,35 +46,45 @@ class _HomePageState extends State<HomePage> {
         Column(
           children: [
             // 홈페이지 수정부분 - 추후 수정 / 03.16
-            Seo.image(
-              src: 'http://www.example.com/image.jpg',
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Row(
+                    children: [
+                      Expanded(
+                          child: Container(
+                            height: 1024, width: double.maxFinite,
+                            child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/background.jpg', fit: BoxFit.cover),
+                          )
+                      )
+                    ]
+                ),
+                Positioned(
+                  left: 128,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      WidgetT.titleT('타이틀 문구 입력 자리', size: 88, bold: true, color: Colors.white),
+                      WidgetT.titleT('서브 타이틀 문구 입력 자리', size: 32, bold: false, color: Colors.white),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            /*Seo.image(
+              src: 'https://raw.githubusercontent.com/PinTrees/evers/main/sever/background.jpg',
               alt: 'Some example image',
               child: Row(
-                  children: [
+                   children: [
                     Expanded(
                         child: Container(
                           height: 512, width: double.maxFinite,
-                          child: CachedNetworkImage(imageUrl:'', fit: BoxFit.cover),
+                          child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/background.jpg', fit: BoxFit.cover),
                         )
                     )
                   ]
               ),
-            ),
-
-            Row(
-                children: [
-                Expanded(
-                  child: Container(
-                    height: 512, width: double.maxFinite,
-                    child: Column(
-                      children: [
-                        
-                      ]
-                    )
-                  )
-                )
-              ]
-            ),
+            ),*/
             Icon(Icons.home,),
           ],
         )
@@ -84,39 +95,54 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:  AppBar(
-        titleSpacing: 0,
-        backgroundColor: StyleT.accentColor,
-        elevation: 18,
-        automaticallyImplyLeading: false,
-        toolbarHeight: 68, // Set this height
-        flexibleSpace: Container(
-        ),
-        title: Material(
-          color: StyleT.accentLowColor,
-          elevation: 18,
-          child: Stack(
-            children: [
-              Container(height: 68,),
-              Positioned(
-                child: Material(
-                  elevation: 18, color: StyleT.accentColor,
-                  child: Container(
-                    height: 68, padding: EdgeInsets.fromLTRB(18, 0, 18, 0),
-                    child: Row(
-                      children: [
-                        WidgetT.titleBig('Evers', size: 30, color: StyleT.accentOver),
-                        Expanded(child: SizedBox()),
-                      ],
-                    ),
+      body: Stack(
+        children: [
+          main(),
+          Positioned(
+            top: 0, left: 0, right: 0,
+            child: Container(
+              height: 80,
+              child: Container(
+                padding: EdgeInsets.fromLTRB(6 * 8, 0, 6 * 8, 6),
+                decoration: BoxDecoration(
+                  //color: Colors.transparent,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      //const Color(0xFF009fdf).withOpacity(0.7),
+                      //const Color(0xFF1855a5).withOpacity(0.7),
+                      Colors.black.withOpacity(0.75),
+                      Colors.black.withOpacity(0.3),
+                      Colors.transparent,
+                      //Colors.blue,
+                      //Colors.red,
+                    ],
                   ),
                 ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                     TextButton(
+                        onPressed: () { },
+                        style: StyleT.buttonStyleNone(elevation: 0, color: Colors.transparent,),
+                        child: Container(height: 48, child: Image(image: AssetImage('assets/icon_txt.png'), color: Colors.white, ),)),
+                    Expanded(child: SizedBox()),
+                    TextButton(
+                        onPressed: () { },
+                        style: StyleT.buttonStyleNone(elevation: 0, color: Colors.transparent,),
+                        child: Container(alignment: Alignment.center, height: 48, child: WidgetT.title('Menu', size: 18) )),
+                    TextButton(
+                        onPressed: () { },
+                        style: StyleT.buttonStyleNone(elevation: 0, color: Colors.transparent,),
+                        child: Container(alignment: Alignment.center, height: 48, child: WidgetT.title('About', size: 18) )),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
-      body: main(),
     );
   }
 }

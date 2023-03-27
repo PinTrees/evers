@@ -51,6 +51,7 @@ dependencies:
   pdf_render: ^1.3.6
   pdf: ^3.8.4
   seo: ^0.0.4
+  seo_renderer: ^0.6.0
 
   #native_pdf_view: ^6.0.0+1
   #cloud_firestore: ^4.1.0
