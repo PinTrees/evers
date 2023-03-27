@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:seo/html/seo_widget.dart';
 
 import 'helper/interfaceUI.dart';
 import 'helper/router.dart';
@@ -44,17 +45,21 @@ class _HomePageState extends State<HomePage> {
         Column(
           children: [
             // 홈페이지 수정부분 - 추후 수정 / 03.16
-            Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 512, width: double.maxFinite,
-                    child: CachedNetworkImage(imageUrl:'', fit: BoxFit.cover),
-                  )
-                )
-              ]
+            Seo.image(
+              src: 'http://www.example.com/image.jpg',
+              alt: 'Some example image',
+              child: Row(
+                  children: [
+                    Expanded(
+                        child: Container(
+                          height: 512, width: double.maxFinite,
+                          child: CachedNetworkImage(imageUrl:'', fit: BoxFit.cover),
+                        )
+                    )
+                  ]
+              ),
             ),
-            
+
             Row(
                 children: [
                 Expanded(

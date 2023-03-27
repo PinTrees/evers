@@ -37,6 +37,9 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'ux.dart';
+import 'dart:js' as js;
+import 'dart:html' as html;
+
 
 class View_MO extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
@@ -801,6 +804,7 @@ class View_MO extends StatelessWidget {
           Account acc = SystemT.getAccount(a.id) ?? Account.fromDatabase({});
           selAccount[a.id] = amount + acc.balanceStartAt;
         }
+
         selAccount.forEach((key, value) { selBalance += value; });
 
         childrenW.add(WidgetUI.titleRowNone([ '순번', '계좌', '현재일잔고', '선택일잔고', '변동금', '수입', '지출', ],
@@ -856,7 +860,7 @@ class View_MO extends StatelessWidget {
             if((i * 35) + j >= tsList.length) break;
 
             tableStringList[i].add(await tsList[(i * 35) + j].getTable(selBalanceCal));
-            selBalanceCal += tsList[(i * 35) + j].getAmount();
+            selBalanceCal = selBalanceCal - tsList[(i * 35) + j].getAmount();
           }
         }
         childrenW.add(
@@ -999,13 +1003,185 @@ class View_MO extends StatelessWidget {
                             );
                           }));
                     }
-                    await Printing.layoutPdf(onLayout: (format) async => doc.save());
+
+
+                    //final printDoc = pw.Document();
+                    /*await for (var page in Printing.raster(await doc.save(), pages: [0, 1], dpi: 72)) {
+                      final image = await page.toPng();
+                      //final imagePdf = pw.MemoryImage(aa!.buffer.asUint8List(aa!.offsetInBytes, aa!.lengthInBytes));
+                      final imagePdf = pw.MemoryImage(image);
+                      printDoc.addPage(pw.Page(
+                          pageFormat: PdfPageFormat.a4,
+                          margin: const pw.EdgeInsets.all(0),
+                          build: (pw.Context context) {
+                            return pw.Center(
+                              child: pw.Image(imagePdf),
+                            );
+                          }));
+                    }*/
+
+                    var data = await doc.save();
+                    await Printing.layoutPdf(onLayout: (format) async => await data);
                   },
                   child: Container(
                     child: Row(
                       children: [
                         WidgetT.iconMini(Icons.print, size: 36),
                         WidgetT.title('인쇄', size: 12),
+                        SizedBox(width: divideHeight),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(width: divideHeight * 2,),
+                InkWell(
+                  onTap: () async {
+                    final doc = pw.Document();
+
+                    bool lastPage = false;
+                    for(int i = 0; i < (tsList.length / 35); i++) {
+                      if(i >= ((tsList.length / 35) - 1) && !(tableStringList[i].length < 24))
+                        lastPage = true;
+
+                      doc.addPage(pw.Page(
+                          pageFormat: PdfPageFormat.a4,
+                          margin: const pw.EdgeInsets.all(24),
+                          build: (pw.Context context) {
+                            return pw.Column(
+                                children: [
+                                  if(i == 0) pw.Text('금전출납부 (에버스)', style: pw.TextStyle(font:  StyleT.font, fontSize: 18),),
+                                  pw.SizedBox(height: divideHeight * 4 ),
+                                  pw.Container(
+                                    decoration: pw.BoxDecoration(
+                                      border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                    ),
+                                    child: pw.Column(
+                                        mainAxisSize: pw.MainAxisSize.min,
+                                        children: [
+                                          pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 8),
+                                              headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                <String>['일자', '은행명', '예금주', '     수입     ', '     지출     ', '     잔고     ', '          적요 및 비고         '],
+                                                for(var rr in tableStringList[i])
+                                                  rr,
+                                              ]),
+                                        ]
+                                    ),
+                                  ),
+
+                                  if(i >= ((tsList.length / 35) - 1) && tableStringList[i].length < 24)
+                                    pw.Expanded(flex: 9, child: pw.SizedBox(height: divideHeight * 4 ),),
+                                  if(i >= ((tsList.length / 35) - 1) && tableStringList[i].length < 24)
+                                    pw.Row(
+                                        mainAxisAlignment: pw.MainAxisAlignment.end,
+                                        crossAxisAlignment: pw.CrossAxisAlignment.end,
+                                        children: [
+                                          pw.Container(
+                                            decoration: pw.BoxDecoration(
+                                              border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                            ),
+                                            child: pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font,
+                                                color: PdfColor.fromHex('#FFFFFF00'), fontSize: 8),
+                                                tableWidth: pw.TableWidth.min,
+                                                headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                  <String>['담당', '대표',],
+                                                  <String>['ㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\n', 'ㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\n',],
+                                                ]),
+                                          ),
+                                          pw.SizedBox(width: divideHeight * 4),
+                                          pw.Container(
+                                              width: 256,
+                                              decoration: pw.BoxDecoration(
+                                                border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                              ),
+                                              child: pw.Column(
+                                                  mainAxisSize: pw.MainAxisSize.min,
+                                                  children: [
+                                                    pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 12),
+                                                        headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                          <String>['잔고'],
+                                                        ]),
+                                                    pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10),
+                                                        headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                          for(var ac in selAccount.keys)
+                                                            <String>[SystemT.getAccountName(ac), '￦ ' + StyleT.krwInt(selAccount[ac])],
+                                                          <String>['합계', '￦ ' + StyleT.krwInt(selBalance)],
+                                                        ]),
+                                                  ]
+                                              )
+                                          )
+                                        ]
+                                    ),
+
+                                  pw.Expanded(flex: 1, child: pw.SizedBox(height: divideHeight * 4 ),),
+                                  pw.Text('${i + 1} / ${(tsList.length / 35).ceil()}', style: pw.TextStyle(font:  StyleT.font, fontSize: 8),),
+                                ]
+                            );
+                          }));
+                    }
+
+                    if(lastPage) {
+                      doc.addPage(pw.Page(
+                          pageFormat: PdfPageFormat.a4,
+                          margin: const pw.EdgeInsets.all(24),
+                          build: (pw.Context context) {
+                            return pw.Column(
+                                children: [
+                                  pw.Expanded(child: pw.SizedBox(height: divideHeight * 4 ),),
+                                  pw.Row(
+                                      mainAxisAlignment: pw.MainAxisAlignment.end,
+                                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                                      children: [
+                                        pw.Container(
+                                          decoration: pw.BoxDecoration(
+                                            border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                          ),
+                                          child: pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font,
+                                              color: PdfColor.fromHex('#FFFFFF00'), fontSize: 8),
+                                              tableWidth: pw.TableWidth.min,
+                                              headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                <String>['담당', '대표',],
+                                                <String>['ㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\n', 'ㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\nㅡㅡㅡㅡㅡㅡ\n',],
+                                              ]),
+                                        ),
+                                        pw.SizedBox(width: divideHeight * 4),
+                                        pw.Container(
+                                            width: 256,
+                                            decoration: pw.BoxDecoration(
+                                              border: pw.Border.all(width: 2, color: PdfColor.fromHex('#000000')),
+                                            ),
+                                            child: pw.Column(
+                                                mainAxisSize: pw.MainAxisSize.min,
+                                                children: [
+                                                  pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 12),
+                                                      headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                        <String>['잔고'],
+                                                      ]),
+                                                  pw.Table.fromTextArray(context: context, cellStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10),
+                                                      headerStyle: pw.TextStyle(font:  StyleT.font, fontSize: 10), data: <List<String>>[
+                                                        for(var ac in selAccount.keys)
+                                                          <String>[SystemT.getAccountName(ac), '￦ ' + StyleT.krwInt(selAccount[ac])],
+                                                        <String>['합계', '￦ ' + StyleT.krwInt(selBalance)],
+                                                      ]),
+                                                ]
+                                            )
+                                        )
+                                      ]
+                                  ),
+                                ]
+                            );
+                          }));
+                    }
+
+                    var data = await doc.save();
+                    //await StorageHub.updateFile('tmp', 'printing file upload', data, 'printing.pdf');
+                    js.context.callMethod("saveAs", <Object>[
+                      html.Blob(<Object>[data!]), '금전출납부.pdf',]);
+                  },
+                  child: Container(
+                    child: Row(
+                      children: [
+                        WidgetT.iconMini(Icons.downloading, size: 36),
+                        WidgetT.title('파일로 다운로드', size: 12),
                         SizedBox(width: divideHeight),
                       ],
                     ),

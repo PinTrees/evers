@@ -553,9 +553,8 @@ class FireStoreT {
 
   static dynamic getTransactionWithDate(int startAt, int lastAt) async {
     List<TS> tsList = [];
-    var last = lastAt.toString().substring(0, 8);
     await FirebaseFirestore.instance.collection('meta/date-by/dateM-transaction').orderBy('date', descending: true).
-        where('date', isGreaterThanOrEqualTo: startAt).where('date', isLessThanOrEqualTo: lastAt) .limit(20).get().then((value) {
+        where('date', isGreaterThanOrEqualTo: startAt - 5000000000000).where('date', isLessThanOrEqualTo: lastAt + 5000000000000) .limit(20).get().then((value) {
       print('get transaction data');
       if(value.docs == null) return;
 
@@ -564,10 +563,9 @@ class FireStoreT {
         var map = a.data() as Map;
         for(var key in map.keys) {
           if(key == 'date') continue;
-          var a = key.toString().split('-')[1];
-          if(a.compareTo(last) > 0) continue;
-
           var ts = TS.fromDatabase(map[key]);
+          if(ts.transactionAt < startAt || ts.transactionAt > lastAt) continue;
+
           tsList.add(ts);
         }
       }

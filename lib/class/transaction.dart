@@ -224,12 +224,12 @@ class TS {
     if(org != null) {
       if(org.csUid != '') ref['orgCsDetail'] = db.collection('customer/${org.csUid}/cs-dateH-transaction').doc(orgDateIdHarp);
       if(org.ctUid != '') ref['orgCtDetail'] = db.collection('contract/${org.ctUid}/ct-dateH-transaction').doc(orgDateIdHarp);
-      if(org.getAmount() != 0 && org.account != '') ref['orgAccount'] =  db.collection('meta/account/${account}').doc(orgDateQuarterId);
-      if(org.getAmount() != 0 && org.account != '') ref['orgAccountDate'] = db.collection('balance/dateM-account/${account}').doc(orgDateIdMonth);
+      if(org.getAmount() != 0 && org.account != '') ref['orgAccount'] =  db.collection('meta/account/${(org.account == '') ? '00000000' : org.account }').doc(orgDateQuarterId);
+      if(org.getAmount() != 0 && org.account != '') ref['orgAccountDate'] = db.collection('balance/dateM-account/${(org.account == '') ? '00000000' : org.account }').doc(orgDateIdMonth);
     }
 
-    if(getAmount() != 0 && account != '') ref['account'] =  db.collection('meta/account/${account}').doc(dateIdQuarter);
-    if(getAmount() != 0 && account != '') ref['accountDate'] =  db.collection('balance/dateM-account/${account}').doc(dateIdMonth);
+    if(getAmount() != 0 && account != '') ref['account'] =  db.collection('meta/account/${(account == '') ? '00000000' : account }').doc(dateIdQuarter);
+    if(getAmount() != 0 && account != '') ref['accountDate'] =  db.collection('balance/dateM-account/${(account == '') ? '00000000' : account }').doc(dateIdMonth);
 
     if(csUid != '') ref['cs'] = db.collection('customer').doc(csUid);
     if(csUid != '') ref['csDetail'] = db.collection('customer/${csUid}/cs-dateH-transaction').doc(dateIdHarp);
@@ -336,8 +336,8 @@ class TS {
     final docRef = db.collection("transaction").doc(id);
     final dateRef = db.collection('meta/date-by/dateM-transaction').doc(dateId);
 
-    if(account != '') ref['account']     = db.collection('meta/account/${account}').doc(dateIdQuarter);
-    if(account != '') ref['accountDate'] = db.collection('balance/dateM-account/${account}').doc(dateIdMonth);
+    if(account != '') ref['account']     = db.collection('meta/account/${(account == '') ? '00000000' : account }').doc(dateIdQuarter);
+    if(account != '') ref['accountDate'] = db.collection('balance/dateM-account/${(account == '') ? '00000000' : account }').doc(dateIdMonth);
     if(csUid != '')   ref['cs']          = db.collection('customer').doc(csUid);
     if(csUid != '')   ref['csDetail']    = db.collection('customer/${csUid}/cs-dateH-transaction').doc(dateIdHarp);
     if(ctUid != '')   ref['ct']          = db.collection('contract').doc(ctUid);
@@ -394,30 +394,6 @@ class TS {
         onError: (e) { print("Error delete transaction() $e"); return false; }
     );
   }
-
-  pw.Widget pdfView(int index) {
-    return pw.Column(
-      mainAxisSize: pw.MainAxisSize.min,
-        children: [
-          pw.Container(
-              height: 28,
-              child: pw.Row(
-                children: [
-                  WidgetP.excelGrid(text: '$index', width: 32),
-                  WidgetP.dividViertical(),
-                  WidgetP.excelGrid(text: '$id', width: 80),
-                  WidgetP.dividViertical(),
-                  WidgetP.excelGrid(text: StyleT.dateFormatYYMMDD(transactionAt), width: 80),
-                  WidgetP.dividViertical(),
-                  WidgetP.excelGrid(text: summary, width: 200),
-                  WidgetP.dividViertical(),
-                ],
-              )
-          ),
-          WidgetP.dividHorizontal(),
-        ]
-    );
-  }
   dynamic getTable(int bal) async {
     var cs = await SystemT.getCS(csUid);
     return <String>[ StyleT.dateFormatYYMMDD(transactionAt), SystemT.getAccountName(account), cs.businessName, (type == 'RE') ? StyleT.krwInt(getAmount()) : '',
@@ -428,15 +404,16 @@ class TS {
 
     Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
     var db = FirebaseFirestore.instance;
-    final dateRef = db.collection('meta/date-by/dateM-transaction').doc(dateId);
+    //final dateRef = db.collection('meta/date-by/dateM-transaction').doc(dateId);
+    final dateRef = db.collection('balance/dateM-account/${(account == '') ? '00000000' : account }').doc(dateId);
 
     return await db.runTransaction((transaction) async {
       final  docDateRefSn = await transaction.get(dateRef);
 
-      if(docDateRefSn.exists) transaction.update(dateRef, { id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch});
-      else transaction.set(dateRef, {  id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch });
+      if(docDateRefSn.exists) transaction.update(dateRef, { id: getAmount(), });
+      else transaction.set(dateRef, {  id: getAmount(), });
     }).then(
-            (value) { print("successfully updated! - ts.date-by::$id"); return true; },
+            (value) { print("successfully updated! - ts.amount-m::$id"); return true; },
         onError: (e) { print("Error update date transaction() $e"); return false; }
     );
   }

@@ -39,7 +39,7 @@ class SystemT {
   static List<Item> items = [];         /// 품목
   static Map<String, Item> itemMaps = {};         /// 품목
   static Map<String, ItemFD> inventory = {}; /// 재고수량
-  static Map<String, Account> accounts = {};
+  static Map<String, Account> accounts = {  };
 
   static Map<dynamic, dynamic> customerSearch = {};
   static Map<dynamic, dynamic> contractSearch = {};
