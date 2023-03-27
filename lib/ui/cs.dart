@@ -1095,7 +1095,7 @@ class DialogCS extends StatelessWidget {
               puW.add(WidgetUI.titleRowNone([ '', '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
                   [ 28, 28, 100, 150 + 28 * 2, 50, 80, 80 + 28, 80, 80, 80, 999 ], background: true));
 
-              purs.forEach((e) => allPay += e.totalPrice);
+              purs.forEach((e) => allPay += e.totalPrice; );
               
               int startIndex = puIndex * pageLimit;
               for(int i = startIndex; i < startIndex + pageLimit; i++) {
