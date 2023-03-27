@@ -32,6 +32,9 @@ import 'dialog_contract.dart';
 import 'dl.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+
 import 'ux.dart';
 
 class View_MO extends StatelessWidget {
@@ -686,7 +689,31 @@ class View_MO extends StatelessWidget {
             child: WidgetT.title('차트로 보기', size: 12),
           ),
         ));
-
+        // 03.27 금전출납부 PDF 인쇄 양식 추가
+         childrenW.add(InkWell(
+          onTap: () {
+              final doc = pw.Document();
+              final image = pw.MemoryImage(byteData!,);
+              doc.addPage(pw.Page(
+                build: (pw.Context context) {
+                  return pw.Column(
+                      children: [
+                        pw.Container(
+                          child: pw.Text(''),
+                        ),
+                        pw.Center(
+                          child: pw.Image(image),
+                        ); // Center
+                      ]
+                    )
+                 })); // P
+              await Printing.layoutPdf(onLayout: (format) async => doc.save()); 
+          },
+          child: Container(
+            padding: EdgeInsets.all(18),
+            child: WidgetT.title('인쇄', size: 12),
+          ),
+        ));
       }
     }
     else if(menu == '미수현황') {
