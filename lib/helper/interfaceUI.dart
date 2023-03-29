@@ -168,7 +168,7 @@ class WidgetT extends StatelessWidget {
   }
   static Widget excelInput(BuildContext context, String key, {int? index, Function(int, dynamic)? onEdite,
     String? text, String? value, bool isMain=false,
-    double? width, double? height, String? hint, bool? first=false, bool isMultiLine=false, String? label, double? labelSize}) {
+    double? width, double? height, double? textSize, String? hint, bool? first=false, bool isMultiLine=false, String? label, double? labelSize}) {
     if(textInputs[key] == null) textInputs[key] = new TextEditingController();
     Widget w = SizedBox();
     if(isActive[key] == true) {
@@ -205,15 +205,16 @@ class WidgetT extends StatelessWidget {
       Widget tw = SizedBox();
       if(text == null) {
         if(hint != null)
-          tw = WidgetT.text(hint, size: 12,);
+          tw = WidgetT.text(hint, size: textSize ?? 12,);
       }
       else if(text == '') {
         if(hint != null)
-          tw = WidgetT.text(hint, size: 12,);
+          tw = WidgetT.text(hint, size:textSize ?? 12,);
       }
       else {
-        tw = WidgetT.title(text, size: 12,);
+        tw = WidgetT.title(text, size: textSize ?? 12,);
       }
+
 
       w = InkWell(
         onFocusChange: (hasFocus) async {

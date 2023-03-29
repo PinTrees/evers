@@ -30,8 +30,9 @@ class RevPur {
 class Revenue {
   var selectIsTaxed = false;    // - ???
   var isTaxed = false;          // 세금계산서 마감
-  var initVat = true;          // 부가세 자동 계산 - 변수명 변경 필요
-  var initSup = true;          // 공급가액 자동 계산 - 변수명 변경 필요
+
+  var fixedVat = false;          // 부가세 자동 계산 - 변수명 변경 필요
+  var fixedSup = false;          // 공급가액 자동 계산 - 변수명 변경 필요
 
   var state = '';       /// 상태
 
@@ -75,6 +76,8 @@ class Revenue {
     revenueAt = json['revenueAt'] ?? 0;
     memo = json['memo'] ?? '';
     isTaxed = json['isTaxed'] ?? false;
+    fixedVat = json['fixedVat'] ?? false;
+    fixedSup = json['fixedSup'] ?? false;
     selectIsTaxed = isTaxed;
     init();
   }
@@ -97,26 +100,34 @@ class Revenue {
       'revenueAt': revenueAt,
       'memo': memo,
       'isTaxed': isTaxed,
+      'fixedVat': fixedVat,
+      'fixedSup': fixedSup,
     };
   }
 
   // 부가세 직접 입력시 자동계산 수식 수정
   // 부가세 직접 입력 구분값 추가 저장
   int init() {
-    if(initVat && initSup) {
+    if(!fixedSup && !fixedVat) {
       if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
       if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
-    } else if(!initVat) {
+    }
+    else if(fixedSup && fixedVat) {
+      if(vatType == 0) { totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { totalPrice = supplyPrice + vat; }
+    }
+    else if(fixedVat) {
       // 부가세가 변경될 경우 데이터를 보장할 수 없음
-      if(vatType == 0) { totalPrice = unitPrice * count;  vat; supplyPrice = totalPrice - vat; }
-      if(vatType == 1) { vat; totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
-    } else if(!initSup) {
+      if(vatType == 0) { supplyPrice = unitPrice * count - vat;   totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { totalPrice = unitPrice * count + ((unitPrice * count) / 10).round();  supplyPrice = totalPrice - vat;   }
+    } else if(fixedSup) {
       // 공급가액이 변경될 경우 데이터를 보장할 수 없음 - 공식 수정 필요
-      if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice; }
-      if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice; }
+      if(vatType == 0) { vat = unitPrice * count - supplyPrice;     totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round();  totalPrice = unitPrice * count + vat;   vat = totalPrice - supplyPrice;  }
     }
     return totalPrice;
   }
+
   
   Future<String> getSearchText() async {
     var cs = await SystemT.getCS(csUid) ?? Customer.fromDatabase({});

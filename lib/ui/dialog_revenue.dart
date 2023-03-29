@@ -123,15 +123,24 @@ class DialogRE extends StatelessWidget {
                           re.count = int.tryParse(data) ?? 0;
                           },
                           text: StyleT.krw(re.count.toString()), value: re.count.toString() ),
+
                         WidgetT.excelInput(context, '$i::re.unitPrice', width: 80, index: i,
                           onEdite: (i, data) {
                             re.unitPrice = int.tryParse(data) ?? 0;
-                          },
-                          text: StyleT.krw(re.unitPrice.toString()), value: re.unitPrice.toString()),
-                        WidgetT.excelGrid(textLite: true, width: 80, text: StyleT.krw(re.supplyPrice.toString()),),
-                        WidgetT.excelGrid(textLite: true,  width: 80,
-                          text: StyleT.krw(re.vat.toString(),),
-                        ),
+                          }, text: StyleT.krw(re.unitPrice.toString()), value: re.unitPrice.toString()),
+
+                        WidgetT.excelInput(context, '$i::re.supplyPrice', width: 80, index: i,
+                            onEdite: (i, data) {
+                              re.supplyPrice = int.tryParse(data) ?? 0;
+                              re.fixedSup = true;
+                            }, text: StyleT.krw(re.supplyPrice.toString()), value: re.supplyPrice.toString()),
+
+                        WidgetT.excelInput(context, '$i::re.vat', width: 80, index: i,
+                            onEdite: (i, data) {
+                              re.vat = int.tryParse(data) ?? 0;
+                              re.fixedVat = true;
+                            }, text: StyleT.krw(re.vat.toString()), value: re.vat.toString()),
+
                         WidgetT.excelGrid(textLite: true, width: 80,text: StyleT.krw(re.totalPrice.toString()),),
                         Expanded(
                           child: WidgetT.excelInput(context, '$i::메모', width: 200, index: i,

@@ -1508,7 +1508,7 @@ class DialogCS extends StatelessWidget {
                                     // 03.08 요청사항 반영 --------
                                     // 지불현황에서 지급추가 버튼 활성화 - 신규 창에서 처리
                                     // tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
-                                    var tsCreate = await WidgetPR.showCreateTS(context);
+                                    var tsCreate = await DialogTS.showCreateTS(context);
                                     if(tsCreate != null) {
                                       // 신규 거래 추가됨
                                       // 데이터베이스 스트림

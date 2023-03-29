@@ -13,6 +13,9 @@ import 'contract.dart';
 class Purchase {
   var state = '';
 
+  var fixedVat = false;
+  var fixedSup = false;
+
   var csUid = '';
   var ctUid = '';
   var id = '';
@@ -49,6 +52,8 @@ class Purchase {
     memo = json['memo'] ?? '';
     filesMap = (json['filesMap'] == null) ? {} : json['filesMap'] as Map;
 
+    fixedVat = json['fixedVat'] ?? false;
+    fixedSup = json['fixedSup'] ?? false;
     init();
   }
   Map<String, dynamic> toJson() {
@@ -67,6 +72,8 @@ class Purchase {
       'paymentAt': paymentAt,
       'purchaseAt': purchaseAt,
       'memo': memo,
+      'fixedVat': fixedVat,
+      'fixedSup': fixedSup,
       'filesMap': filesMap as Map,
     };
   }
@@ -93,10 +100,26 @@ class Purchase {
     return a;
   }
   int init() {
-    if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
-    if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
+    if(!fixedSup && !fixedVat) {
+      if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
+    }
+    else if(fixedSup && fixedVat) {
+      if(vatType == 0) { totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { totalPrice = supplyPrice + vat; }
+    }
+    else if(fixedVat) {
+      // 부가세가 변경될 경우 데이터를 보장할 수 없음
+      if(vatType == 0) { supplyPrice = unitPrice * count - vat;   totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { totalPrice = unitPrice * count + ((unitPrice * count) / 10).round();  supplyPrice = totalPrice - vat;   }
+    } else if(fixedSup) {
+      // 공급가액이 변경될 경우 데이터를 보장할 수 없음 - 공식 수정 필요
+      if(vatType == 0) { vat = unitPrice * count - supplyPrice;     totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round();  totalPrice = unitPrice * count + vat;   vat = totalPrice - supplyPrice;  }
+    }
     return totalPrice;
   }
+
 
   dynamic update() {
 
