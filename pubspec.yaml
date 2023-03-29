@@ -53,6 +53,10 @@ dependencies:
   seo: ^0.0.4
   seo_renderer: ^0.6.0
 
+  #licence import
+  excel: 2.0.4
+  #syncfusion_flutter_xlsio: ^21.1.37
+
   #native_pdf_view: ^6.0.0+1
   #cloud_firestore: ^4.1.0
   #firebase_core: ^1.20.0

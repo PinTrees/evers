@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:evers/helper/function.dart';
 import 'package:evers/helper/interfaceUI.dart';
 import 'package:evers/helper/style.dart';
+import 'package:excel/excel.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +22,8 @@ import 'package:printing/printing.dart';
 
 import 'dart:html' as html;
 import 'dart:js' as js;
+
+import 'package:url_launcher/url_launcher.dart';
 
 
 class PdfViewPage extends StatefulWidget{
@@ -56,6 +60,9 @@ class _PdfViewPageState extends State<PdfViewPage> {
   }
 
   void initAsync() async {
+    WidgetT.loadingBottomSheet(context,);
+    setState(() {});
+
     if(widget.url != null) {
       print(widget.url);
       var url = widget.url!.replaceAll('&&::', '/');
@@ -78,9 +85,16 @@ class _PdfViewPageState extends State<PdfViewPage> {
       byteData = widget.data;
       mainW();
     }
+
+    Navigator.pop(context);
+    setState(() {});
   }
 
-  dynamic mainW() {
+  Map<String, List<List<Widget>>> data = {};
+  List<String> sheetNames = [];
+  int selectSheet = 0;
+
+  dynamic mainW({ bool refresh = true }) {
     if(byteData == null) {
       main = Container();
     }
@@ -129,18 +143,111 @@ class _PdfViewPageState extends State<PdfViewPage> {
       );
     }
     else if(type == 'xlsx' || type == 'xls') {
-      // https://pub.dev/packages/excel
-      // 종속성 추가
-     /* var excel = Excel.decodeBytes(byteData);
-      for (var table in excel.tables.keys) {
-        print(table); //sheet Name
-        print(excel.tables[table].maxCols);
-        print(excel.tables[table].maxRows);
-        for (var row in excel.tables[table].rows) {
-          print('$row');
+
+      if(refresh) {
+        var excel = Excel.decodeBytes(byteData!);
+        for (var table in excel.tables.keys) {
+          print(table); //sheet Name
+          //print(excel.tables[table]!.maxCols);
+          //print(excel.tables[table]!.maxRows);
+          sheetNames.add(table);
+          data[table] = [];
+          for (var row in excel.tables[table]!.rows) {
+            List<Widget> wlist = [];
+            for(var r in row) {
+              if(r == null) continue;
+              if(r.value == null) continue;
+
+              var w = Container(
+                padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                width: 200,
+                decoration: StyleT.inkStyle(color: Colors.transparent, stroke: 0.35),
+                height: 28,
+                child: Text(
+                  '${ r.value }',
+                  style: TextStyle(fontSize: 10),
+                ),
+              );
+              wlist.add(w);
+            }
+            data[table]!.add(wlist);
+          }
         }
-      }*/
+      }
+
+      main = Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(12),
+            child: Row(
+              children: [
+                InkWell(
+                    onTap: () {
+                      launchUrl(Uri.parse('https://www.office.com/launch/excel?flight=unauthrefresh&auth=1'));
+                    },
+                    child: Container(
+                      child: Row(
+                        children: [
+                          WidgetT.iconMini(Icons.window, size: 28),
+                          WidgetT.text('MS Office 365'),
+                          SizedBox(width: dividSize,),
+                        ],
+                      ),
+                    )
+                ),
+                SizedBox(width: dividSize,),
+                InkWell(
+                    onTap: () {
+                      launchUrl(Uri.parse('https://www.office.com/launch/excel?flight=unauthrefresh&auth=1'));
+                    },
+                    child: Container(
+                      child: Row(
+                        children: [
+                          WidgetT.iconMini(Icons.grid_4x4, size: 28),
+                          WidgetT.text('구글 스프레드 시트'),
+                          SizedBox(width: dividSize,),
+                        ],
+                      ),
+                    )
+                ),
+              ],
+            ),
+          ),
+          WidgetT.dividHorizontal(size: 0.7),
+          Expanded(
+            child: ListView.builder(
+              itemCount: data.values.elementAt(selectSheet).length,
+              itemBuilder: (context, index) {
+                return Row(
+                  children: [
+                    for(var r in data.values.elementAt(selectSheet).elementAt(index))
+                      r,
+                  ],
+                );
+              },
+            ),
+          ),
+          WidgetT.dividHorizontal(size: 0.7),
+          Container(
+            padding: EdgeInsets.all(dividSize),
+            child: Row(
+              children: [
+                for(int i = 0; i < sheetNames.length; i++)
+                  InkWell(
+                    onTap: () {
+                      selectSheet = i;
+                      mainW(refresh: false);
+                    },
+                    child: Container( padding: EdgeInsets.all(dividSize),
+                        child: WidgetT.text(sheetNames[i], size: 12)),
+                  )
+              ],
+            ),
+          )
+        ],
+      );
     }
+
     setState(() {});
   }
 
