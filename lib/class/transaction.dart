@@ -28,12 +28,12 @@ class TS {
   var id = '';          /// 고유번호
   var type = '';        /// 입금/출금
 
-  var amount = 0;   /// 합계
-  var account = '';     /// 계좌 고유 아이디 값 또는 기초 문자열
-  var transactionAt = 0;    /// 매출일
+  var amount = 0;         /// 합계
+  var account = '';       /// 계좌 고유 아이디 값 또는 기초 문자열
+  var transactionAt = 0;  /// 매출일
 
-  var summary = '';     /// 적요
-  var memo = '';        /// 메모
+  var summary = '';       /// 적요
+  var memo = '';          /// 메모
 
   TS.fromDatabase(Map<dynamic, dynamic> json) {
     id = json['id'] ?? '';
