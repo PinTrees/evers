@@ -178,13 +178,13 @@ class View_MO extends StatelessWidget {
 
                         rpLastAt = DateTime.now();
                         if(pur_query == pur_sort_menu_date[0]) {
-                          rpStartAt = DateTime.now().add(const Duration(days: -7));
+                          rpStartAt = DateTime(rpStartAt.year, rpStartAt.month, rpStartAt.day - 7); // DateTime.now().add(const Duration(days: -7));
                         }
                         else if(pur_query == pur_sort_menu_date[1]) {
-                          rpStartAt = DateTime.now().add(const Duration(days: -30));
+                          rpStartAt = DateTime(rpStartAt.year, rpStartAt.month - 1, rpStartAt.day); //DateTime.now().add(const Duration(days: -30));
                         }
                         else if(pur_query == pur_sort_menu_date[2]) {
-                          rpStartAt = DateTime.now().add(const Duration(days: -90));
+                          rpStartAt = DateTime(rpStartAt.year, rpStartAt.month - 3, rpStartAt.day); //DateTime.now().add(const Duration(days: -90));
                         }
 
                         FunT.setStateMain();
