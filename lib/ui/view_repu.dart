@@ -604,7 +604,7 @@ class View_REPU extends StatelessWidget {
         ],
       );
 
-      if(ts_list.length < 1) {
+      if(ts_list.length < 1) { 
         ts_list = await FireStoreT.getTransaction(
           startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
           lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
