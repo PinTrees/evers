@@ -3,6 +3,7 @@ import 'package:evers/MainPage.dart';
 import 'package:evers/NonePage.dart';
 import 'package:evers/login/LoginPage.dart';
 import 'package:evers/main.dart';
+import 'package:evers/page/page_customer.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pdf_render/pdf_render_widgets.dart';
@@ -70,6 +71,12 @@ final GoRouter router = GoRouter(
           path: 'pdfview/:id/:id2',
           builder: (BuildContext context, GoRouterState state) {
             return PdfViewPage(url: state.params['id'], fileName: state.params['id2'],);
+          },
+        ),
+        GoRoute(
+          path: 'customer/:id',
+          builder: (BuildContext context, GoRouterState state) {
+            return CustomerPage(csUid: state.params['id']);
           },
         ),
       ],

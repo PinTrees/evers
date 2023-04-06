@@ -4,6 +4,18 @@ import 'package:evers/main.dart';
 import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 
+/// Never Used
+/// Never Used
+/// Never Used
+/// Never Used
+/// Never Used
+/// Never Used
+/// Never Used
+/// Never Used
+/// Never Used
+/// Never Used
+
+
 class NavigationState {
   final int value;
   NavigationState(this.value);
