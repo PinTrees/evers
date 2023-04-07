@@ -13,6 +13,13 @@ import 'contract.dart';
 import 'revenue.dart';
 import 'system.dart';
 
+/**
+* 품목 선언 파일 변경
+* 
+*
+* @ Update YM
+* @ version 1.1.0
+*/
 class Item {
   var id = '';
   var name = '';
