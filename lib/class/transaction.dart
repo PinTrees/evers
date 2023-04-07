@@ -20,6 +20,13 @@ import 'system.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+/**
+* 거래기록 클래스
+* 
+*
+* @update YM
+* @version 1.0.0
+*/
 class TS {
   var csUid = '';       /// 거래처번호
   var ctUid = '';       /// 계약번호
@@ -35,6 +42,12 @@ class TS {
   var summary = '';       /// 적요
   var memo = '';          /// 메모
 
+  /**
+  * DeSerialize Json Form Sever
+  * 
+  * @ params map json
+  * @ Creater function
+  */
   TS.fromDatabase(Map<dynamic, dynamic> json) {
     id = json['id'] ?? '';
     type = json['type'] ?? '';
@@ -50,6 +63,13 @@ class TS {
     summary = json['summary'] ?? '';
     memo = json['memo'] ?? '';
   }
+  
+  /**
+  * DeSerialize Class Form Purchase
+  * 
+  * @ params Purchase pu 매입데이터, string account 계좌, bool now 즉시수금여부
+  * @ create function
+  */
   TS.fromPu(Purchase data, String amountS, {bool now=false}) {
     type = 'PU';
     ctUid = data.ctUid;
@@ -63,6 +83,13 @@ class TS {
     summary = now ? SystemT.getItemName(data.item) : '';
     memo = data.memo;
   }
+  
+  /**
+  * DeSerialize Class Form Revenue
+  * 
+  * @ params Revenue re 매출데이터, string account 계좌, bool now 즉시수금여부
+  * @ create function
+  */
   TS.fromRe(Revenue data, String amountS, {bool now=false}) {
     type = 'RE';
     ctUid = data.ctUid;
@@ -76,6 +103,8 @@ class TS {
     summary = now ? SystemT.getItemName(data.item) : '';
     memo = data.memo;
   }
+  
+ 
   Map<String, dynamic> toCsJson() {
     return {
       'type': type,
@@ -90,6 +119,12 @@ class TS {
     };
   }
 
+  /**
+  * Serialize this Class 
+  * 
+  * @ params none
+  * @ return JsonData
+  */
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -108,19 +143,13 @@ class TS {
       'memo': memo,
     };
   }
-  int getAmount() {
-   if(type =='PU') return amount * -1;
-   else if(type == 'RE') return amount;
-   else return 0;
-  }
-  String getAccountName() {
-    return SystemT.getAccountName(account);
-  }
-  String getType() {
-    if(type == 'RE') return '수입';
-    else if(type == 'PU') return '지출';
-    else return type;
-  }
+  
+  /**
+  * The Low Serialize this Class 
+  * 
+  * @ params none
+  * @ return JsonData low
+  */
   Map<String, dynamic> toLJson() {
     return {
       //'id': id,
@@ -137,7 +166,53 @@ class TS {
       'memo': memo,
     };
   }
-
+  
+  
+  
+  /**
+  * 거래 금액을 반환
+  * 매출의 경우 -, 매입의 경우 +
+  * 
+  * @ params none
+  * @ return int 거래금액
+  */
+  int getAmount() {
+   if(type =='PU') return amount * -1;
+   else if(type == 'RE') return amount;
+   else return 0;
+  }
+  
+  /**
+  * 거래기록의 계좌를 반환
+  * 
+  * @ params none
+  * @ return String
+  */
+  String getAccountName() {
+    return SystemT.getAccountName(account);
+  }
+  
+  /**
+  * 거래 타입의 UI 표기값을 반환
+  * RE: 수입, PU: 지출
+  * 
+  * @ params none
+  * @ return String 수입, 지출
+  */
+  String getType() {
+    if(type == 'RE') return '수입';
+    else if(type == 'PU') return '지출';
+    else return type;
+  }
+  
+  
+  /**
+  * 검색 메타데이터 헤더 값을 반환
+  * 구분자 "&:"
+  * 
+  * @ params none
+  * @ return String "data&:data&:data&:data"
+  */
   Future<String> getSearchText() async {
     var cs = (await SystemT.getCS(csUid)) ?? Customer.fromDatabase({});
     //var ct = (await SystemT.getCt(ctUid)) ?? Contract.fromDatabase({});
@@ -153,9 +228,16 @@ class TS {
 
 
   
-  // 2023.03.23 요청사항 거래 UID 발급 함수
+  /**
+  * 거래 UID 확인 함수
+  * 거래 기록시 현재 거래문서 데이터베이스 ID 값을 확인
+  * "T(거래구분자)-16845212(날짜 에폭시)-1(번호)"
+  * 번호는 1부터 시작하며 날짜마다 고유
+  *
+  * @ params none
+  * @ return String "T-16452222-1"
+  */
   dynamic createUid() async {
-    // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
     var dateIdDayEp = DateStyle.dateEphoceD(transactionAt);
     var dateIdMonth = DateStyle.dateYearMM(transactionAt);
 
@@ -186,10 +268,22 @@ class TS {
     );
   }
 
+  
+  /**
+  * 거래 UID 확인 함수
+  * 거래 기록시 현재 거래문서 데이터베이스 ID 값을 확인
+  * "T(거래구분자)-16845212(날짜 에폭시)-1(번호)"
+  * 번호는 1부터 시작하며 날짜마다 고유
+  *
+  * @ params none
+  * @ return String "T-16452222-1"
+  */
   dynamic create() async {
     await createUid();
     await update();
   }
+  
+  
   dynamic update({TS? org, Map<String, Uint8List>? files, }) async {
     var create = false;
     if(id == '') create = true;
