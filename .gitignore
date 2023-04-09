@@ -5,6 +5,7 @@
 
 web/index.html
 lib/main.dart
+lib/class/system.dart
 
 # Files and directories created by pub
 .dart_tool/
