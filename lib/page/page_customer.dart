@@ -204,7 +204,6 @@ class _CustomerPageState extends State<CustomerPage> {
           WidgetT.text("총 매입금: " +  StyleT.krwInt(pu_amount), size: 18, bold: true),
           WidgetT.text("총 수납금: " +  StyleT.krwInt(ts_get_amount), size: 18, bold: true),
           WidgetT.text("총 지급금: " +  StyleT.krwInt(ts_out_amount), size: 18, bold: true),
-          //WidgetT.dividHorizontal(size: 0.7),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:evers/NonePage.dart';
 import 'package:evers/login/LoginPage.dart';
 import 'package:evers/main.dart';
 import 'package:evers/page/page_customer.dart';
+import 'package:evers/page/page_shopingItem.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pdf_render/pdf_render_widgets.dart';
@@ -77,6 +78,13 @@ final GoRouter router = GoRouter(
           path: 'customer/:id',
           builder: (BuildContext context, GoRouterState state) {
             return CustomerPage(csUid: state.params['id']);
+          },
+        ),
+        GoRoute(
+          path: 'shopping/:id',
+          builder: (BuildContext context, GoRouterState state) {
+            var a = state.params['id'];
+            return ShoingItemPage();
           },
         ),
       ],

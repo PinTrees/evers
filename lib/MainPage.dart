@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:seo/html/seo_widget.dart';
 import 'package:seo_renderer/renderers/image_renderer/image_renderer_web.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'helper/interfaceUI.dart';
 import 'helper/router.dart';
@@ -53,7 +54,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Expanded(
                           child: Container(
-                            height: 1024, width: double.maxFinite,
+                            height: 900, width: double.maxFinite,
                             child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/background.jpg', fit: BoxFit.cover),
                           )
                       )
@@ -71,20 +72,133 @@ class _HomePageState extends State<HomePage> {
                 )
               ],
             ),
-            /*Seo.image(
-              src: 'https://raw.githubusercontent.com/PinTrees/evers/main/sever/background.jpg',
-              alt: 'Some example image',
-              child: Row(
-                   children: [
-                    Expanded(
-                        child: Container(
-                          height: 512, width: double.maxFinite,
-                          child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/background.jpg', fit: BoxFit.cover),
-                        )
+            Container(
+              height: 640,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  for(int i = 0; i < 3; i++)
+                    Container(
+                      height: 640, width: 640,
+                      child: Column(
+                        children: [
+                          Container(height: 460, width: 640, color: Colors.grey.withOpacity(0.35), alignment: Alignment.center,
+                            child: WidgetT.text('상품 이미지', bold: true),),
+                          Container(height: 180, width: 640, color: Colors.white,
+                              padding: EdgeInsets.all(6 * 2),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  WidgetT.text('상품명', size: 24, bold: true),
+                                  RichText(
+                                    text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                              text: '${ StyleT.krwInt(1012390) }',
+                                              style: TextStyle(color: Colors.grey,
+                                                  fontSize: 24, decoration: TextDecoration.lineThrough, fontWeight: FontWeight.w900)),
+                                          TextSpan(
+                                              text: '원  ',
+                                              style: TextStyle(color: Colors.grey,
+                                                  fontSize: 24, fontWeight: FontWeight.w900)),
+                                          TextSpan(
+                                              text: '${ StyleT.krwInt(77751) }원 할인 ',
+                                              style: TextStyle(color: Colors.black.withOpacity(0.7),
+                                                  fontSize: 24, fontWeight: FontWeight.w900)),
+
+                                        ]),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      WidgetT.text(StyleT.krwInt(101230) + '원', size: 54, bold: true),
+                                      InkWell(
+                                        onTap: () async {
+                                          WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+
+                                          var url = Uri.base.toString() + 'shopping/aaaa';
+                                          print(url);
+                                          await launchUrl( Uri.parse(url),
+                                              webOnlyWindowName: true ? '_blank' : '_self',
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: EdgeInsets.all(6 * 3),
+                                          color: Colors.grey.withOpacity(0.35),
+                                          child: WidgetT.text('구매하기', size: 24, bold: true),
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              )
+                          )
+                        ],
+                      ),
                     )
-                  ]
+                ],
               ),
-            ),*/
+            ),
+            SizedBox(height: 6 * 2,),
+            InkWell(
+              onTap: () {
+                WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+              },
+              child: Container(
+                padding: EdgeInsets.fromLTRB(18, 12, 18, 12),
+                color: Colors.grey.withOpacity(0.35),
+                child: WidgetT.text('더 많은 상품 보러가기', size: 14, bold: false),
+              ),
+            ),
+            SizedBox(height: 6 * 2,),
+
+
+            SizedBox(height: 6 * 4,),
+            WidgetT.title('리뷰', bold: true, size: 36),
+            SizedBox(height: 6 * 2,),
+            Wrap(
+              runSpacing: 12, spacing: 12,
+              children: [
+                for(int i = 0; i < 10; i++)
+                  Stack(
+                    children: [
+                      Container(
+                        color: Colors.grey.withOpacity(0.35),
+                        height: 280, width: 280,
+                      ),
+                      Positioned(
+                        bottom: 0, left: 0, right: 0,
+                        child: Container(
+                          padding: EdgeInsets.all(6 * 2),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              WidgetT.text('리뷰 제목', size: 16, bold:  true),
+                              WidgetT.text('리뷰 내용 리뷰 내용 리뷰 내용 리뷰 내용 리뷰 내용 리뷰 내용 리뷰 내용', size: 12, bold: false),
+                            ],
+                          ),
+                        ),
+                      )
+                    ],
+                  )
+              ],
+            ),
+
+            SizedBox(height: 6 * 8,),
+            Container(
+              height: 256,
+              width:  double.maxFinite,
+              alignment: Alignment.center,
+              color: Color(0xFF1855a5).withOpacity(0.7),
+              //color: Color(0xFF009fdf).withOpacity(0.7),
+              child: Text(
+                'ABOUT US | AGREEMENT | PRIVACY POLICY | GUIDE'
+                '\n\nCOMPANY : 에버스 | OWNER : 이재구| 사업자등록번호 : 741-87-02231 [사업자정보확인]| 통신판매업신고번호 : -'
+                '\nADDRESS : 강원도 원주시 시청로 160-1, 401호(무실동)| CS CENTER : -| 개인정보관리책임자 : -'
+                    '\n\n\nCOPYRIGHT © 에버스. ALL RIGHTS RESERVED.'
+                    '\nHOSTING BY Firebase',
+              ),
+            )
           ],
         )
       ],

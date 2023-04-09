@@ -25,6 +25,8 @@ import 'item.dart';
 import 'Customer.dart';
 
 class SystemT {
+  static var kakaoPayApiKey = '18a819119fc4b52383e1d294623ed81d';
+
   static Map<String, Customer?> customers = {};
   static List<Schedule> schedule = [];
 
@@ -32,7 +34,7 @@ class SystemT {
 
   static List<Contract> searchCt = [];
 
-  static Map<String, Purchase> purchase = {};
+  static Map<String, Purchase> purchase = {}; 
   static Map<String, Revenue> revenue = {};
   static List<RevPur> revpur = [];
 
