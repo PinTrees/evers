@@ -1,10 +1,12 @@
 import 'dart:math';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:evers/class/system.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/interfaceUI.dart';
 import 'package:evers/helper/style.dart';
 import 'package:excel/excel.dart';
+import 'package:flutter/gestures.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +29,10 @@ import 'dart:js' as js;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../class/Customer.dart';
+import '../class/purchase.dart';
+import '../class/transaction.dart';
+import '../ui/cs.dart';
+import '../ui/dialog_revenue.dart';
 
 
 class CustomerPage extends StatefulWidget{
@@ -78,13 +84,86 @@ class _CustomerPageState extends State<CustomerPage> {
   List<String> sheetNames = [];
   int selectSheet = 0;
 
-  dynamic mainW({ bool refresh = true }) {
+  dynamic mainW({ bool refresh = true }) async {
     if(cs == null) {
       main = Container();
       return;
     }
 
+    var pu_amount = 0;
+    List<Purchase> pur_list = await cs!.getPurchase();
+    List<Widget> pu_w = [];
+    for(int i = 0; i < pur_list.length; i++) {
+      var pu = pur_list[i];
+      pu_amount += pu.totalPrice;
 
+      var ccs = await SystemT.getCS(pu.csUid);
+      var itemName = await SystemT.getItemName(pu.item);
+      var w = Container(
+        height: 36,
+        decoration: StyleT.inkStyleNone(color: Colors.transparent),
+        child: Row(
+            children: [
+              WidgetT.excelGrid(textSize: 8, label: '${0 + 1}', width: 32),
+              WidgetT.excelGrid(textSize: 8, textLite: true, text: pu.id, width: 120, ),
+              WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(pu.purchaseAt.toString()), width: 80, ),
+              WidgetT.excelGrid(textSize: 10,textLite: false,text: '매입', width: 50, textColor: Colors.redAccent.withOpacity(0.5) ),
+
+              Expanded(
+                child: Container(
+                  width: 150, alignment: Alignment.center,
+                  child: (ccs!.businessName != '') ? RichText(
+                    text: TextSpan(children: [
+                      TextSpan(
+                          text: ccs.businessName,
+                          style: TextStyle(color: Colors.blue, fontSize: 10, decoration: TextDecoration.underline, fontWeight: FontWeight.w900)),
+                    ]),
+                  ) : Text('ㅡ', style: TextStyle(fontSize: 10, color: StyleT.textColor),),
+                ),
+              ),
+              Expanded(child: WidgetT.excelGrid(textLite: false, width: 999, text: itemName, textSize: 10)),
+              WidgetT.excelGrid(textSize: 10, textLite: true, text: "", width: 50),
+              WidgetT.excelGrid(textSize: 10, textLite: true,width: 50,  text: StyleT.krw(pu.count.toString()),),
+              WidgetT.excelGrid(textSize: 10, textLite: true,width: 80,  text: StyleT.krw(pu.unitPrice.toString()),),
+              WidgetT.excelGrid(textSize: 10, textLite: true,width: 80,  text: StyleT.krw(pu.supplyPrice.toString()),),
+              WidgetT.excelGrid(textSize: 10, textLite: true,width: 80,  text: StyleT.krw(pu.vat.toString()), ),
+              WidgetT.excelGrid(textSize: 10, textLite: true,width: 80, text: StyleT.krw(pu.totalPrice.toString()),),
+              if(pu.filesMap.length > 0)
+                WidgetT.iconMini(Icons.file_copy_rounded, size: 32),
+              if(pu.filesMap.length == 0)
+                SizedBox(height: 28,width: 28,),
+              InkWell(
+                onTap: () async {
+                  await DialogRE.showInfoPu(context, org: pu);
+                },
+                child: WidgetT.iconMini(Icons.create, size: 32),
+              ),
+              InkWell(
+                onTap: () async {
+                  var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
+                  if(aa) {
+                    await FireStoreT.deletePu(pu);
+                    WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
+                  }
+                },
+                child: WidgetT.iconMini(Icons.delete, size: 32),
+              ),
+            ]
+        ),
+      );
+      pu_w.add(w);
+      pu_w.add(WidgetT.dividHorizontal(size: 0.35));
+  }
+
+
+    var ts_get_amount = 0;
+    var ts_out_amount = 0;
+    List<TS> ts_list = await cs!.getTransaction();
+    for(int i = 0; i < ts_list.length; i++) {
+      var ts = ts_list[i];
+      ts_get_amount += ts.getAmountOnlyPu();
+      ts_out_amount += ts.getAmountOnlyRE();
+    }
 
     main = Container(
       padding: EdgeInsets.all(18),
@@ -102,12 +181,30 @@ class _CustomerPageState extends State<CustomerPage> {
                 InkWell(
                   child: Container( padding: EdgeInsets.all(12),
                       child: WidgetT.text('기초정보', size: 12, bold: true )),
-                )
+                ),
               ],
             ),
           ),
 
-          WidgetT.dividHorizontal(size: 0.7),
+          WidgetT.title("매입 목록", size: 22, bold: true),
+          SizedBox(height: 6,),
+
+          for(var w in pu_w) w,
+
+          SizedBox(height: 6,),
+          WidgetT.title("매출 목록", size: 22, bold: true),
+          SizedBox(height: 6,),
+
+          SizedBox(height: 6,),
+          WidgetT.title("수납 목록", size: 22, bold: true),
+          SizedBox(height: 6,),
+
+          WidgetT.title("미수 미지급 현황", size: 22, bold: true),
+          SizedBox(height: 6,),
+          WidgetT.text("총 매입금: " +  StyleT.krwInt(pu_amount), size: 18, bold: true),
+          WidgetT.text("총 수납금: " +  StyleT.krwInt(ts_get_amount), size: 18, bold: true),
+          WidgetT.text("총 지급금: " +  StyleT.krwInt(ts_out_amount), size: 18, bold: true),
+          //WidgetT.dividHorizontal(size: 0.7),
         ],
       ),
     );
@@ -146,7 +243,11 @@ class _CustomerPageState extends State<CustomerPage> {
             )),
       ),
       backgroundColor: Colors.white70,
-      body: main,
+      body: ListView(
+        children: [
+          main,
+        ],
+      ),
     );
   }
 }

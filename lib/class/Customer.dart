@@ -9,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/intl.dart';
 
+import 'transaction.dart';
+
 class Customer {
   var bsType = '';
   var csType = '';
@@ -154,7 +156,40 @@ class Customer {
 
     return data;
   }
-  
+
+  /**
+   * 현재 거래처의 전체 또는 선택기간의 거래 기록문서목록을
+   * 데이터베이스로부터 요청하는 함수
+   *
+   * 삭제된 문서에 대한 요청 기능 없음
+   *
+   * @ params none
+   * @ return 거래문서 목록
+   */
+  dynamic getTransaction() async {
+    List<TS> data = [];
+    CollectionReference coll = await FirebaseFirestore.instance.collection('customer/${id}/cs-dateH-transaction');
+    await coll.limit(20).get().then((value) {
+      print('get &: customer/${id}/cs-dateH-transaction &: limit:20 &: length:${value.docs?.length}');
+      if(value.docs == null) return false;
+
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+        var map = a.data() as Map;
+        var listMap = map as Map;
+
+        for(var pu in listMap.values) {
+          if(pu == null) continue;
+
+          var ts = TS.fromDatabase(pu as Map);
+          if(ts.type != 'DEL') data.add(ts);
+        }
+      }
+    });
+
+    return data;
+  }
+
   // 03.08 요청사항 추가
   // 고객관리 메모 검색 요청
   String getSearchText() {

@@ -30,6 +30,7 @@ import 'dl.dart';
 import 'ex.dart';
 import 'ip.dart';
 import 'ux.dart';
+import '../class/item.dart';
 
 class DialogCT extends StatelessWidget {
 

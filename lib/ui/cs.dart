@@ -471,7 +471,15 @@ class DialogCS extends StatelessWidget {
                   //original = cs;
                   WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                   Navigator.pop(context);
-                },),
+                },
+                onFull: () async {
+                  var url = Uri.base.toString().split('/work').first + '/customer/${cs.id}';
+                  print(url);
+                  await launchUrl( Uri.parse(url),
+                      webOnlyWindowName: true ? '_blank' : '_self',
+                  );
+                }
+                ),
                 content: SingleChildScrollView(
                   child: Container(
                     width: 1280,

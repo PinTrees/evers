@@ -181,7 +181,32 @@ class TS {
    else if(type == 'RE') return amount;
    else return 0;
   }
-  
+
+  /**
+   * 지출에 대한 거래 금액을 반환
+   * 모든 금액은 절댓값으로 반환
+   *
+   * @ params none
+   * @ return int 거래금액
+   */
+  int getAmountOnlyPu() {
+    if(type =='PU') return amount.abs();
+    else return 0;
+  }
+
+  /**
+   * 수금에 대한 거래 금액을 반환
+   * 모든 금액은 절댓값으로 반환
+   *
+   * @ params none
+   * @ return int 거래금액
+   */
+  int getAmountOnlyRE() {
+    if(type == 'RE') return amount.abs();
+    else return 0;
+  }
+
+
   /**
   * 거래기록의 계좌를 반환
   * 

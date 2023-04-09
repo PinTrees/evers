@@ -25,6 +25,7 @@ import 'dl.dart';
 import 'package:http/http.dart' as http;
 
 import 'ex.dart';
+import '../class/item.dart';
 
 class WidgetPR extends StatelessWidget {
 

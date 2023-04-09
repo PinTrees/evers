@@ -35,6 +35,7 @@ import 'dl.dart';
 import 'package:http/http.dart' as http;
 
 import 'ux.dart';
+import '../class/item.dart';
 
 class View_Factory extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();

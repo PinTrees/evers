@@ -13,7 +13,7 @@ import '../helper/interfaceUI.dart';
 
 class WidgetDT extends StatelessWidget {
 
-  static Widget dlTitle(BuildContext context, {String? title, String? subTitle, Function? onSave, bool full=true, bool close=true}) {
+  static Widget dlTitle(BuildContext context, {String? title, String? subTitle, Function? onSave, Function? onFull, bool full=true, bool close=true}) {
     return Column(
       children: [
         Container(
@@ -59,12 +59,10 @@ class WidgetDT extends StatelessWidget {
                 ),
               if(full)
                 Container( height: 28, width: 28,
-                child: TextButton(
-                  onPressed: () {
-                    //Navigator.pop(context);
+                child: InkWell(
+                  onTap: () {
+                    if(onFull != null) onFull();
                   },
-                  style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 1, elevation: 0,
-                      color: Colors.black.withOpacity(0.1)),
                   child: WidgetT.iconMini(Icons.fullscreen),
                 ),
               ),
