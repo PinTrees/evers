@@ -58,6 +58,7 @@ class Item {
   }
 }
 
+
 /// 품목 사용 및 생산 개수
 /// (***) 변경 필요
 class ItemFD {
@@ -156,7 +157,7 @@ class ItemTS {
   dynamic getHistory({ int? startAt, int? lastAt }) async {
 
   }
- 
+
 
   dynamic createUID() {
 

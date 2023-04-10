@@ -489,9 +489,10 @@ class WidgetT extends StatelessWidget {
     Navigator.of(context).push(FadePageRoute(page, time ?? 0));
   }
 
-  static Widget iconMini(IconData icon, { double? size, Color? color }) {
+  /// 아이콘을 사이즈 박스로 래핑한 위젯을 반환
+  static Widget iconMini(IconData icon, { double? size, Color? color, double? boxSize }) {
     return SizedBox(
-      height: size ?? 24, width: size ?? 24,
+      height: boxSize ?? size ?? 24, width: boxSize ?? size ?? 24,
       child: Icon(
         icon, size: 16, color: color ?? StyleT.iconColor,
       ),

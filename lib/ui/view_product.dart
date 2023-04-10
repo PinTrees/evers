@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/dialog/dialog_itemts.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_revenue.dart';
@@ -730,6 +731,7 @@ class View_Factory extends StatelessWidget {
       }
     }
 
+
     /// 품목 입출 현황
     /// 생산 관리 시스템 추가
     /// (***) 생산관리 시스템에서 품목입출 목록에 대한 작업 추가 시스템 개발 필요
@@ -838,8 +840,35 @@ class View_Factory extends StatelessWidget {
       }
     }
 
+    /// (***) 함수화 필요
+    ///
+    /// @AT - M
     else if(menu == '생산관리') {
+      childrenW.add(Row(
+        children: [
+          WidgetT.title('생산관리', size: 18, bold: true),
+          SizedBox(width: divideHeight * 2,),
+          InkWell(
+            onTap: () async {
+              var result = await DialogItemTrans.showCreate(context);
+              if(result != null) {
 
+              }
+            },
+            child: Container(
+              color: Colors.grey.withOpacity(0.35),
+              child: Row(
+                children: [
+                  WidgetT.iconMini(Icons.add_box, size: 24, boxSize: 28),
+                  WidgetT.text('신규 입출목록 추가', size: 12,),
+                  SizedBox(width: divideHeight,),
+                ],
+              ),
+            )
+          )
+        ],
+      ));
+      childrenW.add(SizedBox(height: divideHeight,));
     }
     /*if(menu == '재고현황') {
       childrenW.clear();
