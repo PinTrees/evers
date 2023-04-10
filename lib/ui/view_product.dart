@@ -37,6 +37,10 @@ import 'package:http/http.dart' as http;
 import 'ux.dart';
 import '../class/item.dart';
 
+/// work/u 페이지 하위 시스템
+///
+/// 생산관리 시스템 페이지 뷰어
+/// @create YM
 class View_Factory extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var st_sc_vt = ScrollController();
@@ -107,6 +111,9 @@ class View_Factory extends StatelessWidget {
   var menuPadding = EdgeInsets.fromLTRB(6 * 4, 6 * 1, 6 * 4, 6 * 1);
   var disableTextColor = StyleT.titleColor.withOpacity(0.35);
 
+  /// Main Widget Build Function
+  ///
+  /// (***) 공장일보 및 생산일보 분리 필요
   dynamic mainView(BuildContext context, String menu, { Widget? topWidget, Widget? infoWidget, bool refresh=false  }) async {
     if(this.menu != menu) {
       sort = false; searchInput.text = '';
@@ -450,6 +457,7 @@ class View_Factory extends StatelessWidget {
         ));
       }
     }
+    /// 생산일보 - 공장일보 통합 관리
     else if(menu == '생산일보') {
       if(product_list.length < 1) product_list = await FireStoreT.getProductList(
         startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
@@ -659,6 +667,8 @@ class View_Factory extends StatelessWidget {
         ));
       }
     }
+
+
     if(menu == '품목관리') {
       childrenW.clear();
       for(int i = 0; i < SystemT.items.length; i++) {
@@ -719,6 +729,11 @@ class View_Factory extends StatelessWidget {
         childrenW.add(WidgetT.dividHorizontal(size: 0.35));
       }
     }
+
+    /// 품목 입출 현황
+    /// 생산 관리 시스템 추가
+    /// (***) 생산관리 시스템에서 품목입출 목록에 대한 작업 추가 시스템 개발 필요
+    ///
     if(menu == '품목입출현황') {
       if(itemTs_list.length < 1) {
         itemTs_list = await FireStoreT.getItemTranList(
@@ -821,6 +836,10 @@ class View_Factory extends StatelessWidget {
           ),
         ));
       }
+    }
+
+    else if(menu == '생산관리') {
+
     }
     /*if(menu == '재고현황') {
       childrenW.clear();

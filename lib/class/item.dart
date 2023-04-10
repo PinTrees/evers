@@ -12,13 +12,12 @@ import 'contract.dart';
 import 'revenue.dart';
 import 'system.dart';
 
-/**
-* 품목 선언 파일 변경
-* 
-*
-* @ Update YM
-* @ version 1.1.0
-*/
+
+/// 품목 선언 파일 변경
+///
+///
+/// @Update YM
+/// @version 1.1.0
 class Item {
   var id = '';
   var name = '';
@@ -60,6 +59,7 @@ class Item {
 }
 
 /// 품목 사용 및 생산 개수
+/// (***) 변경 필요
 class ItemFD {
   var id = '';
   var count = 0;
@@ -76,7 +76,12 @@ class ItemFD {
   }
 }
 
-/// 품목 거래 이동 입출 현황
+
+/// 품목 거래 이동 입출 현황 기록 클래스
+///
+/// @Create YM
+/// @Update YM 23.04.10
+/// @Version 1.1.0
 class ItemTS {
   var id = '';
   var state = '';
@@ -89,6 +94,10 @@ class ItemTS {
   var date = 0;
   var ctUid = '';
   var csUid = '';
+
+  ///
+  var storageLC = '';   /// storage UID
+  var writer = '';      /// UID
 
   ItemTS.fromDatabase(Map<dynamic, dynamic> json) {
     id = json['id'] ?? '';
@@ -143,6 +152,19 @@ class ItemTS {
     };
   }
 
+
+  dynamic getHistory({ int? startAt, int? lastAt }) async {
+
+  }
+ 
+
+  dynamic createUID() {
+
+  }
+
+  /// (***) 문서 업데이트시 기존 org 반드시 첨부
+  /// 현재 문서의 UID 가 != ''이 아닐경우 기존 기록을 히스토리로 변경
+  /// 히스토리에 기록시 문서 UID는 현재 시간의 에폭시 값으로 변경
   dynamic update({ Purchase? org }) async {
     if(id == '') return;
     if(id == '') id = DateTime.now().microsecondsSinceEpoch.toString();
@@ -163,5 +185,9 @@ class ItemTS {
       { 'list\.$id': toJson() },
       setJson: { 'list': { id: toJson() } }
     );
+  }
+
+  dynamic delete() async {
+
   }
 }
