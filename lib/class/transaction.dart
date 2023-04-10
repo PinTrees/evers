@@ -20,13 +20,12 @@ import 'system.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-/**
-* 거래기록 클래스
-* 
-*
-* @update YM
-* @version 1.0.0
-*/
+
+/// 거래기록 클래스
+///
+///
+/// @update YM
+/// @version 1.0.0
 class TS {
   var csUid = '';       /// 거래처번호
   var ctUid = '';       /// 계약번호
@@ -42,12 +41,11 @@ class TS {
   var summary = '';       /// 적요
   var memo = '';          /// 메모
 
-  /**
-  * DeSerialize Json Form Sever
-  * 
-  * @ params map json
-  * @ Creater function
-  */
+
+  /// DeSerialize Json Form Sever
+  ///
+  /// @params map json
+  /// @Creater function
   TS.fromDatabase(Map<dynamic, dynamic> json) {
     id = json['id'] ?? '';
     type = json['type'] ?? '';
@@ -64,12 +62,12 @@ class TS {
     memo = json['memo'] ?? '';
   }
   
-  /**
-  * DeSerialize Class Form Purchase
-  * 
-  * @ params Purchase pu 매입데이터, string account 계좌, bool now 즉시수금여부
-  * @ create function
-  */
+  /// DeSerialize Class Form Purchase
+  ///
+  /// @param Purchase pu 매입데이터
+  /// @param string account 계좌
+  /// @param bool now 즉시수금여부
+  /// @create function
   TS.fromPu(Purchase data, String amountS, {bool now=false}) {
     type = 'PU';
     ctUid = data.ctUid;
@@ -84,12 +82,12 @@ class TS {
     memo = data.memo;
   }
   
-  /**
-  * DeSerialize Class Form Revenue
-  * 
-  * @ params Revenue re 매출데이터, string account 계좌, bool now 즉시수금여부
-  * @ create function
-  */
+  /// DeSerialize Class Form Revenue
+  ///
+  /// @param Revenue re 매출데이터
+  /// @param string account 계좌
+  /// @param bool now 즉시수금여부
+  /// @create function
   TS.fromRe(Revenue data, String amountS, {bool now=false}) {
     type = 'RE';
     ctUid = data.ctUid;
@@ -119,12 +117,10 @@ class TS {
     };
   }
 
-  /**
-  * Serialize this Class 
-  * 
-  * @ params none
-  * @ return JsonData
-  */
+  /// Serialize this Class
+  ///
+  /// @param none
+  /// @return JsonData
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -144,12 +140,10 @@ class TS {
     };
   }
   
-  /**
-  * The Low Serialize this Class 
-  * 
-  * @ params none
-  * @ return JsonData low
-  */
+  /// The Low Serialize this Class
+  ///
+  /// @param none
+  /// @return JsonData low
   Map<String, dynamic> toLJson() {
     return {
       //'id': id,
@@ -169,61 +163,53 @@ class TS {
   
   
   
-  /**
-  * 거래 금액을 반환
-  * 매출의 경우 -, 매입의 경우 +
-  * 
-  * @ params none
-  * @ return int 거래금액
-  */
+  /// 거래 금액을 반환
+  /// 매출의 경우 -, 매입의 경우 +
+  ///
+  /// @param none
+  /// @return int 거래금액
   int getAmount() {
    if(type =='PU') return amount * -1;
    else if(type == 'RE') return amount;
    else return 0;
   }
 
-  /**
-   * 지출에 대한 거래 금액을 반환
-   * 모든 금액은 절댓값으로 반환
-   *
-   * @ params none
-   * @ return int 거래금액
-   */
+
+   /// 지출에 대한 거래 금액을 반환
+   /// 모든 금액은 절댓값으로 반환
+   ///
+   /// @param none
+   /// @return int 거래금액
   int getAmountOnlyPu() {
     if(type =='PU') return amount.abs();
     else return 0;
   }
 
-  /**
-   * 수금에 대한 거래 금액을 반환
-   * 모든 금액은 절댓값으로 반환
-   *
-   * @ params none
-   * @ return int 거래금액
-   */
+  /// 수금에 대한 거래 금액을 반환
+  /// 모든 금액은 절댓값으로 반환
+  ///
+  /// @param none
+  /// @return int 거래금액
   int getAmountOnlyRE() {
     if(type == 'RE') return amount.abs();
     else return 0;
   }
 
 
-  /**
-  * 거래기록의 계좌를 반환
-  * 
-  * @ params none
-  * @ return String
-  */
+
+  /// 거래기록의 계좌를 반환
+  ///
+  /// @param none
+  /// @return String
   String getAccountName() {
     return SystemT.getAccountName(account);
   }
   
-  /**
-  * 거래 타입의 UI 표기값을 반환
-  * RE: 수입, PU: 지출
-  * 
-  * @ params none
-  * @ return String 수입, 지출
-  */
+  /// 거래 타입의 UI 표기값을 반환
+  /// RE: 수입, PU: 지출
+  ///
+  /// @param none
+  /// @return String 수입, 지출
   String getType() {
     if(type == 'RE') return '수입';
     else if(type == 'PU') return '지출';
@@ -231,13 +217,12 @@ class TS {
   }
   
   
-  /**
-  * 검색 메타데이터 헤더 값을 반환
-  * 구분자 "&:"
-  * 
-  * @ params none
-  * @ return String "data&:data&:data&:data"
-  */
+  /// 검색 메타데이터 헤더 값을 반환
+  ///
+  /// 구분자 "&:"
+  ///
+  /// @params none
+  /// @return String "data&:data&:data&:data"
   Future<String> getSearchText() async {
     var cs = (await SystemT.getCS(csUid)) ?? Customer.fromDatabase({});
     //var ct = (await SystemT.getCt(ctUid)) ?? Contract.fromDatabase({});
@@ -253,15 +238,14 @@ class TS {
 
 
   
-  /**
-  * 거래 UID 확인 함수
-  * 거래 기록시 현재 거래문서 데이터베이스 ID 값을 확인
-  * "T(거래구분자)-16845212(날짜 에폭시)-1(번호)"
-  * 번호는 1부터 시작하며 날짜마다 고유
-  *
-  * @ params none
-  * @ return String "T-16452222-1"
-  */
+  /// 거래 UID 확인 함수
+  ///
+  /// 거래 기록시 현재 거래문서 데이터베이스 ID 값을 확인
+  /// "T(거래구분자)-16845212(날짜 에폭시)-1(번호)"
+  /// 번호는 1부터 시작하며 날짜마다 고유
+  ///
+  /// @params none
+  /// @return String "T-16452222-1"
   dynamic createUid() async {
     var dateIdDayEp = DateStyle.dateEphoceD(transactionAt);
     var dateIdMonth = DateStyle.dateYearMM(transactionAt);
@@ -294,21 +278,27 @@ class TS {
   }
 
   
-  /**
-  * 거래 UID 확인 함수
-  * 거래 기록시 현재 거래문서 데이터베이스 ID 값을 확인
-  * "T(거래구분자)-16845212(날짜 에폭시)-1(번호)"
-  * 번호는 1부터 시작하며 날짜마다 고유
-  *
-  * @ params none
-  * @ return String "T-16452222-1"
-  */
+  /// 거래 UID 확인 함수
+  ///
+  /// 거래 기록시 현재 거래문서 데이터베이스 ID 값을 확인
+  /// "T(거래구분자)-16845212(날짜 에폭시)-1(번호)"
+  /// 번호는 1부터 시작하며 날짜마다 고유
+  ///
+  /// @ params none
+  /// @ return String "T-16452222-1"
   dynamic create() async {
     await createUid();
     await update();
   }
   
-  
+  /// 거래기록 데이터베이스 업데이트 함수
+  ///
+  /// @param org 원본 거래기록
+  /// @param files 거래기록 신규 첨부파일
+  /// @return 업데이트 성공 여부
+  /// @throws 업데이트가 실패할 경우 모든 작업 취소 (문서간 트랜잭션)
+  ///
+  /// (***) storage - document 간 트랜잭션 구현안됨
   dynamic update({TS? org, Map<String, Uint8List>? files, }) async {
     var create = false;
     if(id == '') create = true;
@@ -439,6 +429,12 @@ class TS {
         onError: (e) { print("Error update transaction() $e"); return false; }
     );
   }
+
+  /// 거래기록 데이터베이스 삭제 함수
+  ///
+  /// @param none
+  /// @return 데이터베이스 삭제 여부
+  /// @throws 삭제에 실패할 경우 모든 작업 취소 (문서간 트랜잭션)
   dynamic delete() async {
     type = 'DEL';
 
@@ -513,11 +509,21 @@ class TS {
         onError: (e) { print("Error delete transaction() $e"); return false; }
     );
   }
+  
+  /// PDF 파일 변환시 테이블의 열 값 구조
+  ///
+  /// 거래처 기록이 필요함으로 비동기 함수로 작성
+  /// 
+  /// @param bal 현재 순번
+  /// @return List<String> 테이블 열 값의 리스트
   dynamic getTable(int bal) async {
     var cs = await SystemT.getCS(csUid);
     return <String>[ StyleT.dateFormatYYMMDD(transactionAt), SystemT.getAccountName(account), cs.businessName, (type == 'RE') ? StyleT.krwInt(getAmount()) : '',
       (type == 'PU') ? StyleT.krwInt(getAmount().abs()) : '',  StyleT.krwInt(bal) , summary ];
   }
+
+  /// 제거 예정 코드
+  /// 확인 필요
   dynamic updateDate() async {
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));
 
