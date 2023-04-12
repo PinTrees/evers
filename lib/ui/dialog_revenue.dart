@@ -25,7 +25,7 @@ import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
 import '../helper/pdfx.dart';
-import '../class/item.dart';
+import '../class/database/item.dart';
 
 import 'dialog_contract.dart';
 import 'dl.dart';

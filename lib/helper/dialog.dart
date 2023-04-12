@@ -29,7 +29,7 @@ import 'package:intl/intl.dart';
 import 'package:textfield_search/textfield_search.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../class/item.dart';
+import '../class/database/item.dart';
 import '../class/Customer.dart';
 import '../class/contract.dart';
 import '../class/purchase.dart';

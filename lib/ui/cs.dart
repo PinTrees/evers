@@ -113,9 +113,7 @@ class DialogCS extends StatelessWidget {
                 widgetsCt.add(WidgetT.dividHorizontal(size: 0.35));
               }
 
-
               var gridStyle = StyleT.inkStyle(round: 8, color: Colors.black.withOpacity(0.03), stroke: 0.7, strokeColor: StyleT.titleColor.withOpacity(0.35));
-              //var gridStyle = StyleT.inkStyleNone(round: 8, color: Colors.black.withOpacity(0.03), stroke: 0.7, );
 
               widgets.add(Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

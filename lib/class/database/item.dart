@@ -6,12 +6,11 @@ import 'package:evers/helper/style.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../helper/firebaseCore.dart';
-import 'Customer.dart';
-import 'contract.dart';
-import 'revenue.dart';
-import 'system.dart';
-
+import '../../helper/firebaseCore.dart';
+import '../Customer.dart';
+import '../contract.dart';
+import '../revenue.dart';
+import '../system.dart';
 
 /// 품목 선언 파일 변경
 ///
@@ -85,29 +84,33 @@ class ItemFD {
 /// @Version 1.1.0
 class ItemTS {
   var id = '';
-  var state = '';
-  var type = '';        /// PU/RE
-  var rpUid = '';       /// 매입매출번호
-  var itemType = '';
-  var itemUid = '';
-  var amount = 0;
-  var unitPrice = 0;
-  var date = 0;
-  var ctUid = '';
-  var csUid = '';
+  var state = '';       // D,
+  var type = '';       // P 매입, R 매출, F 동결,
 
-  ///
-  var storageLC = '';   /// storage UID
-  var writer = '';      /// UID
+  var rpUid = '';       /// 매입매출번호
+  var itemUid = '';     /// 품목 고유번호
+  var amount = 0.0;       /// 입고량
+  var storageLC = '';     /// 입고창고위치
+
+  var ctUid = '';         /// 입고계약
+  var csUid = '';         /// 거래처
+
+  var date = 0;           /// 입고일자
+
+  var manager = '';       /// 입고자(검수자)
+  var writer = '';        /// 작성자
+  var updateAt = 0;       /// 문서 변경시각
+
+
+  var unitPrice = 0;
 
   ItemTS.fromDatabase(Map<dynamic, dynamic> json) {
     id = json['id'] ?? '';
     state = json['state'] ?? '';
-    itemType = json['itemType'] ?? '';
     csUid = json['csUid'] ?? '';
     ctUid = json['ctUid'] ?? '';
     type = json['type'] ?? '';
-    rpUid = json['rpUid'] ?? '';
+    rpUid = json['rpUid'] ?? ''; 
     itemUid = json['itemUid'] ?? '';
     amount = json['amount'] ?? 0;
     unitPrice = json['unitPrice'] ?? 0;
@@ -127,7 +130,6 @@ class ItemTS {
     id = purchase.id;
     rpUid = purchase.id;
     itemUid = purchase.item;
-    amount = purchase.count;
     unitPrice = purchase.unitPrice;
     csUid = purchase.csUid;
     ctUid = purchase.ctUid;
@@ -135,7 +137,6 @@ class ItemTS {
 
     var item = SystemT.getItem(itemUid);
     if(item == null) return;
-    itemType = item.type;
   }
   Map<String, dynamic> toJson() {
     return {
@@ -148,7 +149,6 @@ class ItemTS {
       'amount': amount,
       'unitPrice': unitPrice,
       'date': date,
-      'itemType': itemType,
       'state': state,
     };
   }

@@ -26,7 +26,7 @@ import '../helper/interfaceUI.dart';
 import '../helper/pdfx.dart';
 import 'dl.dart';
 import 'package:http/http.dart' as http;
-import '../class/item.dart';
+import '../class/database/item.dart';
 
 import 'ip.dart';
 import 'ux.dart';

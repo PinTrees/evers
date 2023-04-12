@@ -24,7 +24,7 @@ import '../class/transaction.dart';
 import '../class/version.dart';
 import '../system/product.dart';
 import 'function.dart';
-import '../class/item.dart';
+import '../class/database/item.dart';
 
 class FireStoreT {
   //static const _databaseURL = 'https://taegi-survey-default-rtdb.firebaseio.com';

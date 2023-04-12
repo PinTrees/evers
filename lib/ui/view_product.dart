@@ -19,6 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../class/Customer.dart';
 import '../class/contract.dart';
+import '../class/database/item.dart';
 import '../class/purchase.dart';
 import '../class/revenue.dart';
 import '../class/schedule.dart';
@@ -36,7 +37,6 @@ import 'dl.dart';
 import 'package:http/http.dart' as http;
 
 import 'ux.dart';
-import '../class/item.dart';
 
 /// work/u 페이지 하위 시스템
 ///

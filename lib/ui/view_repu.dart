@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/widget/button.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_revenue.dart';
@@ -133,6 +134,7 @@ class View_REPU extends StatelessWidget {
     this.menu = menu;
 
     Widget titleMenu = SizedBox();
+    Widget bottomWidget = SizedBox();
 
     List<Widget> childrenW = [];
     if(menu == '매입매출관리') {
@@ -496,6 +498,15 @@ class View_REPU extends StatelessWidget {
           ),
         ));
       }
+
+/*      bottomWidget = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ButtonT.IconText(text: '일반 매입 추가'),
+          ButtonT.IconText(text: '재고 매입 추가'),
+          ButtonT.IconText(text: '일반 매출 추가'),
+        ],
+      );*/
     }
     else if(menu == '수납관리') {
       childrenW.clear();
@@ -764,6 +775,7 @@ class View_REPU extends StatelessWidget {
                         ],
                       ),
                     ),
+                    bottomWidget,
                   ],
                 ),
               ),

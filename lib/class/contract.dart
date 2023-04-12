@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 
 import 'revenue.dart';
 import 'transaction.dart';
-import 'item.dart';
+import 'database/item.dart';
 
 class Contract {
   var state = '';
