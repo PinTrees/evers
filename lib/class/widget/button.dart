@@ -16,6 +16,21 @@ class ButtonT extends StatelessWidget {
   static Map<String, TextEditingController> textInputs = {};
   static Map<String, bool> isActive = {};
 
+  static Widget Icon({IconData? icon, Function? onTap}) {
+    return InkWell(
+      onTap: () async {
+        if(onTap != null) return await onTap();
+      },
+      child: Container(
+        child: Row(
+          children: [
+            WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28),
+          ],
+        ),
+      ),
+    );
+  }
+
   static Widget IconText({ String? text, IconData? icon, Function? onTap, Color? bacground }) {
     return InkWell(
       onTap: () async {

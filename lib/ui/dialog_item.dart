@@ -31,6 +31,10 @@ import '../class/database/item.dart';
 import 'ip.dart';
 import 'ux.dart';
 
+
+/// 품목 관련 함수 래핑 클래스
+///
+///
 class DialogIT extends StatelessWidget {
 
   static dynamic showItemDl(BuildContext context, { Item? org }) async {
@@ -197,6 +201,7 @@ class DialogIT extends StatelessWidget {
     return aa;
   }
 
+
   static dynamic showFdInfo(BuildContext context, { FactoryD? org }) async {
     var dividHeight = 6.0;
 
@@ -218,7 +223,7 @@ class DialogIT extends StatelessWidget {
 
     List<ItemFD> itemSv = [];
     List<ItemFD> itemSvC = [];
-    
+
     itemSv = factoryD.itemSvPu.entries.map((entry) => ItemFD.fromDatabase({ 'id': entry.key, 'count': entry.value })).toList();
     itemSvC = factoryD.itemSvRe.entries.map((entry) => ItemFD.fromDatabase({ 'id': entry.key, 'count': entry.value })).toList();
 
@@ -657,6 +662,7 @@ class DialogIT extends StatelessWidget {
 
     return aa;
   }
+
 
   /// 품목 선택 다이얼로그
   static dynamic selectItem(BuildContext context, List<Item> items) async {

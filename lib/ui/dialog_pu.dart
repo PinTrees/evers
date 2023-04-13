@@ -1384,6 +1384,8 @@ class DialogPU extends StatelessWidget {
 
                 w = Column(
                   children: [
+
+                    /// 기초 매입 입력 시스템
                     Container(
                       height: heightSize,
                       child: Row(
@@ -1402,60 +1404,22 @@ class DialogPU extends StatelessWidget {
                                   pu.item = data;
                                 },
                                 text: SystemT.getItemName(pu.item), value: SystemT.getItemName(pu.item)),
-                            InkWell(
-                                onTap: () async {
-                                  Item? item = await DialogT.selectItem(context);
-                                  FunT.setStateD = () { setStateS(() {}); };
-                                  if(item != null) {
-                                    pu.item = item.id;
-                                    pu.unitPrice = item.unitPrice;
-                                  }
-                                  FunT.setStateDT();
-                                },
-                                child: Container( height: 28, width: 28,
-                                  child: WidgetT.iconMini(Icons.add_box),)
-                            ),
-                            SizedBox(
-                              height: 28, width: 28,
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton2(
-                                  focusColor: Colors.transparent,
-                                  focusNode: FocusNode(),
-                                  autofocus: false,
-                                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                                  items: SystemT.itemMaps.keys.map((item) => DropdownMenuItem<dynamic>(
-                                    value: item,
-                                    child: Text(
-                                      SystemT.getItemName(item),
-                                      style: StyleT.titleStyle(),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  )).toList(),
-                                  onChanged: (value) async {
-                                    var item = SystemT.getItem(value);
-                                    if(item != null) {
-                                      pu.item = item.id;
-                                      pu.unitPrice = item.unitPrice;
-                                    }
-                                    print('select item uid: ' + value);
-                                    await FunT.setStateDT();
-                                  },
-                                  itemHeight: 24,
-                                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                                  dropdownWidth: 256.7,
-                                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                                  dropdownDecoration: BoxDecoration(
-                                    border: Border.all(
-                                      width: 1.7,
-                                      color: Colors.grey.withOpacity(0.5),
-                                    ),
-                                    borderRadius: BorderRadius.circular(0),
-                                    color: Colors.white.withOpacity(0.95),
-                                  ),
-                                  dropdownElevation: 0,
-                                  offset: const Offset(-256 + 28, 0),
-                                ),
-                              ),
+
+                            /// (***) 앞으로 해당 함수 사용
+                            /// 버튼 위젯 클래스 변경
+                            /// 품목 선택 다이얼로그 호출
+                            ButtonT.Icon(
+                              icon: Icons.add_box,
+                              onTap: () async {
+                                Item? item = await DialogT.selectItem(context);
+                                if(item != null) {
+                                  pu.item = item.id;
+                                  pu.unitPrice = item.unitPrice;
+                                }
+
+                                FunT.setStateD = () { setStateS(() {}); };
+                                setStateS(() {});
+                              },
                             ),
                             WidgetT.excelGrid(textLite: true, textSize: 10, text:item.unit, width: 50),
                             WidgetT.excelInput(context, '$i::수량',
