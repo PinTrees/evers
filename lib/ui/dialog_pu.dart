@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/widget/button.dart';
+import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
@@ -1352,6 +1353,7 @@ class DialogPU extends StatelessWidget {
     it.date = DateTime.now().microsecondsSinceEpoch;
 
     pus.add(pu);
+    itemTs.add(it);
 
     /// 품목 매입 파일 첨부에 저장됨
     fileByteList.add({});
@@ -1372,6 +1374,8 @@ class DialogPU extends StatelessWidget {
               for(int i = 0; i < pus.length; i++) {
                 Widget w = SizedBox();
                 var pu = pus[i];
+                var it = itemTs[i];
+
                 var item = SystemT.getItem(pu.item) ?? Item.fromDatabase({});
                 var fileMap = fileByteList[i] as Map;
 
@@ -1513,31 +1517,6 @@ class DialogPU extends StatelessWidget {
                             ),
                             InkWell(
                                 onTap: () async {
-                                  FilePickerResult? result;
-                                  try {
-                                    result = await FilePicker.platform.pickFiles();
-                                  } catch (e) {
-                                    WidgetT.showSnackBar(context, text: '파일선택 오류');
-                                    print(e);
-                                  }
-                                  FunT.setStateD = () { setStateS(() {}); };
-                                  if(result != null){
-                                    WidgetT.showSnackBar(context, text: '파일선택');
-                                    if(result.files.isNotEmpty) {
-                                      String fileName = result.files.first.name;
-                                      print(fileName);
-                                      Uint8List fileBytes = result.files.first.bytes!;
-                                      fileByteList[i][fileName] = fileBytes;
-                                      print(fileByteList[i][fileName]!.length);
-                                    }
-                                  }
-                                  FunT.setStateDT();
-                                },
-                                child: Container( height: 28, width: 28,
-                                  child: WidgetT.iconMini(Icons.file_copy_rounded),)
-                            ),
-                            InkWell(
-                                onTap: () async {
                                   pus.remove(pu);
                                   fileByteList.removeAt(i);
                                   FunT.setStateDT();
@@ -1548,71 +1527,141 @@ class DialogPU extends StatelessWidget {
                           ]
                       ),
                     ),
-                    if(fileMap.length > 0)
-                      Container( height: 28,
-                        child: Row(
-                            children: [
-                              WidgetT.excelGrid( width: 150, label: '거래명세서 첨부파일', ),
-                              Expanded(child: Container( padding: EdgeInsets.all(0),  child: Wrap(
-                                runSpacing: dividHeight * 2, spacing: dividHeight * 2,
-                                children: [
-                                  for(int i = 0; i < pu.filesMap.length; i++)
-                                    TextButton(
-                                        onPressed: () async {
-                                          var downloadUrl = pu.filesMap.values.elementAt(i);
-                                          var fileName = pu.filesMap.keys.elementAt(i);
-                                          print(downloadUrl);
-                                          var res = await http.get(Uri.parse(downloadUrl));
-                                          var bodyBytes = res.bodyBytes;
-                                          print(bodyBytes.length);
-                                          PDFX.showPDFtoDialog(context, data: bodyBytes, name: fileName);
-                                        },
-                                        style: StyleT.buttonStyleNone(round: 8, elevation: 18, padding: 0, color: StyleT.accentLowColor.withOpacity(0.35), strock: 1),
-                                        child: Container(padding: EdgeInsets.all(0), child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            WidgetT.iconMini(Icons.cloud_done, size: 28),
-                                            WidgetT.title(pu.filesMap.keys.elementAt(i),),
-                                            TextButton(
-                                                onPressed: () {
-                                                  //pu.filesMap.remove(pu.filesMap.keys.elementAt(i));
-                                                  //FunT.setStateDT();
-                                                },
-                                                style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                                child: Container( height: 28, width: 28,
-                                                  child: WidgetT.iconMini(Icons.cancel),)
-                                            ),
-                                          ],
-                                        ))
-                                    ),
-                                  for(int i = 0; i < fileMap.length; i++)
-                                    TextButton(
-                                        onPressed: () {
-                                          PDFX.showPDFtoDialog(context, data: fileMap.values.elementAt(i), name: fileMap.keys.elementAt(i));
-                                        },
-                                        style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                        child: Container(padding: EdgeInsets.all(0), child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            WidgetT.iconMini(Icons.file_copy_rounded, size: 28),
-                                            WidgetT.title(fileMap.keys.elementAt(i),),
-                                            TextButton(
-                                                onPressed: () {
-                                                  fileMap.remove(fileMap.keys.elementAt(i));
-                                                  FunT.setStateDT();
-                                                },
-                                                style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                                child: Container( height: 28, width: 28,
-                                                  child: WidgetT.iconMini(Icons.cancel),)
-                                            ),
-                                          ],
-                                        ))
-                                    ),
-                                ],
-                              ),)),
-                            ]
-                        ),
-                      ),
+
+
+
+                    /// 품목 매입 관련 추가 작성사항 UI 출력 로직 시작분
+                    ///
+                    /// 검수자 입력
+                    ExcelT.LabelInput(context, 'puit.manager', index: i,
+                      width: 200, labelWidth: 100, textSize: 10,
+                      onEdited: (i, data) {
+                        it.manager = data;
+                      },
+                      setState: () { setStateS(() {}); },
+                      label: '담당자(검수자)',
+                      text: it.manager,
+                      value: it.manager,
+                    ),
+                    SizedBox(height: 4,),
+                    
+                    /// 보관 창고 입력
+                    ExcelT.LabelInput(context, 'puit.storageLC', index: i,
+                      width: 200, labelWidth: 100, textSize: 10,
+                      onEdited: (i, data) {
+                        it.storageLC = data;
+                      },
+                      setState: () { setStateS(() {}); },
+                      label: '저장위치',
+                      text: it.storageLC,
+                      value: it.storageLC,
+                    ),
+                    SizedBox(height: 4,),
+                    
+                    /// 측정 습도 입력
+                    ExcelT.LabelInput(context, 'puit.rh', index: i,
+                      width: 200, labelWidth: 100, textSize: 10,
+                      onEdited: (i, data) {
+                        it.rh = double.tryParse(data) ?? 0.0;
+                      },
+                      setState: () { setStateS(() {}); },
+                      label: '측정 습도',
+                      text: it.rh.toString(),
+                      value: it.rh.toString(),
+                    ),
+                    SizedBox(height: 4,),
+                    
+                    /// 첨부 파일 작성
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ExcelT.Grid( text: '첨부파일', textSize: 10, width: 100),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ButtonT.IconText(
+                              icon: Icons.add_box,
+                              text: '첨부파일 추가',
+                              bacground: Colors.grey.withOpacity(0.15),
+                              onTap: () async {
+                                FilePickerResult? result;
+                                try {
+                                  result = await FilePicker.platform.pickFiles();
+                                } catch (e) {
+                                  WidgetT.showSnackBar(context, text: '파일선택 오류');
+                                  print(e);
+                                }
+                                FunT.setStateD = () { setStateS(() {}); };
+                                if(result != null){
+                                  WidgetT.showSnackBar(context, text: '파일선택');
+                                  if(result.files.isNotEmpty) {
+                                    String fileName = result.files.first.name;
+                                    Uint8List fileBytes = result.files.first.bytes!;
+                                    fileByteList[i][fileName] = fileBytes;
+                                  }
+                                }
+                                FunT.setStateDT();
+                              },
+                            ),
+
+                            for(int i = 0; i < pu.filesMap.length; i++)
+                              TextButton(
+                                  onPressed: () async {
+                                    var downloadUrl = pu.filesMap.values.elementAt(i);
+                                    var fileName = pu.filesMap.keys.elementAt(i);
+                                    print(downloadUrl);
+                                    var res = await http.get(Uri.parse(downloadUrl));
+                                    var bodyBytes = res.bodyBytes;
+                                    print(bodyBytes.length);
+                                    PDFX.showPDFtoDialog(context, data: bodyBytes, name: fileName);
+                                  },
+                                  style: StyleT.buttonStyleNone(round: 8, elevation: 18, padding: 0, color: StyleT.accentLowColor.withOpacity(0.35), strock: 1),
+                                  child: Container(padding: EdgeInsets.all(0), child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      WidgetT.iconMini(Icons.cloud_done, size: 28),
+                                      WidgetT.title(pu.filesMap.keys.elementAt(i),),
+                                      TextButton(
+                                          onPressed: () {
+                                            //pu.filesMap.remove(pu.filesMap.keys.elementAt(i));
+                                            //FunT.setStateDT();
+                                          },
+                                          style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
+                                          child: Container( height: 28, width: 28,
+                                            child: WidgetT.iconMini(Icons.cancel),)
+                                      ),
+                                    ],
+                                  ))
+                              ),
+
+                            for(int i = 0; i < fileMap.length; i++)
+                              TextButton(
+                                  onPressed: () {
+                                    PDFX.showPDFtoDialog(context, data: fileMap.values.elementAt(i), name: fileMap.keys.elementAt(i));
+                                  },
+                                  style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
+                                  child: Container(padding: EdgeInsets.all(0), child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      WidgetT.iconMini(Icons.file_copy_rounded, size: 28),
+                                      WidgetT.title(fileMap.keys.elementAt(i),),
+                                      TextButton(
+                                          onPressed: () {
+                                            fileMap.remove(fileMap.keys.elementAt(i));
+                                            FunT.setStateDT();
+                                          },
+                                          style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
+                                          child: Container( height: 28, width: 28,
+                                            child: WidgetT.iconMini(Icons.cancel),)
+                                      ),
+                                    ],
+                                  ))
+                              ),
+                          ],
+                        )
+                      ],
+                    ),
+                    SizedBox(height: dividHeight,),
                   ],
                 );
                 widgetsPu.add(w);
@@ -1718,7 +1767,11 @@ class DialogPU extends StatelessWidget {
                                 onPressed: () {
                                   var p = Purchase.fromDatabase({});
                                   p.purchaseAt = DateTime.now().microsecondsSinceEpoch;
+                                  var i = ItemTS.fromDatabase({});
+                                  i.date = DateTime.now().microsecondsSinceEpoch;
+
                                   pus.add(p);
+                                  itemTs.add(i);
                                   fileByteList.add({});
 
                                   FunT.setStateDT();
@@ -1847,6 +1900,9 @@ class DialogPU extends StatelessWidget {
                     children: [
                       Expanded(child:TextButton(
                           onPressed: () async {
+                            WidgetT.showSnackBar(context, text: '개발중입니다.');
+                            return;
+
                             /// 재고추가와 관련된 매입건은 반드시 계약이 추가되어야 함.
                             if(ct == null) { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
 
@@ -1898,7 +1954,7 @@ class DialogPU extends StatelessWidget {
                               child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   WidgetT.iconMini(Icons.check_circle),
-                                  Text('매입 추가하기', style: StyleT.titleStyle(),),
+                                  Text('품목 매입 추가하기', style: StyleT.titleStyle(),),
                                   SizedBox(width: 6,),
                                 ],
                               )

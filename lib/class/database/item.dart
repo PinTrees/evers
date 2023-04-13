@@ -97,6 +97,7 @@ class ItemTS {
 
   var date = 0;           /// 입고일자
 
+  var rh = 0.0;
   var manager = '';       /// 입고자(검수자)
   var writer = '';        /// 작성자
   var updateAt = 0;       /// 문서 변경시각
