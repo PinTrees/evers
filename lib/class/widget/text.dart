@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+/// 이 클래스는 텍스트 위젯을 래핑합니다.
 /// 사용자 정의 위젯 클래스
 class TextT extends StatelessWidget {
 
@@ -26,7 +27,7 @@ class TextT extends StatelessWidget {
       ),
     );
 
-    if(width == null) return w;
+    if(width == null) return Container( alignment: Alignment.center, child: w, );
     else return Container(
         width: width,
       alignment: Alignment.center,

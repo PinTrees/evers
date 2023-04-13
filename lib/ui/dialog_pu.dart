@@ -1,9 +1,12 @@
 import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/widget/button.dart';
+import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/cs.dart';
+import 'package:evers/ui/dialog_contract.dart';
 import 'package:evers/ui/ux.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -1328,7 +1331,6 @@ class DialogPU extends StatelessWidget {
     var dividHeight = 6.0;
     var heightSize = 36.0;
 
-    List<Map<String, Uint8List>> fileByteList = [];
     Contract? ct;
     Customer? cs;
 
@@ -1339,6 +1341,7 @@ class DialogPU extends StatelessWidget {
     var vatTypeNameList = [ '포함', '미포함', ];
     var currentVatType = 0;
 
+    List<Map<String, Uint8List>> fileByteList = [];
     List<ItemTS> itemTs = [];
     List<Purchase> pus = [];
 
@@ -1349,6 +1352,8 @@ class DialogPU extends StatelessWidget {
     it.date = DateTime.now().microsecondsSinceEpoch;
 
     pus.add(pu);
+
+    /// 품목 매입 파일 첨부에 저장됨
     fileByteList.add({});
 
     bool? aa = await showDialog(
@@ -1615,9 +1620,6 @@ class DialogPU extends StatelessWidget {
               }
 
               var gridStyleT = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.03), stroke: 2, strokeColor: StyleT.titleColor.withOpacity(0.1));
-              var btnStyleT = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.1),
-                stroke: 0.35,);
-              var divHor = Expanded(child: WidgetT.dividHorizontal(size: 0.35, ));
               var dividCol = Column(
                 children: [
                   SizedBox(height: dividHeight * 4,),
@@ -1653,29 +1655,48 @@ class DialogPU extends StatelessWidget {
                           height: 36,  width: 500,
                           decoration: gridStyleT,
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               WidgetEX.excelTitle(text:'계약명',width: 150),
                               Expanded(
-                                child: InkWell(
-                                  onTap: () async {
-                                    Contract? c = await DialogT.selectCt(context);
-                                    FunT.setStateD = () { setStateS(() {}); };
-
-                                    if(c != null) {
-                                      ct = c;
-                                      print(c.id + ' : ' + SystemT.getCSName(pu.csUid));
-                                    }
-                                    await FunT.setStateDT();
-                                  },
-                                  child: Container( height: 28, alignment: Alignment.center,
-                                      child: Row( mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          WidgetT.title(ct!.ctName, ),
-                                        ],
-                                      )),
-                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    TextT.OnTap(
+                                        context: context,
+                                        text: (ct == null) ? 'ㅡ' : ct!.csName,
+                                        onTap: () async {
+                                          var result = await DialogCT.showInfoCt(context, ct!);
+                                          if(result != null) return;
+                                        }
+                                    ),
+                                    WidgetT.text(' / '),
+                                    TextT.OnTap(
+                                        context: context,
+                                        text: (ct == null) ? 'ㅡ' : ct!.ctName,
+                                        onTap: () async {
+                                          var result = await DialogCT.showInfoCt(context, ct!);
+                                          if(result != null) return;
+                                        }
+                                    ),
+                                  ],
+                                )
                               ),
+                              ButtonT.IconText(
+                                bacground: Colors.transparent,
+                                icon: Icons.add_box,
+                                text: '거래처 선택',
+                                onTap: () async {
+                                  Contract? c = await DialogT.selectCt(context);
+                                  FunT.setStateD = () { setStateS(() {}); };
+
+                                  if(c != null) {
+                                    ct = c;
+                                    print(c.id + ' : ' + SystemT.getCSName(pu.csUid));
+                                  }
+                                  await FunT.setStateDT();
+                                },
+                              )
                             ],
                           ),
                         ),
