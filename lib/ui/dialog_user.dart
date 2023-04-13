@@ -41,7 +41,7 @@ class DialogUS extends StatelessWidget {
     var json = jsonDecode(jsonString);
     user = UserT.fromDatabase(json);
 
-    var bookmarkUid = FireStoreT.generateRandomString(8);
+    var bookmarkUid = DatabaseM.generateRandomString(8);
     user.bookmark[bookmarkUid.toString()] = {};
 
     bool? aa = await showDialog(

@@ -51,7 +51,7 @@ class Schedule {
   // 추후 날짜 수정이 필요할 경우를 대비해 org 매개변수를 추가
   dynamic update({ Schedule? org,  Map<String, Uint8List>? files, }) async {
     var create = false;
-    if(id == '')  { id = FireStoreT.generateRandomString(16);  create = true; }
+    if(id == '')  { id = DatabaseM.generateRandomString(16);  create = true; }
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(date));
 
     var orgDateId = '-';
@@ -214,7 +214,7 @@ class FactoryD {
     if(key == '') return;
     await StorageHub.deleteFile('factory-daily/$id', 'FD-Date-File-$key::DELETE', key);
     filesMap.remove(key);
-    await FireStoreT.updateFactoryDWithFile(this);
+    await DatabaseM.updateFactoryDWithFile(this);
   }
 }
 
@@ -264,6 +264,6 @@ class ProductD {
     if(key == '') return;
     await StorageHub.deleteFile('product-daily/$id', 'PD-Date-File-$key::DELETE', key);
     filesMap.remove(key);
-    await FireStoreT.updateProductDWithFile(this);
+    await DatabaseM.updateProductDWithFile(this);
   }
 }

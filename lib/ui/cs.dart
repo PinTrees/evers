@@ -10,7 +10,7 @@ import 'package:evers/helper/style.dart';
 import 'package:evers/login/auth_service.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
-import 'package:evers/ui/pure.dart';
+import 'package:evers/ui/dialog_pu.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -66,9 +66,9 @@ class DialogCS extends StatelessWidget {
     }
 
     List<Contract> cts = [];
-    if(!isCreate) cts = await FireStoreT.getCtWithCs(cs.id);
+    if(!isCreate) cts = await DatabaseM.getCtWithCs(cs.id);
     List<TS> tslist = [];
-    if(!isCreate) tslist = await FireStoreT.getTransactionCs(cs.id);
+    if(!isCreate) tslist = await DatabaseM.getTransactionCs(cs.id);
 
     Navigator.pop(context);
     // ignore: use_build_context_synchronously
@@ -465,7 +465,7 @@ class DialogCS extends StatelessWidget {
                     return;
                   }
 
-                  await FireStoreT.updateCustomer(cs, files: fileByteList,);
+                  await DatabaseM.updateCustomer(cs, files: fileByteList,);
                   //original = cs;
                   WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                   Navigator.pop(context);
@@ -505,7 +505,7 @@ class DialogCS extends StatelessWidget {
                               return;
                             }
 
-                            await FireStoreT.updateCustomer(cs, files: fileByteList,);
+                            await DatabaseM.updateCustomer(cs, files: fileByteList,);
                             //original = cs;
                             WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                             Navigator.pop(context);
@@ -708,10 +708,10 @@ class DialogCS extends StatelessWidget {
       }
     }
 
-    List<Contract> cts = await FireStoreT.getCtWithCs(cs.id);
-    List<TS> tslist = await FireStoreT.getTransactionCs(cs.id);
-    List<Purchase> purs = await FireStoreT.getPur_withCS(cs.id);
-    List<Revenue> rev = await FireStoreT.getRevenueWithCS(cs.id);
+    List<Contract> cts = await DatabaseM.getCtWithCs(cs.id);
+    List<TS> tslist = await DatabaseM.getTransactionCs(cs.id);
+    List<Purchase> purs = await DatabaseM.getPur_withCS(cs.id);
+    List<Revenue> rev = await DatabaseM.getRevenueWithCS(cs.id);
 
 
     Navigator.pop(context);
@@ -819,7 +819,7 @@ class DialogCS extends StatelessWidget {
                                       String fileName = result.files.first.name;
                                       print(fileName);
                                       Uint8List fileBytes = result.files.first.bytes!;
-                                      await FireStoreT.updatePurchase(pu, files: { fileName: fileBytes });
+                                      await DatabaseM.updatePurchase(pu, files: { fileName: fileBytes });
                                       Navigator.pop(context);
                                     }
                                   }
@@ -833,7 +833,7 @@ class DialogCS extends StatelessWidget {
                                   FunT.setStateD = () { setStateS(() {}); };
 
                                   if(tmpPu != null) {
-                                    var pu = await FireStoreT.getPurchaseDoc(tmpPu.id);
+                                    var pu = await DatabaseM.getPurchaseDoc(tmpPu.id);
                                     purs.removeAt(i);
                                     purs.insert(0, pu);
                                     FunT.setStateDT();
@@ -1033,7 +1033,7 @@ class DialogCS extends StatelessWidget {
                     return;
                   }
 
-                  await FireStoreT.updateCustomer(cs, files: fileByteList,);
+                  await DatabaseM.updateCustomer(cs, files: fileByteList,);
                   //original = cs;
                   WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                   Navigator.pop(context);
@@ -1079,7 +1079,7 @@ class DialogCS extends StatelessWidget {
     var puIndex = 0;
     var tsIndex = 0;
 
-    Map<dynamic, TS> tsMap = await FireStoreT.getTS_CS_PU_date(cs.id);
+    Map<dynamic, TS> tsMap = await DatabaseM.getTS_CS_PU_date(cs.id);
     tslist = tsMap.values.toList();
 
     Navigator.pop(context);
@@ -1158,7 +1158,7 @@ class DialogCS extends StatelessWidget {
                                         String fileName = result.files.first.name;
                                         print(fileName);
                                         Uint8List fileBytes = result.files.first.bytes!;
-                                        await FireStoreT.updatePurchase(pu, files: { fileName: fileBytes });
+                                        await DatabaseM.updatePurchase(pu, files: { fileName: fileBytes });
                                         Navigator.pop(context);
                                       }
                                     }
@@ -1172,7 +1172,7 @@ class DialogCS extends StatelessWidget {
                                   FunT.setStateD = () { setStateS(() {}); };
 
                                   if(tmpPu != null) {
-                                    var pu = await FireStoreT.getPurchaseDoc(tmpPu.id);
+                                    var pu = await DatabaseM.getPurchaseDoc(tmpPu.id);
                                     purs.removeAt(i);
                                     purs.insert(0, pu);
                                     FunT.setStateDT();
@@ -1519,7 +1519,7 @@ class DialogCS extends StatelessWidget {
                                       // 신규 거래 추가됨
                                       // 데이터베이스 스트림
                                       // 거래기록 거래처 별 데이터 고도화 필요
-                                      Map<dynamic, TS> tsMap = await FireStoreT.getTS_CS_PU_date(cs.id);
+                                      Map<dynamic, TS> tsMap = await DatabaseM.getTS_CS_PU_date(cs.id);
                                       // 추구 cs.getTransration() 으로 가져오도록 변경
                                       tslist = tsMap.values.toList();
                                     }
@@ -1621,7 +1621,7 @@ class DialogCS extends StatelessWidget {
     var vatTypeNameList = [ '포함', '미포함', ];
     var currentVatType = 0;
 
-    List<Revenue> rev = await FireStoreT.getRevenueWithCS(cs.id);
+    List<Revenue> rev = await DatabaseM.getRevenueWithCS(cs.id);
     //await original.update();
     //var jsonString = jsonEncode(purchase.toJson());
     //var json = jsonDecode(jsonString);
@@ -1633,7 +1633,7 @@ class DialogCS extends StatelessWidget {
 
     bool isPop = false;
 
-    Map<dynamic, TS> tsMap = await FireStoreT.getTransactionQr_CsReDt(cs.id);
+    Map<dynamic, TS> tsMap = await DatabaseM.getTransactionQr_CsReDt(cs.id);
     tslist = tsMap.values.toList();
     //schedule = await FireStoreT.getSCH_CT(ct.id);
 

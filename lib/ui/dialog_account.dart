@@ -132,7 +132,7 @@ class DialogAC extends StatelessWidget {
                               return;
                             }
 
-                            await FireStoreT.updateAccount(account);
+                            await DatabaseM.updateAccount(account);
                             WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                             Navigator.pop(context);
                           },

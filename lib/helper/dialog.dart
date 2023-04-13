@@ -181,7 +181,7 @@ class DialogT extends StatelessWidget {
                                       return;
                                     }
 
-                                    await FireStoreT.updateItemMetaGP('', '', groupAll: itemGroup);
+                                    await DatabaseM.updateItemMetaGP('', '', groupAll: itemGroup);
                                     WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                                     Navigator.pop(context);
                                   },
@@ -1556,7 +1556,7 @@ class DialogT extends StatelessWidget {
                                       return;
                                     }
 
-                                    await FireStoreT.updateCustomer(cs, files: fileByteList,);
+                                    await DatabaseM.updateCustomer(cs, files: fileByteList,);
                                     WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                                     Navigator.pop(context);
                                   },

@@ -35,7 +35,7 @@ class DialogTS extends StatelessWidget {
 
     TS ts = TS.fromDatabase({});
     if(org != null) {
-      TS? org_check = await FireStoreT.getTsDoc(org.id);
+      TS? org_check = await DatabaseM.getTsDoc(org.id);
       if(org_check == null) {
         WidgetT.showSnackBar(context, text: '삭제됨');
         return;

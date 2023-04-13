@@ -34,7 +34,7 @@ class Algolia {
       final hits = event?.hits.toList() ?? [];
       List<Contract> contracts = [];
       for(var h in hits) {
-        var c = await FireStoreT.getContractDoc(h['objectID']);
+        var c = await DatabaseM.getContractDoc(h['objectID']);
         contracts.add(c);
       }
       SystemT.searchCt = contracts.toList();

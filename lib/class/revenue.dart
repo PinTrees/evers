@@ -105,8 +105,8 @@ class Revenue {
     };
   }
 
-  // 부가세 직접 입력시 자동계산 수식 수정
-  // 부가세 직접 입력 구분값 추가 저장
+  /// 부가세 직접 입력시 자동계산 수식 수정
+  /// 부가세 직접 입력 구분값 추가 저장
   int init() {
     if(!fixedSup && !fixedVat) {
       if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
@@ -137,7 +137,8 @@ class Revenue {
     return cs.businessName + '&:' + ct.ctName + '&:' + it + '&:' + memo;
   }
 
-  // 2023.03.22 요청사항 문서 UID 발급 함수
+  /// 2023.03.22 요청사항 문서 UID 발급 함수
+  /// 이 함수는 데이터베이스에서 유일한 키값 발급을 요청하고 결과를 반환합니다.
   dynamic createUid() async {
     // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
     var dateIdDay = DateStyle.dateYearMD(revenueAt);
@@ -149,10 +150,9 @@ class Revenue {
     return await db.runTransaction((transaction) async {
       final snMeta = await transaction.get(refMeta);
 
-      // 개수는 100% 트랜잭션을 보장할 수 없음
-      // 고유한 형식만 보장
-      // 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
-
+      /// 개수는 100% 트랜잭션을 보장할 수 없음
+      /// 고유한 형식만 보장
+      /// 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
       if(snMeta.exists) {
         if((snMeta.data() as Map)[dateIdDay] != null) {
           var currentRevenueCount = (snMeta.data() as Map)[dateIdDay] as int;
@@ -174,7 +174,8 @@ class Revenue {
     );
   }
   
-  // 데이터베이스 접근 함수
+  /// 이 함수는 해당 클래스를 직렬화하여 데이터베이스에 저장합니다.
+  /// @Create YM
   dynamic update({Revenue? org, Map<String, Uint8List>? files, }) async {
     var create = false;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(revenueAt));
@@ -220,6 +221,7 @@ class Revenue {
     /// 검색 기록 문서 경로로
     final searchRef = db.collection('meta/search/dateQ-revenue').doc(dateIdQuarter);
 
+    /// 매입 트랜잭션을 수행합니다.
     return await db.runTransaction((transaction) async {
       Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
       final  docRefSn = await transaction.get(docRef);
@@ -254,7 +256,8 @@ class Revenue {
         }
       }
 
-      // 매출UID 중복에러 - 가능성 없지만 구현
+      /// 트랜잭션 내부
+
       if(create && docRefSn.exists) return false;
       if(docRefSn.exists)  transaction.update(docRef, toJson());
       else transaction.set(docRef, toJson());
@@ -291,7 +294,8 @@ class Revenue {
     );
   }
   
-  // 데이터베이스 삭제 호출 - 트랜잭션 구현됨
+  /// 이 함수는 데이터베이스에서 해당 클래스를 제거합니다.
+  /// 데이터베이스 삭제 호출 - 트랜잭션 구현됨
   dynamic delete() async {
     state = 'DEL';
     if(id == '')  { return false; }

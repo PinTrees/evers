@@ -24,6 +24,7 @@ import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/transaction.dart';
+import '../class/widget/text.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
@@ -281,7 +282,7 @@ class View_REPU extends StatelessWidget {
       );
 
       if(currentView == '매입') {
-        if(pur_list.length < 1) pur_list = await FireStoreT.getPurchase(
+        if(pur_list.length < 1) pur_list = await DatabaseM.getPurchase(
           startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
           lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
         );
@@ -347,7 +348,7 @@ class View_REPU extends StatelessWidget {
                       onTap: () async {
                         var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
                         if(aa) {
-                          await FireStoreT.deletePu(pu);
+                          await DatabaseM.deletePu(pu);
                           WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
                         }
                       },
@@ -367,7 +368,7 @@ class View_REPU extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getPurchase(
+            var list = await DatabaseM.getPurchase(
               startAt: pur_list.last.id,
               startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
               lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
@@ -389,7 +390,7 @@ class View_REPU extends StatelessWidget {
         ));
       }
       else if(currentView == '매출') {
-        if(rev_list.length < 1) rev_list = await FireStoreT.getRevenue(
+        if(rev_list.length < 1) rev_list = await DatabaseM.getRevenue(
           startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
           lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
         );
@@ -418,20 +419,18 @@ class View_REPU extends StatelessWidget {
                     WidgetT.excelGrid(textSize: 8, textLite: true, text: rev.id.toString(), width: sizeDate,),
                     WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(rev.revenueAt.toString()), width: sizeDate,),
                     WidgetT.excelGrid(textSize: 10, textLite: false, text: '매출', width: 50, textColor: Colors.blueAccent.withOpacity(0.5)),
+
+                    /** 하이퍼링크 텍스트 위젯 함수화 변경. 추후 다른 코드 변경바람 */
                     Expanded(
-                      child: Container(
-                          width: 150, alignment: Alignment.center,
-                          child: RichText(
-                            text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                      text: '${ cs.businessName } / ${ ct.ctName }',
-                                      recognizer: TapGestureRecognizer()..onTapDown = (details) async {
-                                        await DialogCT.showInfoCt(context, ct);
-                                      },
-                                      style: TextStyle(color: Colors.blue, fontSize: 10, decoration: TextDecoration.underline, fontWeight: FontWeight.w900)),
-                                ]),
-                          )),
+                      child: TextT.OnTap(
+                        context: context,
+                        text: '${ cs.businessName } / ${ ct.ctName }',
+                        width: 150,
+                        onTap: () async {
+                          var result = await DialogCT.showInfoCt(context, ct);
+                          return result;
+                        }
+                      ),
                     ),
                     Expanded(child: WidgetT.excelGrid(textSize: 10, width: 999,  text: itemName,)),
                     WidgetT.excelGrid(textLite: true,  text:item?.unit, width: 50),
@@ -477,7 +476,7 @@ class View_REPU extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getRevenue(
+            var list = await DatabaseM.getRevenue(
               startAt: rev_list.last.id,
               startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
               lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
@@ -639,7 +638,7 @@ class View_REPU extends StatelessWidget {
       );
 
       if(ts_list.length < 1) {
-        ts_list = await FireStoreT.getTransaction(
+        ts_list = await DatabaseM.getTransaction(
           startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
           lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
         );
@@ -714,7 +713,7 @@ class View_REPU extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getTransaction(
+            var list = await DatabaseM.getTransaction(
                 startAt: ts_list.last.id,
                 startDate: query ? rpStartAt.microsecondsSinceEpoch: null,
                 lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,

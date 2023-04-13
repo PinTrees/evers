@@ -73,8 +73,8 @@ class DialogCT extends StatelessWidget {
     var ct = Contract.fromDatabase(json);
     await ct.update();
 
-    tslist = await FireStoreT.getTransactionCt(ct.id);
-    sch_list = await FireStoreT.getSCH_CT(ct.id);
+    tslist = await DatabaseM.getTransactionCt(ct.id);
+    sch_list = await DatabaseM.getSCH_CT(ct.id);
 
     Navigator.pop(context);
 
@@ -358,7 +358,7 @@ class DialogCT extends StatelessWidget {
                                     FunT.setStateD = setData;
 
                                     if(data != null) {
-                                      sch_list = await FireStoreT.getSCH_CT(ct.id);
+                                      sch_list = await DatabaseM.getSCH_CT(ct.id);
                                       FunT.setStateDT();
                                     }
                                   },
@@ -854,7 +854,7 @@ class DialogCT extends StatelessWidget {
                           children: [
                             TextButton(onPressed: () async {
                               await DialogSHC.showSCHCreate(context, ctUid: ct.id);
-                              sch_list = await FireStoreT.getSCH_CT(ct.id);
+                              sch_list = await DatabaseM.getSCH_CT(ct.id);
                               FunT.setStateD = () { setStateS(() {}); };
                               FunT.setStateDT();
                             },
@@ -1001,7 +1001,7 @@ class DialogCT extends StatelessWidget {
                                       await ts.update();
                                     }
 
-                                    tslist = await FireStoreT.getTransactionCt(ct.id);
+                                    tslist = await DatabaseM.getTransactionCt(ct.id);
 
                                     Navigator.pop(context);
                                     FunT.setStateDT();
@@ -1058,7 +1058,7 @@ class DialogCT extends StatelessWidget {
                               await FireStoreT.updateTransaction(ts);
                             }*/
 
-                            await FireStoreT.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
+                            await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
                             original.fromJson(ct.toJson());
                             WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                             Navigator.pop(context);
@@ -1252,7 +1252,7 @@ class DialogCT extends StatelessWidget {
                       return;
                     }
 
-                    await FireStoreT.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
+                    await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
                     WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                     Navigator.pop(context);
                   },),
@@ -1696,7 +1696,7 @@ class DialogCT extends StatelessWidget {
                                 return;
                               }
 
-                              await FireStoreT.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
+                              await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
                               WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                               Navigator.pop(context);
                             },

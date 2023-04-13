@@ -26,7 +26,7 @@ import '../system/product.dart';
 import 'function.dart';
 import '../class/database/item.dart';
 
-class FireStoreT {
+class DatabaseM {
   //static const _databaseURL = 'https://taegi-survey-default-rtdb.firebaseio.com';
   static dynamic updateEmployee(Employee data, { Map<String, Uint8List>? files, }) async {
     if(data.id == '') data.id = generateRandomString(16);
@@ -136,6 +136,7 @@ class FireStoreT {
     });
   }
 
+  /// (***) 매입 클래스내 내부함수로 재구현 필요
   /// 검색 메타정보 테스트 - 추후 알고리아 또는 타입신스를 통한 고도화
   static dynamic updatePurchase(Purchase data, { Purchase? org,  Map<String, Uint8List>? files, }) async {
     var create = false;
@@ -180,7 +181,7 @@ class FireStoreT {
     }
     if(data.isItemTs) {
       ItemTS itemTs = ItemTS.fromPu(data,);
-      itemTs.update(org: org);
+      //itemTs.update(org: org);
     }
 
     var db = FirebaseFirestore.instance;

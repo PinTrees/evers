@@ -72,7 +72,7 @@ class _CustomerPageState extends State<CustomerPage> {
     setState(() {});
 
     if(widget.csUid != null) {
-      cs = await FireStoreT.getCustomerDoc(widget.csUid!);
+      cs = await DatabaseM.getCustomerDoc(widget.csUid!);
       mainW();
     }
 
@@ -142,7 +142,7 @@ class _CustomerPageState extends State<CustomerPage> {
                 onTap: () async {
                   var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
                   if(aa) {
-                    await FireStoreT.deletePu(pu);
+                    await DatabaseM.deletePu(pu);
                     WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
                   }
                 },

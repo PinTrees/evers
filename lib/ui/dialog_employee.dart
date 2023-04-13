@@ -653,7 +653,7 @@ class DialogEM extends StatelessWidget {
                               return;
                             }
 
-                            await FireStoreT.updateEmployee(employee, files: fileByteList);
+                            await DatabaseM.updateEmployee(employee, files: fileByteList);
                             WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                             Navigator.pop(context);
                           },

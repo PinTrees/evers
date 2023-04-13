@@ -29,6 +29,7 @@ import '../class/database/item.dart';
 
 class DialogPU extends StatelessWidget {
 
+
   /// 매입 추가화면 - 부가세 설정은 각 매출문서마다 각각 추가됨
   static dynamic showCreatePu(BuildContext context) async {
     var dividHeight = 6.0;
@@ -635,7 +636,7 @@ class DialogPU extends StatelessWidget {
                               p.isItemTs = isAddItem;
 
                               /// 매입정보 추가 - 매입데이터 및 거래명세서 파일 데이터
-                              await FireStoreT.updatePurchase(p, files: files);
+                              await DatabaseM.updatePurchase(p, files: files);
                               /// 지불 정보 문서 추가
                               if(payment == '즉시') await TS.fromPu(p, payType, now: true).update();
                             }
@@ -668,6 +669,15 @@ class DialogPU extends StatelessWidget {
     return aa;
   }
 
+
+  /// 이 함수는 일반 매입추가 다이얼로그를 실행하고 결과를 반환합니다.
+  /// showCreatePu 함수가 마이그레이션 되었습니다.
+  ///
+  /// @return pu 매입결과를 작성했을경우 작성기록이 반환됩니다.
+  ///            매입결과를 작석하지 않았거나 데이터베이스 기록이 실패했을 경우 null 이 반환됩니다.
+  ///
+  /// @Create YM
+  /// @Version 1.0.0
   static dynamic showCreateNormalPu(BuildContext context) async {
     var dividHeight = 6.0;
     var heightSize = 36.0;
@@ -1273,7 +1283,7 @@ class DialogPU extends StatelessWidget {
                               p.isItemTs = isAddItem;
 
                               /// 매입정보 추가 - 매입데이터 및 거래명세서 파일 데이터
-                              await FireStoreT.updatePurchase(p, files: files);
+                              await DatabaseM.updatePurchase(p, files: files);
                               /// 지불 정보 문서 추가
                               if(payment == '즉시') await TS.fromPu(p, payType, now: true).update();
                             }
@@ -1306,15 +1316,22 @@ class DialogPU extends StatelessWidget {
     return aa;
   }
 
+
+  /// 이 함수는 계약과 연결된 품목매입 추가 다이얼로그를 실행하고 결과를 반환합니다.
+  ///
+  /// @return pu 매입결과를 작성했을경우 작성기록이 반환됩니다.
+  ///            매입결과를 작석하지 않았거나 데이터베이스 기록이 실패했을 경우 null 이 반환됩니다.
+  ///
+  /// @Create YM
+  /// @Version 1.0.0
   static dynamic showCreateItemPu(BuildContext context) async {
     var dividHeight = 6.0;
     var heightSize = 36.0;
 
     List<Map<String, Uint8List>> fileByteList = [];
-    Contract ct = Contract.fromDatabase({});
+    Contract? ct;
     Customer? cs;
-    bool isAddItem = false;       /// 재고 품목 추가
-    bool isCt = false;
+
     var payment = '매입';
     var payType = '';
 
@@ -1322,9 +1339,14 @@ class DialogPU extends StatelessWidget {
     var vatTypeNameList = [ '포함', '미포함', ];
     var currentVatType = 0;
 
+    List<ItemTS> itemTs = [];
     List<Purchase> pus = [];
+
     var pu = Purchase.fromDatabase({});
+    var it = ItemTS.fromDatabase({});
+
     pu.purchaseAt = DateTime.now().microsecondsSinceEpoch;
+    it.date = DateTime.now().microsecondsSinceEpoch;
 
     pus.add(pu);
     fileByteList.add({});
@@ -1611,6 +1633,8 @@ class DialogPU extends StatelessWidget {
                 titlePadding: EdgeInsets.zero,
                 contentPadding: EdgeInsets.zero,
                 title: WidgetDT.dlTitle(context, title: '매입추가', ),
+
+                /** Build Main */
                 content: SingleChildScrollView(
                   child: Container(
                     width: 1280,
@@ -1647,7 +1671,7 @@ class DialogPU extends StatelessWidget {
                                   child: Container( height: 28, alignment: Alignment.center,
                                       child: Row( mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          WidgetT.title(ct.ctName, ),
+                                          WidgetT.title(ct!.ctName, ),
                                         ],
                                       )),
                                 ),
@@ -1802,48 +1826,48 @@ class DialogPU extends StatelessWidget {
                     children: [
                       Expanded(child:TextButton(
                           onPressed: () async {
-                            if(!isCt) {
-                              if(cs == null) { WidgetT.showSnackBar(context, text: '거래처를 선택해 주세요.'); return; }
-                            }
-                            else {
-                              if(ct == null) { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
-                              if(ct.ctName  == '') { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
-                            }
+                            /// 재고추가와 관련된 매입건은 반드시 계약이 추가되어야 함.
+                            if(ct == null) { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
+
+                            if(ct!.ctName  == '') { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
+
+
                             if(payment == '즉시' && payType == '') { WidgetT.showSnackBar(context, text: '결제방법을 선택해 주세요.'); return;  }
                             for(var pu in pus) {
-                              if(isAddItem) {
                                 var item = SystemT.getItem(pu.item);
                                 if(item == null) {
                                   WidgetT.showSnackBar(context, text: '품목을 재고에 추가할 수 없습니다. 품목을 다시 선택해 주세요.');
                                   return;
                                 }
-                              }
                             }
 
+                            ///
                             var alert = await DialogT.showAlertDl(context, title: pu.csUid ?? 'NULL');
                             if(alert == false) {
                               WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
                               return;
                             }
 
+
                             for(int i = 0; i < pus.length; i++) {
                               var p = pus[i]; var files = fileByteList[i] as Map<String, Uint8List>;
 
-                              if(isCt) {
-                                p.ctUid = ct.id;
-                                p.csUid = ct.csUid;
-                              }
-                              else p.csUid = cs!.id;
+                              p.ctUid = ct!.id;
+
+                              p.csUid = ct!.csUid;
+                              p.csUid = (p.csUid == '') ? cs!.id : p.csUid;
+
                               p.vatType = currentVatType;
-                              p.isItemTs = isAddItem;
+
+                              /// 품목 매입아이디
+                              ///p.isItemTs = 'isAddItem';
 
                               /// 매입정보 추가 - 매입데이터 및 거래명세서 파일 데이터
-                              await FireStoreT.updatePurchase(p, files: files);
+                              await DatabaseM.updatePurchase(p, files: files);
                               /// 지불 정보 문서 추가
                               if(payment == '즉시') await TS.fromPu(p, payType, now: true).update();
                             }
 
-                            //SystemT.contract.add(pu);
                             WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                             Navigator.pop(context);
                           },

@@ -282,7 +282,7 @@ class View_MO extends StatelessWidget {
         );
 
         if(ts_list.length < 1) {
-          ts_list = await FireStoreT.getTransaction(
+          ts_list = await DatabaseM.getTransaction(
             startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
             lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
           );
@@ -345,7 +345,7 @@ class View_MO extends StatelessWidget {
             onTap: () async {
               WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-              var list = await FireStoreT.getTransaction(
+              var list = await DatabaseM.getTransaction(
                 startAt: ts_list.last.id,
                 startDate: query ? rpStartAt.microsecondsSinceEpoch: null,
                 lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
@@ -368,7 +368,7 @@ class View_MO extends StatelessWidget {
         }
 
         for(var a in SystemT.accounts.values) {
-          var amount = await FireStoreT.getAmountAccount(a.id);
+          var amount = await DatabaseM.getAmountAccount(a.id);
           Account acc = SystemT.getAccount(a.id) ?? Account.fromDatabase({});
           account[a.id] = amount + acc.balanceStartAt;
         }
@@ -416,7 +416,7 @@ class View_MO extends StatelessWidget {
           var startAt = DateStyle.startAtEpoch(new DateTime(1, 1, 1));
           var lastAt = DateStyle.lastOneDayAtEpoch();
 
-          var amount = await FireStoreT.getAmountAccountWithDate(a.id, startAt, lastAt);
+          var amount = await DatabaseM.getAmountAccountWithDate(a.id, startAt, lastAt);
           Account acc = SystemT.getAccount(a.id) ?? Account.fromDatabase({});
           oldAccount[a.id] = amount + acc.balanceStartAt;
         }
@@ -424,7 +424,7 @@ class View_MO extends StatelessWidget {
 
         balance = 0;
         for(var a in SystemT.accounts.values) {
-          var amount = await FireStoreT.getAmountAccount(a.id,);
+          var amount = await DatabaseM.getAmountAccount(a.id,);
           Account acc = SystemT.getAccount(a.id) ?? Account.fromDatabase({});
           account[a.id] = amount + acc.balanceStartAt;
         }
@@ -473,7 +473,7 @@ class View_MO extends StatelessWidget {
         // 프린트할 거래기록의 시작날짜 / 서버안정성을 위해 기초값 최근 한달로 설정
         SystemDate.selectDate['startDate'] ??= DateTime(DateTime.now().year, DateTime.now().month, 1);
 
-        List<TS> tsList = await FireStoreT.getTransactionWithDate(SystemDate.selectDate['startDate']!.microsecondsSinceEpoch,
+        List<TS> tsList = await DatabaseM.getTransactionWithDate(SystemDate.selectDate['startDate']!.microsecondsSinceEpoch,
             SystemDate.selectWorkDate.microsecondsSinceEpoch);
         tsList.sort((a, b) => b.transactionAt.compareTo(a.transactionAt));
 
@@ -800,7 +800,7 @@ class View_MO extends StatelessWidget {
           var startAt = DateStyle.startAtEpoch(new DateTime(1, 1, 1));
           var lastAt = DateStyle.dateEphoceD(SystemDate.selectWorkDate.microsecondsSinceEpoch);
 
-          var amount = await FireStoreT.getAmountAccountWithDate(a.id, startAt, lastAt);
+          var amount = await DatabaseM.getAmountAccountWithDate(a.id, startAt, lastAt);
           Account acc = SystemT.getAccount(a.id) ?? Account.fromDatabase({});
           selAccount[a.id] = amount + acc.balanceStartAt;
         }
@@ -1204,7 +1204,7 @@ class View_MO extends StatelessWidget {
       }
     }
     else if(menu == '미수현황') {
-      List<Customer> cs = await FireStoreT.getCSWithRe();
+      List<Customer> cs = await DatabaseM.getCSWithRe();
 
       List<Widget> widgets = [];
       var allP = 0, allPdP = 0;
@@ -1213,8 +1213,8 @@ class View_MO extends StatelessWidget {
         var cts = (await c.getContractList()) ?? [];
         var allPay = 0, allPayedAmount = 0;
         for(var ct in cts) {
-          List<TS> ts = await FireStoreT.getTransactionCt(ct.id);
-          List<Revenue> pu = await FireStoreT.getRevenueOnlyContract(ct.id);
+          List<TS> ts = await DatabaseM.getTransactionCt(ct.id);
+          List<Revenue> pu = await DatabaseM.getRevenueOnlyContract(ct.id);
           pu.forEach((e) { allPay += e.totalPrice; });
           ts.forEach((value) { if(value.type == 'RE') allPayedAmount += value.amount; });
 
@@ -1268,14 +1268,14 @@ class View_MO extends StatelessWidget {
       );
     }
     else if(menu == '미지급현황') {
-      List<Customer> cs = await FireStoreT.getCSWithTs();
+      List<Customer> cs = await DatabaseM.getCSWithTs();
 
       List<Widget> widgets = [];
       var allP = 0, allPdP = 0;
       for(int i = 0; i < cs.length; i++) {
         var c = cs[i];
-        Map<dynamic, TS> ts = await FireStoreT.getTS_CS_PU_date(c.id);
-        List<Purchase> pu = await FireStoreT.getPur_withCS(c.id);
+        Map<dynamic, TS> ts = await DatabaseM.getTS_CS_PU_date(c.id);
+        List<Purchase> pu = await DatabaseM.getPur_withCS(c.id);
         var allPay = 0, allPayedAmount = 0;
         pu.forEach((e) { allPay += e.totalPrice; });
         ts.forEach((key, value) { if(value.type == 'PU') allPayedAmount += value.amount; });

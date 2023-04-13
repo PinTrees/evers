@@ -259,8 +259,8 @@ class DialogItemTrans extends StatelessWidget {
       var json = jsonDecode(jsonString);
       pu = Purchase.fromDatabase(json);
 
-      if (pu.csUid != '') cs = await FireStoreT.getCustomerDoc(pu.csUid);
-      if (pu.ctUid != '') { ct = await FireStoreT.getContractDoc(pu.ctUid); isContractLinking = true;  }
+      if (pu.csUid != '') cs = await DatabaseM.getCustomerDoc(pu.csUid);
+      if (pu.ctUid != '') { ct = await DatabaseM.getContractDoc(pu.ctUid); isContractLinking = true;  }
     }
 
     Purchase? aa = await showDialog(
@@ -417,7 +417,7 @@ class DialogItemTrans extends StatelessWidget {
                                 }
 
                                 WidgetT.loadingBottomSheet(context);
-                                await FireStoreT.deletePu(pu);
+                                await DatabaseM.deletePu(pu);
                                 Navigator.pop(context);
 
                                 WidgetT.showSnackBar(context, text: '삭제됨');
@@ -578,7 +578,7 @@ class DialogItemTrans extends StatelessWidget {
                             }
 
                             WidgetT.loadingBottomSheet(context, text: '저장중');
-                            await FireStoreT.updatePurchase(pu, org: org, files: fileByteList);
+                            await DatabaseM.updatePurchase(pu, org: org, files: fileByteList);
 
                             WidgetT.showSnackBar(context, text: '저장됨');
                             Navigator.pop(context); Navigator.pop(context, pu);
@@ -614,7 +614,7 @@ class DialogItemTrans extends StatelessWidget {
     Revenue re = Revenue.fromDatabase({});
     Revenue? org_check;
     if(org != null) {
-      org_check = await FireStoreT.getResDoc(org.id);
+      org_check = await DatabaseM.getResDoc(org.id);
       if(org_check == null) { return; }
       if(org_check.state == 'DEL') { return; }
 
@@ -622,8 +622,8 @@ class DialogItemTrans extends StatelessWidget {
       var json = jsonDecode(jsonStr);
       re = Revenue.fromDatabase(json);
 
-      cs = await FireStoreT.getCustomerDoc(re.csUid);
-      ct = await FireStoreT.getContractDoc(re.ctUid);
+      cs = await DatabaseM.getCustomerDoc(re.csUid);
+      ct = await DatabaseM.getContractDoc(re.ctUid);
     }
 
     Revenue? aa = await showDialog(

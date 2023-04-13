@@ -25,7 +25,7 @@ class ProductSystem {
     await initStream();
   }
   static dynamic initStream() async {
-     await FireStoreT.initStreamProductDate();
+     await DatabaseM.initStreamProductDate();
   }
   static void sortStream() {
     productStream = Map.fromEntries(productStream.entries.toList()..sort((e1, e2) => e2.key.compareTo(e1.key)));

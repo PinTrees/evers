@@ -253,7 +253,7 @@ class View_Factory extends StatelessWidget {
     );
 
     if(menu == '공장일보') {
-      if(factory_list.length < 1) factory_list = await FireStoreT.getFactory(
+      if(factory_list.length < 1) factory_list = await DatabaseM.getFactory(
           startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
           lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
       );
@@ -436,7 +436,7 @@ class View_Factory extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getFactory(
+            var list = await DatabaseM.getFactory(
               startAt: (factory_list.length > 0) ? factory_list.last.id : null,
               startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
               lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
@@ -460,7 +460,7 @@ class View_Factory extends StatelessWidget {
     }
     /// 생산일보 - 공장일보 통합 관리
     else if(menu == '생산일보') {
-      if(product_list.length < 1) product_list = await FireStoreT.getProductList(
+      if(product_list.length < 1) product_list = await DatabaseM.getProductList(
         startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
         lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
       );
@@ -646,7 +646,7 @@ class View_Factory extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getProductList(
+            var list = await DatabaseM.getProductList(
               startAt: (product_list.length > 0) ? product_list.last.id : null,
               startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
               lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
@@ -714,7 +714,7 @@ class View_Factory extends StatelessWidget {
                   TextButton(
                       onPressed: () async {
                         if(await DialogT.showAlertDl(context, text: '"${itemTmp.name}" 품목을 데이터베이스에서 삭제하시겠습니까?')) {
-                          await FireStoreT.deleteItem(itemTmp);
+                          await DatabaseM.deleteItem(itemTmp);
                         }
                         FunT.setStateDT();
                       },
@@ -738,7 +738,7 @@ class View_Factory extends StatelessWidget {
     ///
     if(menu == '품목입출현황') {
       if(itemTs_list.length < 1) {
-        itemTs_list = await FireStoreT.getItemTranList(
+        itemTs_list = await DatabaseM.getItemTranList(
           startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
           lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
         );
@@ -784,8 +784,8 @@ class View_Factory extends StatelessWidget {
                   Expanded(child: WidgetT.excelGrid(textLite: false, width: 999, text: itemName,)),
                   WidgetT.excelGrid(textLite: true, text:item?.unit, width: 50),
                   WidgetT.excelGrid(textLite: true,width: 100,  text: StyleT.krw(itemTs.amount.toString()),),
-                  WidgetT.excelGrid(textLite: true,width: 100,  text: StyleT.krw(itemTs.unitPrice.toString()),),
-                  WidgetT.excelGrid(textLite: true,width: 100,  text: StyleT.krw((itemTs.unitPrice * itemTs.amount).toString()),),
+                  /*WidgetT.excelGrid(textLite: true,width: 100,  text: StyleT.krw(itemTs.unitPrice.toString()),),
+                  WidgetT.excelGrid(textLite: true,width: 100,  text: StyleT.krw((itemTs.unitPrice * itemTs.amount).toString()),),*/
                   SizedBox(width: 100,),
                   InkWell(
                     onTap: () async {
@@ -817,7 +817,7 @@ class View_Factory extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getItemTranList(
+            var list = await DatabaseM.getItemTranList(
               startAt: (itemTs_list.length > 0) ? itemTs_list.last.id : null,
               startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
               lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,

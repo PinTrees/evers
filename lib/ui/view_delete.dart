@@ -75,13 +75,13 @@ class View_Delete extends StatelessWidget {
     this.menu = menu;
 
     if(pur_list.isEmpty) {
-      pur_list = await FireStoreT.getPurchaseDelete();
+      pur_list = await DatabaseM.getPurchaseDelete();
     }
     if(rev_list.isEmpty) {
-      rev_list = await FireStoreT.getRevDelete();
+      rev_list = await DatabaseM.getRevDelete();
     }
     if(cs_list.isEmpty) {
-      cs_list = await FireStoreT.getCustomerDelete();
+      cs_list = await DatabaseM.getCustomerDelete();
     }
 
     List<Widget> childrenW = [];
@@ -107,7 +107,7 @@ class View_Delete extends StatelessWidget {
     }
     childrenW.add(InkWell(
       onTap: () async {
-        var data = await FireStoreT.getPurchaseDelete(startAt: pur_list.last.id);
+        var data = await DatabaseM.getPurchaseDelete(startAt: pur_list.last.id);
         pur_list.addAll(data);
       },
       child: Container(
@@ -144,7 +144,7 @@ class View_Delete extends StatelessWidget {
     }
     childrenW.add(InkWell(
       onTap: () async {
-        var data = await FireStoreT.getRevDelete(startAt: rev_list.last.id);
+        var data = await DatabaseM.getRevDelete(startAt: rev_list.last.id);
         rev_list.addAll(data);
       },
       child: Container(
@@ -176,11 +176,11 @@ class View_Delete extends StatelessWidget {
               InkWell(
                 onTap: () async {
                   WidgetT.loadingBottomSheet(context, text: '매입 삭제중');
-                  var dataList = await FireStoreT.getPur_withCS(cs.id);
+                  var dataList = await DatabaseM.getPur_withCS(cs.id);
 
                   for(var data in dataList) {
                     print(data.toJson());
-                    await FireStoreT.deletePu(data);
+                    await DatabaseM.deletePu(data);
                   }
 
                   Navigator.pop(context);
@@ -197,7 +197,7 @@ class View_Delete extends StatelessWidget {
               InkWell(
                 onTap: () async {
 
-                  var data = await FireStoreT.getPur_withCS(cs.id);
+                  var data = await DatabaseM.getPur_withCS(cs.id);
                   print(data);
                 },
                 child: Row(
@@ -218,7 +218,7 @@ class View_Delete extends StatelessWidget {
                   }
 
                   WidgetT.loadingBottomSheet(context, text: '삭제중');
-                  var dataList = await FireStoreT.getTransactionCs(cs.id);
+                  var dataList = await DatabaseM.getTransactionCs(cs.id);
 
                   var ret = true;
                   for(TS data in dataList) {

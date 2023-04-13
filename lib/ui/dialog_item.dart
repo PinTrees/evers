@@ -169,7 +169,7 @@ class DialogIT extends StatelessWidget {
                               return;
                             }
 
-                            await FireStoreT.updateItem(item, );
+                            await DatabaseM.updateItem(item, );
                             WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
                             Navigator.pop(context);
                           },
@@ -629,7 +629,7 @@ class DialogIT extends StatelessWidget {
                             //print(factoryD.itemSvPu);
                             //print(factoryD.itemSvRe);
                             factoryD.date = date.microsecondsSinceEpoch;
-                            await FireStoreT.updateFactoryDWithFile(factoryD, files: fileByteList);
+                            await DatabaseM.updateFactoryDWithFile(factoryD, files: fileByteList);
 
                             Navigator.pop(context);
                             WidgetT.showSnackBar(context, text: '저장됨');
@@ -1196,7 +1196,7 @@ class DialogIT extends StatelessWidget {
                             //print(factoryD.itemSvRe);
 
                             product.date = date.microsecondsSinceEpoch;
-                            await FireStoreT.updateProductDWithFile(product, files: fileByteList);
+                            await DatabaseM.updateProductDWithFile(product, files: fileByteList);
 
                             Navigator.pop(context);
                             WidgetT.showSnackBar(context, text: '저장됨');

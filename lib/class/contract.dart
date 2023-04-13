@@ -172,11 +172,11 @@ class Contract {
   }
 
   dynamic update() async {
-    Contract? data = await FireStoreT.getContractDoc(id);
+    Contract? data = await DatabaseM.getContractDoc(id);
     if(data == null) return;
     fromJson(data.toJson());
 
-    revenueList = await FireStoreT.getRevenueOnlyContract(id);
+    revenueList = await DatabaseM.getRevenueOnlyContract(id);
   }
   int getItemCountRevenue(String ctIndex) {
     final cl = contractList.firstWhere((a) =>

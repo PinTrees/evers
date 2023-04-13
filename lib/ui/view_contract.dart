@@ -87,7 +87,7 @@ class View_Contract extends StatelessWidget {
     if(menu == '고객관리') {
       childrenW.clear();
 
-      if(cs_list.length < 1) cs_list = await FireStoreT.getCustomer();
+      if(cs_list.length < 1) cs_list = await DatabaseM.getCustomer();
 
       List<Widget> widgetsCs = [];
       var data = sort ? cs_sort_list : cs_list;
@@ -156,7 +156,7 @@ class View_Contract extends StatelessWidget {
                     InkWell(
                         onTap: () async {
                           if(await DialogT.showAlertDl(context, text: '"${cs.businessName}" 거래처를 데이터베이스에서 삭제하시겠습니까?')) {
-                            await FireStoreT.deleteCustomer(cs);
+                            await DatabaseM.deleteCustomer(cs);
                           }
                           FunT.setStateMain();
                         },
@@ -176,7 +176,7 @@ class View_Contract extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getCustomer(startAt: cs_list.last.id);
+            var list = await DatabaseM.getCustomer(startAt: cs_list.last.id);
             cs_list.addAll(list);
 
             Navigator.pop(context);
@@ -197,7 +197,7 @@ class View_Contract extends StatelessWidget {
     else if(menu == '계약관리') {
       childrenW.clear();
 
-      if(ct_list.length < 1) ct_list = await FireStoreT.getContract();
+      if(ct_list.length < 1) ct_list = await DatabaseM.getContract();
 
       List<Widget> widgetsCt = [];
       var data = sort ? ct_sort_list : ct_list;
@@ -226,7 +226,7 @@ class View_Contract extends StatelessWidget {
                     InkWell(
                         onTap: () async {
                           if(await DialogT.showAlertDl(context, text: '"${ct.ctName}" 계약을 데이터베이스에서 삭제하시겠습니까?')) {
-                            await FireStoreT.deleteContract(ct);
+                            await DatabaseM.deleteContract(ct);
                           }
                           FunT.setStateMain();
                         },
@@ -246,7 +246,7 @@ class View_Contract extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getContract(startAt: ct_list.last.id);
+            var list = await DatabaseM.getContract(startAt: ct_list.last.id);
             ct_list.addAll(list);
 
             Navigator.pop(context);

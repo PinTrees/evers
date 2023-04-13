@@ -132,7 +132,7 @@ class View_CS extends StatelessWidget {
       );
 
       if(currentView == '매입') {
-        if(pur_list.length < 1) pur_list = await FireStoreT.getPurchase();
+        if(pur_list.length < 1) pur_list = await DatabaseM.getPurchase();
 
         var data = sort ? pur_sort_list : pur_list;
         for(int i = 0; i < data.length; i++) {
@@ -178,7 +178,7 @@ class View_CS extends StatelessWidget {
                       onTap: () async {
                         var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
                         if(aa) {
-                          await FireStoreT.deletePu(pu);
+                          await DatabaseM.deletePu(pu);
                           WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
                         }
                       },
@@ -198,7 +198,7 @@ class View_CS extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getPurchase(startAt: pur_list.last.id);
+            var list = await DatabaseM.getPurchase(startAt: pur_list.last.id);
             pur_list.addAll(list);
 
             Navigator.pop(context);
@@ -216,7 +216,7 @@ class View_CS extends StatelessWidget {
         ));
       }
       else if(currentView == '매출') {
-        if(rev_list.length < 1) rev_list = await FireStoreT.getRevenue();
+        if(rev_list.length < 1) rev_list = await DatabaseM.getRevenue();
         var data = sort ? rev__sort_list : rev_list;
         for(int i = 0; i < data.length; i++) {
           var rev = data[i];
@@ -289,7 +289,7 @@ class View_CS extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getRevenue(startAt: rev_list.last.id);
+            var list = await DatabaseM.getRevenue(startAt: rev_list.last.id);
             rev_list.addAll(list);
 
             Navigator.pop(context);
@@ -316,7 +316,7 @@ class View_CS extends StatelessWidget {
         ],
       );
 
-      if(ts_list.length < 1) ts_list = await FireStoreT.getTransaction();
+      if(ts_list.length < 1) ts_list = await DatabaseM.getTransaction();
 
       var datas = sort ? ts_sort_list : ts_list;
       for(int i = 0; i < datas.length; i++) {
@@ -369,7 +369,7 @@ class View_CS extends StatelessWidget {
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-            var list = await FireStoreT.getTransaction(startAt: ts_list.last.id);
+            var list = await DatabaseM.getTransaction(startAt: ts_list.last.id);
             ts_list.addAll(list);
 
             Navigator.pop(context);
@@ -435,8 +435,8 @@ class View_CS extends StatelessWidget {
                         rpStartAt = DateTime.now().add(const Duration(days: -90));
                       }
 
-                      List<Purchase> pur = await FireStoreT.getPurchaseWithDate(rpStartAt.microsecondsSinceEpoch, rpLastAt.microsecondsSinceEpoch);
-                      List<Revenue> rev = await FireStoreT.getReWithDate(rpStartAt.microsecondsSinceEpoch, rpLastAt.microsecondsSinceEpoch);
+                      List<Purchase> pur = await DatabaseM.getPurchaseWithDate(rpStartAt.microsecondsSinceEpoch, rpLastAt.microsecondsSinceEpoch);
+                      List<Revenue> rev = await DatabaseM.getReWithDate(rpStartAt.microsecondsSinceEpoch, rpLastAt.microsecondsSinceEpoch);
                       for(var p in pur) revpurs.add(RevPur.fromDatabase(pu: p));
                       for(var r in rev) revpurs.add(RevPur.fromDatabase(re: r));
                       revpurs.sort((a, b) {
@@ -501,8 +501,8 @@ class View_CS extends StatelessWidget {
                   crRrpmenuDt = 'CST';
 
                   revpurs.clear();
-                  List<Purchase> pur = await FireStoreT.getPurchaseWithDate(rpStartAt.microsecondsSinceEpoch, rpLastAt.microsecondsSinceEpoch);
-                  List<Revenue> rev = await FireStoreT.getReWithDate(rpStartAt.microsecondsSinceEpoch, rpLastAt.microsecondsSinceEpoch);
+                  List<Purchase> pur = await DatabaseM.getPurchaseWithDate(rpStartAt.microsecondsSinceEpoch, rpLastAt.microsecondsSinceEpoch);
+                  List<Revenue> rev = await DatabaseM.getReWithDate(rpStartAt.microsecondsSinceEpoch, rpLastAt.microsecondsSinceEpoch);
                   for(var p in pur) revpurs.add(RevPur.fromDatabase(pu: p));
                   for(var r in rev) revpurs.add(RevPur.fromDatabase(re: r));
                   revpurs.sort((a, b) {

@@ -124,12 +124,12 @@ class Customer {
   
   // Firebase Core 함수 삭제
   dynamic update() async {
-    Customer? data = await FireStoreT.getCustomerDoc(id);
+    Customer? data = await DatabaseM.getCustomerDoc(id);
     if(data != null) fromDatabase(data.toJson());
   }
 
   dynamic getContractList() async {
-    List<Contract>? data = await FireStoreT.getCtWithCs(id);
+    List<Contract>? data = await DatabaseM.getCtWithCs(id);
     return data;
   }
 
