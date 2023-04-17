@@ -97,6 +97,8 @@ class ItemTS {
 
   var date = 0;           /// 입고일자
 
+  var unitPrice = 0;      /// 참고용 단가
+  
   var rh = 0.0;
   var manager = '';       /// 입고자(검수자)
   var writer = '';        /// 작성자
@@ -154,16 +156,48 @@ class ItemTS {
   dynamic getHistory({ int? startAt, int? lastAt }) async {
 
   }
-  dynamic createUID() {
+  dynamic createUID() async {
+    // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
+    var dateIdDay = DateStyle.dateYearMD(date);
+    var dateIdMonth = DateStyle.dateYearMM(date);
 
+    var db = FirebaseFirestore.instance;
+    final refMeta = db.collection('meta/uid/dateM-item_ts').doc(dateIdMonth);
+
+    return await db.runTransaction((transaction) async {
+      final snMeta = await transaction.get(refMeta);
+
+      /// 개수는 100% 트랜잭션을 보장할 수 없음
+      /// 고유한 형식만 보장
+      /// 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
+      if(snMeta.exists) {
+        if((snMeta.data() as Map)[dateIdDay] != null) {
+          var currentRevenueCount = (snMeta.data() as Map)[dateIdDay] as int;
+          currentRevenueCount++;
+          id = 'TI-$dateIdDay-$currentRevenueCount';
+          transaction.update(refMeta, { dateIdDay: FieldValue.increment(1)});
+        }
+        else {
+          id = 'TI-$dateIdDay-1';
+          transaction.update(refMeta, { dateIdDay: 1});
+        }
+      } else {
+        id = 'TI-$dateIdDay-1';
+        transaction.set(refMeta, { dateIdDay: 1 });
+      }
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated createUid!"); return true; },
+        onError: (e) { print("Error createUid() $e"); return false; }
+    );
   }
+
 
   /// 이 함수는 해당 클래스를 직렬화 하여 데이터베이스에 기록합니다.
   ///
   /// (***) 문서 업데이트시 기존 org 반드시 첨부
   /// 현재 문서의 UID 가 != ''이 아닐경우 기존 기록을 히스토리로 변경
   /// 히스토리에 기록시 문서 UID는 현재 시간의 에폭시 값으로 변경
-  dynamic update({ ItemTS? org, Map<String, Uint8List>? files, }) async {
+  dynamic update({ Map<String, Uint8List>? files, }) async {
     var create = false;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(date));
 
@@ -173,6 +207,8 @@ class ItemTS {
     if(id == '') return false;
     // 현재까지 정상적으로 실행된 경우
     // id 존재
+
+    ItemTS? org = DatabaseM.getItemTrans(id);
 
     var orgDateId = '-';
     var orgDateQuarterId = '-';
@@ -191,31 +227,22 @@ class ItemTS {
     Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
     var db = FirebaseFirestore.instance;
     
-    ///
-    /// 
-    /// 
-    /// 
-    /// 내부 트랜잭션 다시 작성 
+    /// 내부 트랜잭션 다시 작성
     /// 테스트 필요
-    /// 
-    /// 
-    /// 
-    /// 
-    /// 
     /// 메인문서 기록
-    final docRef = db.collection("revenue").doc(id);
-    final dateRef = db.collection('meta/date-m/revenue').doc(dateId);
-    if(org != null) ref['orgDate'] = db.collection('meta/date-m/revenue').doc(orgDateId);
+    final docRef = db.collection("transaction-items").doc(id);
+    final dateRef = db.collection('meta/date-m/transaction-items').doc(dateId);
+    if(org != null) ref['orgDate'] = db.collection('meta/date-m/transaction-items').doc(orgDateId);
     if(org != null) {
-      if(org.csUid != '') ref['orgCsDetail'] = db.collection('customer/${org.csUid}/cs-dateH-revenue').doc(orgDateIdHarp);
-      if(org.ctUid != '') ref['orgCtDetail'] = db.collection('contract/${org.ctUid}/ct-dateH-revenue').doc(orgDateIdHarp);
+      if(org.csUid != '') ref['orgCsDetail'] = db.collection('customer/${org.csUid}/cs-dateH-item_ts').doc(orgDateIdHarp);
+      if(org.ctUid != '') ref['orgCtDetail'] = db.collection('contract/${org.ctUid}/ct-dateH-item_ts').doc(orgDateIdHarp);
     }
 
     if(csUid != '') ref['cs'] = db.collection('customer').doc(csUid);
-    if(csUid != '') ref['csDetail'] = db.collection('customer/${csUid}/cs-dateH-revenue').doc(dateIdHarp);
+    if(csUid != '') ref['csDetail'] = db.collection('customer/${csUid}/cs-dateH-item_ts').doc(dateIdHarp);
 
     if(ctUid != '') ref['ct'] = db.collection('contract').doc(ctUid);
-    if(ctUid != '') ref['ctDetail'] = db.collection('contract/${ctUid}/ct-dateH-revenue').doc(dateIdHarp);
+    if(ctUid != '') ref['ctDetail'] = db.collection('contract/${ctUid}/ct-dateH-item_ts').doc(dateIdHarp);
 
     /// 매입 트랜잭션을 수행합니다.
     return await db.runTransaction((transaction) async {
@@ -235,9 +262,9 @@ class ItemTS {
 
       if(org != null) {
         if(sn['orgDate']!.exists && dateId != orgDateId && orgDateId != '-')
-          transaction.update(ref['orgDate']!, {'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+          transaction.update(ref['orgDate']!, { org.id: FieldValue.delete() });
         if(sn['orgSearch']!.exists && dateIdQuarter != orgDateQuarterId && orgDateQuarterId != '-')
-          transaction.update(ref['orgSearch']!, {'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+          transaction.update(ref['orgSearch']!, { org.id: FieldValue.delete() });
 
         if(sn['orgCsDetail'] != null) {
           if(sn['orgCsDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-') {
@@ -252,18 +279,16 @@ class ItemTS {
       }
 
       /// 트랜잭션 내부
-
       if(create && docRefSn.exists) return false;
       if(docRefSn.exists)  transaction.update(docRef, toJson());
       else transaction.set(docRef, toJson());
 
       if(docDateRefSn.exists) {
-        transaction.update(dateRef, { 'list\.${id}': toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        transaction.update(dateRef, { id: toJson(),});
       } else {
-        transaction.set(dateRef, {  'list': { id: toJson() },  'updateAt': DateTime.now().microsecondsSinceEpoch, });
+        transaction.set(dateRef, {  id: toJson() });
       }
 
-      // 2023.03.22 
       if(ref['cs'] != null) {
         if(create) transaction.update(ref['cs']!, {'reCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
 

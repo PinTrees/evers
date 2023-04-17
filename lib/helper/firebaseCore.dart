@@ -227,9 +227,9 @@ class DatabaseM {
       }
 
       if(dateRefSn.exists) {
-        transaction.update(docRef, {'list\.${data.id}': data.toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        transaction.update(dateRef, {'list\.${data.id}': data.toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
       } else {
-        transaction.set(docRef, {
+        transaction.set(dateRef, {
           'list': { data.id: data.toJson() },
           'updateAt': DateTime.now().microsecondsSinceEpoch,
         });
@@ -591,6 +591,26 @@ class DatabaseM {
     });
     return tsList;
   }
+
+
+  static dynamic getPur_In_ERROR() async {
+    List<Purchase> tsList = [];
+    await FirebaseFirestore.instance.collection('purchase').orderBy('updateAt', descending: true)
+        .where('updateAt', isNull: false).get().then((value) {
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+        //if(a.data()['list'].) continue;
+
+        var map = a.data()['list'] as Map;
+        var ts = Purchase.fromDatabase(map.values.first);
+        tsList.add(ts);
+      }
+    });
+    return tsList;
+  }
+
+
+
   static dynamic getTransactionCt(String id) async {
     List<TS> data = [];
     CollectionReference coll = await FirebaseFirestore.instance.collection('transaction');
@@ -1230,6 +1250,18 @@ class DatabaseM {
       await FunT.setStateMain();
     });
   }
+
+
+  static dynamic getItemTrans(String uid) async {
+    ItemTS? aaa;
+    CollectionReference coll = await FirebaseFirestore.instance.collection('transaction-items');
+    await coll.doc(uid).get().then((value) {
+      if(!value.exists) return false;
+      aaa = ItemTS.fromDatabase(value.data() as Map);
+    });
+    return aaa;
+  }
+
 
   /// 현재 검색정보를 저장하고 있는 메타데이터의 무서 리트트중 현제 커서의 문서내 검색 정보 개수 확인
   /// 1500 이상시 신규문서 생성 - 카운트를 늘릴 수 있기 때문에 커서위치가 나올떄 까지 계속 카운팅

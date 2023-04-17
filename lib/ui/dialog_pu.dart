@@ -1482,6 +1482,7 @@ class DialogPU extends StatelessWidget {
                             InkWell(
                                 onTap: () async {
                                   pus.remove(pu);
+                                  itemTs.remove(it);
                                   fileByteList.removeAt(i);
                                   FunT.setStateDT();
                                 },
@@ -1491,8 +1492,6 @@ class DialogPU extends StatelessWidget {
                           ]
                       ),
                     ),
-
-
 
                     /// 품목 매입 관련 추가 작성사항 UI 출력 로직 시작분
                     ///
@@ -1534,7 +1533,20 @@ class DialogPU extends StatelessWidget {
                       value: it.rh.toString(),
                     ),
                     SizedBox(height: 4,),
-                    
+
+                    /// 작성자 입력
+                    ExcelT.LabelInput(context, 'puit.writer', index: i,
+                      width: 200, labelWidth: 100, textSize: 10,
+                      onEdited: (i, data) {
+                        it.writer = data;
+                      },
+                      setState: () { setStateS(() {}); },
+                      label: '작성자',
+                      text: it.writer.toString(),
+                      value: it.writer.toString(),
+                    ),
+                    SizedBox(height: 4,),
+
                     /// 첨부 파일 작성
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1698,7 +1710,7 @@ class DialogPU extends StatelessWidget {
                               ButtonT.IconText(
                                 bacground: Colors.transparent,
                                 icon: Icons.add_box,
-                                text: '거래처 선택',
+                                text: '계약 선택',
                                 onTap: () async {
                                   Contract? c = await DialogT.selectCt(context);
                                   FunT.setStateD = () { setStateS(() {}); };
@@ -1864,16 +1876,12 @@ class DialogPU extends StatelessWidget {
                     children: [
                       Expanded(child:TextButton(
                           onPressed: () async {
-                            WidgetT.showSnackBar(context, text: '개발중입니다.');
-                            return;
-
-                            /// 재고추가와 관련된 매입건은 반드시 계약이 추가되어야 함.
                             if(ct == null) { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
-
                             if(ct!.ctName  == '') { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
 
-
+                            if(itemTs.length != pus.length) { WidgetT.showSnackBar(context, text: '내부 정보가 올바르지 않습니다. 창을 종료하고 다시 시도해 주세요.'); return; }
                             if(payment == '즉시' && payType == '') { WidgetT.showSnackBar(context, text: '결제방법을 선택해 주세요.'); return;  }
+
                             for(var pu in pus) {
                                 var item = SystemT.getItem(pu.item);
                                 if(item == null) {
@@ -1882,22 +1890,19 @@ class DialogPU extends StatelessWidget {
                                 }
                             }
 
-                            ///
                             var alert = await DialogT.showAlertDl(context, title: pu.csUid ?? 'NULL');
                             if(alert == false) {
                               WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
                               return;
                             }
 
-
                             for(int i = 0; i < pus.length; i++) {
-                              var p = pus[i]; var files = fileByteList[i] as Map<String, Uint8List>;
+                              var p = pus[i];
+                              var it = itemTs[i];
+                              var files = fileByteList[i] as Map<String, Uint8List>;
 
                               p.ctUid = ct!.id;
-
                               p.csUid = ct!.csUid;
-                              p.csUid = (p.csUid == '') ? cs!.id : p.csUid;
-
                               p.vatType = currentVatType;
 
                               /// 품목 매입아이디
@@ -1905,6 +1910,7 @@ class DialogPU extends StatelessWidget {
 
                               /// 매입정보 추가 - 매입데이터 및 거래명세서 파일 데이터
                               await DatabaseM.updatePurchase(p, files: files);
+                              await it.update();
                               /// 지불 정보 문서 추가
                               if(payment == '즉시') await TS.fromPu(p, payType, now: true).update();
                             }

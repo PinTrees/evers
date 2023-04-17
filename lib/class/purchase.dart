@@ -1,6 +1,7 @@
 
 import 'dart:ui';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/system.dart';
 import 'package:evers/class/transaction.dart';
 import 'package:flutter/material.dart';
@@ -121,8 +122,17 @@ class Purchase {
   }
 
 
-  dynamic update() {
+  dynamic setUpdate() {
+    var db = FirebaseFirestore.instance;
+    final docRef = db.collection("purchase").doc(id);
+    db.runTransaction((transaction) async {
+      final docRefSn = await transaction.get(docRef);
 
+      transaction.set(docRef, toJson());
+    }).then(
+          (value) => print("DocumentSnapshot successfully updated!"),
+      onError: (e) => print("Error updatePurchase() $e"),
+    );
   }
 
   dynamic delete() {
