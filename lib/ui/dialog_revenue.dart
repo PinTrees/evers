@@ -378,6 +378,8 @@ class DialogRE extends StatelessWidget {
   }
 
   /// 매입 개별 수정 창
+  /// 제거 예정 코드
+  /// 사용하지 마세요
   static dynamic showInfoPu(BuildContext context, { Purchase? org }) async {
     var dividHeight = 6.0;
     Map<String, Uint8List> fileByteList = {};

@@ -31,6 +31,7 @@ import '../helper/interfaceUI.dart';
 import '../helper/pdfx.dart';
 import 'cs.dart';
 import 'dialog_contract.dart';
+import 'dialog_pu.dart';
 import 'dl.dart';
 import 'package:http/http.dart' as http;
 
@@ -278,6 +279,70 @@ class View_REPU extends StatelessWidget {
               ],
             ),
           ),
+          Row(
+            children: [
+              InkWell(
+                  onTap: () async {
+                    var result = await DialogPU.showCreateNormalPu(context);
+                    if(result != null) {
+                      FunT.setStateMain();
+                    }
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(3),
+                    height: 36, width: 128,
+                    decoration: StyleT.inkStyleNone(round: 8, color: Colors.black.withOpacity(0.05)),
+                    child: Row(
+                      children: [
+                        WidgetT.iconNormal(Icons.add_box,  size: 36),
+                        SizedBox(width: divideHeight * 2,),
+                        WidgetT.text('일반 매입 추가', size: 12),
+                        //WidgetT.iconNormal(Icons.open_in_new,  size: 36),
+                      ],
+                    ),
+                  )),
+              InkWell(
+                  onTap: () async {
+                    var result = await DialogPU.showCreateItemPu(context);
+                    if(result != null) {
+                      FunT.setStateMain();
+                    }
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(3),
+                    height: 36, width: 128,
+                    decoration: StyleT.inkStyleNone(round: 8, color: Colors.black.withOpacity(0.05)),
+                    child: Row(
+                      children: [
+                        WidgetT.iconNormal(Icons.add_box,  size: 36),
+                        SizedBox(width: divideHeight * 2,),
+                        WidgetT.text('품목 매입 추가', size: 12),
+                        //WidgetT.iconNormal(Icons.open_in_new,  size: 36),
+                      ],
+                    ),
+                  )),
+              InkWell(
+                  onTap: () async {
+                    var result = await DialogRE.showCreateRe(context);
+                    if(result != null) {
+                      FunT.setStateMain();
+                    }
+                  },
+                  child: Container(
+                    margin: EdgeInsets.all(3),
+                    height: 36, width: 128,
+                    decoration: StyleT.inkStyleNone(round: 8, color: Colors.black.withOpacity(0.05)),
+                    child: Row(
+                      children: [
+                        WidgetT.iconNormal(Icons.add_box,  size: 36),
+                        SizedBox(width: divideHeight * 2,),
+                        WidgetT.text('일반 매출 추가', size: 12),
+                        //WidgetT.iconNormal(Icons.open_in_new,  size: 36),
+                      ],
+                    ),
+                  )),
+            ],
+          )
         ],
       );
 
@@ -340,7 +405,10 @@ class View_REPU extends StatelessWidget {
                       SizedBox(height: 28,width: 28,),
                     InkWell(
                       onTap: () async {
-                        await DialogRE.showInfoPu(context, org: pu);
+                        var result = await DialogPU.showInfoPu(context, org: pu);
+                        if(result != null) {
+                          FunT.setStateMain();
+                        }
                       },
                       child: WidgetT.iconMini(Icons.create, size: 32),
                     ),
