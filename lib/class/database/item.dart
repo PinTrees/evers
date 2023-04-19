@@ -105,18 +105,32 @@ class ItemTS {
   var updateAt = 0;       /// 문서 변경시각
 
   var filesMap = {};      /// 첨부파일
+  var memo = "";
   //var filesDetail = {};
 
   ItemTS.fromDatabase(Map<dynamic, dynamic> json) {
     id = json['id'] ?? '';
     state = json['state'] ?? '';
+    type = json['type'] ?? '';
+
     csUid = json['csUid'] ?? '';
     ctUid = json['ctUid'] ?? '';
-    type = json['type'] ?? '';
-    rpUid = json['rpUid'] ?? ''; 
+
+    storageLC = json['storageLC'] ?? '';
+    manager = json['manager'] ?? '';
+    writer = json['writer'] ?? '';
+
+    rpUid = json['rpUid'] ?? '';
     itemUid = json['itemUid'] ?? '';
     amount = json['amount'] ?? 0;
+    unitPrice = json['unitPrice'] ?? 0;
+    rh = json['rh'] ?? 0.0;
+
     date = json['date'] ?? 0;
+    updateAt = json['updateAt'] ?? 0;
+    filesMap = (json['filesMap'] != null) ? json['filesMap'] as Map : {};
+
+    memo = json['memo'] ?? '';
   }
   ItemTS.fromRe(Revenue revenue) {
     type = 'RE';
@@ -140,16 +154,36 @@ class ItemTS {
   }
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'csUid': csUid,
-      'ctUid': ctUid,
-      'type': type,
-      'rpUid': rpUid,
-      'itemUid': itemUid,
-      'amount': amount,
-      'date': date,
-      'state': state,
+     'id' : id,
+     'state' : state,       // D,
+     'type' : type,       // P 매입, R 매출, F 동결,
+
+     'rpUid' : rpUid,       /// 매입매출번호
+     'itemUid' : itemUid,     /// 품목 고유번호
+     'amount' : amount,       /// 입고량
+     'storageLC' : storageLC,     /// 입고창고위치
+
+     'ctUid' : ctUid,         /// 입고계약
+     'csUid' : csUid,         /// 거래처
+
+     'date' : date,          /// 입고일자
+
+     'unitPrice' : unitPrice,      /// 참고용 단가
+
+     'rh' : rh,
+     'manager' : manager,       /// 입고자(검수자)
+     'writer' : writer,        /// 작성자
+     'updateAt' : updateAt,       /// 문서 변경시각
+
+      'filesMap' : filesMap,      /// 첨부파일
+      'memo' : memo,
     };
+  }
+
+
+  String getStorageLC() {
+    if(storageLC == '') return 'ㅡ';
+    else return storageLC;
   }
 
   
@@ -208,7 +242,7 @@ class ItemTS {
     // 현재까지 정상적으로 실행된 경우
     // id 존재
 
-    ItemTS? org = DatabaseM.getItemTrans(id);
+    ItemTS? org = await DatabaseM.getItemTrans(id);
 
     var orgDateId = '-';
     var orgDateQuarterId = '-';
@@ -232,8 +266,8 @@ class ItemTS {
     /// 메인문서 기록
     final docRef = db.collection("transaction-items").doc(id);
     final dateRef = db.collection('meta/date-m/transaction-items').doc(dateId);
-    if(org != null) ref['orgDate'] = db.collection('meta/date-m/transaction-items').doc(orgDateId);
     if(org != null) {
+      ref['orgDate'] = db.collection('meta/date-m/transaction-items').doc(orgDateId);
       if(org.csUid != '') ref['orgCsDetail'] = db.collection('customer/${org.csUid}/cs-dateH-item_ts').doc(orgDateIdHarp);
       if(org.ctUid != '') ref['orgCtDetail'] = db.collection('contract/${org.ctUid}/ct-dateH-item_ts').doc(orgDateIdHarp);
     }
@@ -263,14 +297,16 @@ class ItemTS {
       if(org != null) {
         if(sn['orgDate']!.exists && dateId != orgDateId && orgDateId != '-')
           transaction.update(ref['orgDate']!, { org.id: FieldValue.delete() });
-        if(sn['orgSearch']!.exists && dateIdQuarter != orgDateQuarterId && orgDateQuarterId != '-')
-          transaction.update(ref['orgSearch']!, { org.id: FieldValue.delete() });
+
+        //if(sn['orgSearch']!.exists && dateIdQuarter != orgDateQuarterId && orgDateQuarterId != '-')
+        //  transaction.update(ref['orgSearch']!, { org.id: FieldValue.delete() });
 
         if(sn['orgCsDetail'] != null) {
           if(sn['orgCsDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-') {
             transaction.update(ref['orgCsDetail']!, { org.id: FieldValue.delete(), });
           }
         }
+
         if(sn['orgCtDetail'] != null) {
           if(sn['orgCtDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-') {
             transaction.update(ref['orgCtDetail']!, { org.id: FieldValue.delete() });
@@ -278,10 +314,12 @@ class ItemTS {
         }
       }
 
+
       /// 트랜잭션 내부
       if(create && docRefSn.exists) return false;
-      if(docRefSn.exists)  transaction.update(docRef, toJson());
+      if(docRefSn.exists) transaction.update(docRef, toJson());
       else transaction.set(docRef, toJson());
+
 
       if(docDateRefSn.exists) {
         transaction.update(dateRef, { id: toJson(),});
@@ -290,21 +328,21 @@ class ItemTS {
       }
 
       if(ref['cs'] != null) {
-        if(create) transaction.update(ref['cs']!, {'reCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        if(create) transaction.update(ref['cs']!, {'tsiCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
 
         if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: toJson(), });
         else transaction.set(ref['csDetail']!, { id: toJson(), });
       }
 
       if(ref['ct'] != null) {
-        if(create) if(sn['ct']!.exists) transaction.update(ref['ct']!, {'reCount': FieldValue.increment(1),});
+        if(create) if(sn['ct']!.exists) transaction.update(ref['ct']!, {'tsiCount': FieldValue.increment(1),});
 
         if(sn['ctDetail']!.exists) transaction.update(ref['ctDetail']!, { id: toJson(), });
         else transaction.set(ref['ctDetail']!, { id: toJson(), });
       }
     }).then(
             (value) { print("DocumentSnapshot successfully updated!"); return true; },
-        onError: (e) { print("Error updatePurchase() $e"); return false; }
+        onError: (e) { print("Error update ts item() $e"); return false; }
     );
   }
 

@@ -1821,7 +1821,7 @@ class DatabaseM {
   static dynamic getItemTranList({ String? startAt, int? startDate, int? lastDate, }) async {
     List<ItemTS> itemTs_list = [];
 
-    var mainRoot = FirebaseFirestore.instance.collection('transaction-item');
+    var mainRoot = FirebaseFirestore.instance.collection('transaction-items');
     Query<Map<String, dynamic>> root = mainRoot.limit(25);
     if(startAt != null)  {
       if(startAt == '') return itemTs_list;
@@ -1842,7 +1842,7 @@ class DatabaseM {
     }
     else {
       if(startDate != null && lastDate != null) {
-        var root = await mainRoot
+        root = await mainRoot
             .orderBy('date', descending: true)
             .where('date', isLessThan: lastDate)
             .where('date', isGreaterThan: startDate)
@@ -1850,10 +1850,10 @@ class DatabaseM {
             .limit(25);
       }
       else {
-        var root = await mainRoot
+        root = await mainRoot
             .orderBy('date', descending: true)
             .where('state', whereIn: [ '' ])
-            .limit(25).get();
+            .limit(25);
       }
     }
 
@@ -1873,6 +1873,8 @@ class DatabaseM {
 
     return itemTs_list;
   }
+
+
 
   static dynamic updateProductDWithFile(ProductD data, { Map<String, Uint8List>? files, }) async {
     if(data.id == '') data.id = data.getID();

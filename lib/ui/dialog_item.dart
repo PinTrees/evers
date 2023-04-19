@@ -19,11 +19,16 @@ import '../class/purchase.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/transaction.dart';
+import '../class/widget/button.dart';
+import '../class/widget/excel.dart';
+import '../class/widget/text.dart';
 import '../helper/aes.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
 import '../helper/pdfx.dart';
+import 'cs.dart';
+import 'dialog_contract.dart';
 import 'dl.dart';
 import 'package:http/http.dart' as http;
 import '../class/database/item.dart';
@@ -1230,6 +1235,7 @@ class DialogIT extends StatelessWidget {
 
     return aa;
   }
+
 
   Widget build(context) {
     return Container();

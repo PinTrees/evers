@@ -16,9 +16,11 @@ class ExcelT extends StatelessWidget {
   static Widget Grid({ Alignment? alignment,
     String? text,
     Color? textColor,
-    double? width, double? height, double? textSize, }) {
+    double? width, double? height, double? textSize,
+    bool expand = false,
+  }) {
 
-    return Container(
+    var w = Container(
       width: width ?? double.maxFinite,
       height: height ?? 24,
       padding: EdgeInsets.fromLTRB(6, 0, 0, 0),
@@ -38,6 +40,44 @@ class ExcelT extends StatelessWidget {
         ],
       ),
     );
+    if(expand) return Expanded(child: w);
+    else return w;
+  }
+
+
+
+  static Widget LitGrid({ Alignment? alignment,
+    String? text,
+    Color? textColor,
+    double? width, double? height, double? textSize,
+    bool center=false,
+    bool expand = false,
+  }) {
+
+    if(center == true) alignment = Alignment.center;
+
+    var w = Container(
+      width: width ?? double.maxFinite,
+      height: height ?? 24,
+      padding: EdgeInsets.fromLTRB(6, 0, 0, 0),
+      alignment: alignment ?? Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(width: 4,),
+          Text(
+            text ?? '텍스트 추가',
+            style: TextStyle(
+              fontWeight: FontWeight.normal,
+              fontSize: textSize ?? 10,
+              color: textColor ?? StyleT.textColor,
+            ),
+          )
+        ],
+      ),
+    );
+    if(expand) return Expanded(child: w);
+    else return w;
   }
 
 

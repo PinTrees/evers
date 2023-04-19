@@ -19,6 +19,9 @@ import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/transaction.dart';
+import '../class/widget/button.dart';
+import '../class/widget/excel.dart';
+import '../class/widget/text.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
@@ -27,6 +30,7 @@ import '../class/database/item.dart';
 
 import 'package:http/http.dart' as http;
 
+import '../ui/cs.dart';
 import '../ui/dialog_contract.dart';
 import '../ui/dl.dart';
 import '../ui/ux.dart';
@@ -820,6 +824,490 @@ class DialogItemTrans extends StatelessWidget {
           );
         });
 
+    return aa;
+  }
+
+
+  /// 이 함수는 계약과 연결된 품목매입 추가 다이얼로그를 실행하고 결과를 반환합니다.
+  ///
+  /// @return pu 매입결과를 작성했을경우 작성기록이 반환됩니다.
+  ///            매입결과를 작석하지 않았거나 데이터베이스 기록이 실패했을 경우 null 이 반환됩니다.
+  ///
+  /// @Create YM
+  /// @Version 1.0.0
+  static dynamic createItemTS(BuildContext context) async {
+    var title = "품목 생산공정 등록";
+    var dividHeight = 6.0;
+    var heightSize = 36.0;
+
+    Contract? ct;
+    Customer? cs;
+
+    var payment = '매입';
+    var payType = '';
+
+    List<Map<String, Uint8List>> fileByteList = [];
+    List<ItemTS> itemTs = [];
+
+    var it = ItemTS.fromDatabase({});
+    it.date = DateTime.now().microsecondsSinceEpoch;
+    itemTs.add(it);
+
+    /// 품목 매입 파일 첨부에 저장됨
+    fileByteList.add({});
+
+    bool? aa = await showDialog(
+        context: context,
+        barrierColor: Colors.black.withOpacity(0.0),
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return  StatefulBuilder(
+            builder: (BuildContext context, StateSetter setStateS) {
+              FunT.setStateD = () { setStateS(() {}); };
+              FunT.setStateDT();
+
+              List<Widget> widgetsPu = [];
+              widgetsPu.add( WidgetUI.titleRowNone([ '순번', '가공일자', '품목', '공정', "단위", '수량', '단가', '합계', '메모', '', ],
+                  [ 28, 80, 200 + 28, 80 + 32, 50, 80, 80, 80, 999, 0], background: true),);
+
+              for(int i = 0; i < itemTs.length; i++) {
+                var it = itemTs[i];
+                var item = SystemT.getItem(it.itemUid) ?? Item.fromDatabase({});
+                var fileMap = fileByteList[i] as Map;
+
+
+                var w = Column(
+                  children: [
+                    /// 기초 매입 입력 시스템
+                    Container(
+                      height: heightSize,
+                      child: Row(
+                          children: [
+                            ExcelT.LitGrid(text:'${i + 1}', width: 28),
+                            WidgetT.excelInput(context, '$i::가공일자', width: 80, textSize: 10,
+                              onEdite: (i, data) { it.date = StyleT.dateEpoch(data); },
+                              text: StyleT.dateInputFormatAtEpoch(it.date.toString()),
+                            ),
+                            WidgetT.excelInput(context, '$i::품목',
+                                index: i, width: 200, textSize: 10,
+                                onEdite: (i, data) {
+                                  var item = SystemT.getItem(it.itemUid);
+                                  if (item == null) { it.itemUid = data; return; }
+                                  if (item.name == data) { return; }
+                                  it.itemUid = data;
+                                },
+                                text: SystemT.getItemName(it.itemUid), value: SystemT.getItemName(it.itemUid)),
+                            ButtonT.Icon(
+                              icon: Icons.add_box,
+                              onTap: () async {
+                                Item? item = await DialogT.selectItem(context);
+                                if(item != null) {
+                                  it.itemUid = item.id;
+                                  it.unitPrice = item.unitPrice;
+                                }
+
+                                FunT.setStateD = () { setStateS(() {}); };
+                                setStateS(() {});
+                              },
+                            ),
+
+                            ExcelT.LitGrid(text: MetaT.itemTsType[it.type], width: 80, alignment: Alignment.center),
+                            SizedBox(
+                              height: 32, width: 32,
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton2(
+                                  focusColor: Colors.transparent,
+                                  focusNode: FocusNode(),
+                                  autofocus: false,
+                                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
+                                  items: MetaT.factorType.keys.map((item) => DropdownMenuItem<dynamic>(
+                                    value: item,
+                                    child: Text(
+                                      MetaT.factorType[item].toString(),
+                                      style: StyleT.titleStyle(),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  )).toList(),
+                                  onChanged: (value) async {
+                                    it.type = value;
+                                    await FunT.setStateDT();
+                                  },
+                                  itemHeight: 24,
+                                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                                  dropdownWidth: 100.7,
+                                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                                  dropdownDecoration: BoxDecoration(
+                                    border: Border.all(
+                                      width: 1.7,
+                                      color: Colors.grey.withOpacity(0.5),
+                                    ),
+                                    borderRadius: BorderRadius.circular(0),
+                                    color: Colors.white.withOpacity(0.95),
+                                  ),
+                                  dropdownElevation: 0,
+                                  offset: const Offset(-100 + 32, 0),
+                                ),
+                              ),
+                            ),
+
+                            WidgetT.excelGrid(textLite: true, textSize: 10, text:item.unit, width: 50),
+
+                            WidgetT.excelInput(context, '$i::수량',
+                                width: 80, textSize: 10, index: i,
+                                onEdite: (i, data) {
+                                  it.amount = double.tryParse(data) ?? 0.0;
+                                },
+                                text: StyleT.krwInt(it.amount.toInt()), value: it.amount.toString()),
+                            ExcelT.LitGrid(text: StyleT.krwInt(it.unitPrice), width: 80, alignment: Alignment.center),
+                            ExcelT.LitGrid(text: StyleT.krwInt(it.unitPrice * it.amount.toInt()), width: 80, alignment: Alignment.center),
+                            Expanded(
+                              child: WidgetT.excelInput(context, '$i::메모', width: 200, index: i,
+                                onEdite: (i, data) { it.memo  = data ?? ''; },
+                                text: it.memo,
+                              ),
+                            ),
+                            InkWell(
+                                onTap: () async {
+                                  itemTs.remove(it);
+                                  fileByteList.removeAt(i);
+                                  FunT.setStateDT();
+                                },
+                                child: Container( height: 28, width: 28,
+                                  child: WidgetT.iconMini(Icons.cancel),)
+                            ),
+                          ]
+                      ),
+                    ),
+
+                    /// 품목 매입 관련 추가 작성사항 UI 출력 로직 시작분
+                    ///
+                    /// 검수자 입력
+                    ExcelT.LabelInput(context, 'puit.manager', index: i,
+                      width: 200, labelWidth: 100, textSize: 10,
+                      onEdited: (i, data) {
+                        it.manager = data;
+                      },
+                      setState: () { setStateS(() {}); },
+                      label: '담당자(검수자)',
+                      text: it.manager,
+                      value: it.manager,
+                    ),
+                    SizedBox(height: 4,),
+
+                    /// 보관 창고 입력
+                    ExcelT.LabelInput(context, 'puit.storageLC', index: i,
+                      width: 200, labelWidth: 100, textSize: 10,
+                      onEdited: (i, data) {
+                        it.storageLC = data;
+                      },
+                      setState: () { setStateS(() {}); },
+                      label: '저장위치',
+                      text: it.storageLC,
+                      value: it.storageLC,
+                    ),
+                    SizedBox(height: 4,),
+
+                    /// 측정 습도 입력
+                    ExcelT.LabelInput(context, 'puit.rh', index: i,
+                      width: 200, labelWidth: 100, textSize: 10,
+                      onEdited: (i, data) {
+                        it.rh = double.tryParse(data) ?? 0.0;
+                      },
+                      setState: () { setStateS(() {}); },
+                      label: '측정 습도',
+                      text: it.rh.toString(),
+                      value: it.rh.toString(),
+                    ),
+                    SizedBox(height: 4,),
+
+                    /// 작성자 입력
+                    ExcelT.LabelInput(context, 'puit.writer', index: i,
+                      width: 200, labelWidth: 100, textSize: 10,
+                      onEdited: (i, data) {
+                        it.writer = data;
+                      },
+                      setState: () { setStateS(() {}); },
+                      label: '작성자',
+                      text: it.writer.toString(),
+                      value: it.writer.toString(),
+                    ),
+                    SizedBox(height: 4,),
+
+                    /// 첨부 파일 작성
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ExcelT.Grid( text: '첨부파일', textSize: 10, width: 100),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ButtonT.IconText(
+                              icon: Icons.add_box,
+                              text: '첨부파일 추가',
+                              bacground: Colors.grey.withOpacity(0.15),
+                              onTap: () async {
+                                FilePickerResult? result;
+                                try {
+                                  result = await FilePicker.platform.pickFiles();
+                                } catch (e) {
+                                  WidgetT.showSnackBar(context, text: '파일선택 오류');
+                                  print(e);
+                                }
+                                FunT.setStateD = () { setStateS(() {}); };
+                                if(result != null){
+                                  WidgetT.showSnackBar(context, text: '파일선택');
+                                  if(result.files.isNotEmpty) {
+                                    String fileName = result.files.first.name;
+                                    Uint8List fileBytes = result.files.first.bytes!;
+                                    fileByteList[i][fileName] = fileBytes;
+                                  }
+                                }
+                                FunT.setStateDT();
+                              },
+                            ),
+
+                            for(int i = 0; i < it.filesMap.length; i++)
+                              InkWell(
+                                  onTap: () async {
+                                    var downloadUrl = it.filesMap.values.elementAt(i);
+                                    var fileName = it.filesMap.keys.elementAt(i);
+                                    print(downloadUrl);
+                                    var res = await http.get(Uri.parse(downloadUrl));
+                                    var bodyBytes = res.bodyBytes;
+                                    print(bodyBytes.length);
+                                    PDFX.showPDFtoDialog(context, data: bodyBytes, name: fileName);
+                                  },
+                                  child: Container(padding: EdgeInsets.all(0), child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      WidgetT.iconMini(Icons.cloud_done, size: 28),
+                                      WidgetT.title(it.filesMap.keys.elementAt(i),),
+                                      InkWell(
+                                          onTap: () {
+                                          },
+                                          child: Container( height: 28, width: 28,
+                                            child: WidgetT.iconMini(Icons.cancel),)
+                                      ),
+                                    ],
+                                  ))
+                              ),
+
+                            for(int i = 0; i < fileMap.length; i++)
+                              InkWell(
+                                  onTap: () {
+                                    PDFX.showPDFtoDialog(context, data: fileMap.values.elementAt(i), name: fileMap.keys.elementAt(i));
+                                  },
+                                  child: Container(padding: EdgeInsets.all(0), child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      WidgetT.iconMini(Icons.file_copy_rounded, size: 28),
+                                      WidgetT.title(fileMap.keys.elementAt(i),),
+                                      TextButton(
+                                          onPressed: () {
+                                            fileMap.remove(fileMap.keys.elementAt(i));
+                                            FunT.setStateDT();
+                                          },
+                                          style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
+                                          child: Container( height: 28, width: 28,
+                                            child: WidgetT.iconMini(Icons.cancel),)
+                                      ),
+                                    ],
+                                  ))
+                              ),
+                          ],
+                        )
+                      ],
+                    ),
+                    SizedBox(height: dividHeight,),
+                  ],
+                );
+                widgetsPu.add(w);
+                widgetsPu.add(WidgetT.dividHorizontal(size: 0.35));
+              }
+
+              var gridStyleT = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.03), stroke: 2, strokeColor: StyleT.titleColor.withOpacity(0.1));
+              var dividCol = Column(
+                children: [
+                  SizedBox(height: dividHeight * 4,),
+                  SizedBox(height: dividHeight * 4,),
+                ],
+              );
+
+              return AlertDialog(
+                backgroundColor: StyleT.white.withOpacity(1),
+                elevation: 36,
+                shape: RoundedRectangleBorder(
+                    side: BorderSide(color: Colors.grey.withOpacity(0), width: 0.01), borderRadius: BorderRadius.circular(0)),
+                titlePadding: EdgeInsets.zero,
+                contentPadding: EdgeInsets.zero,
+                title: WidgetDT.dlTitle(context, title: title, ),
+
+                /** Build Main */
+                content: SingleChildScrollView(
+                  child: Container(
+                    width: 1280,
+                    padding: EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        WidgetT.title('품목 가공공정 등록유형', size: 16 ),
+                        WidgetT.text('원자재 가공 및 관리가 필요한 생산건에 대해 작성하는 등록유형입니다.'
+                            '\n계약를 추가해 작업공정과 연결할 수 있습니다.', size: 12 ),
+
+                        SizedBox(height: dividHeight * 4,),
+                        WidgetT.title('계약 선택', bold: true, size: 16),
+                        SizedBox(height: dividHeight,),
+                        Container(
+                          height: 36,  width: 500,
+                          decoration: gridStyleT,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              WidgetEX.excelTitle(text:'계약명',width: 150),
+                              Expanded(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      TextT.OnTap(
+                                          context: context,
+                                          text: (cs == null) ? 'ㅡ' : cs!.businessName,
+                                          onTap: () async {
+                                            var result = await DialogCS.showCustomerDialog(context, org: cs);
+                                            if(result != null) return;
+                                          }
+                                      ),
+                                      WidgetT.text(' / '),
+                                      TextT.OnTap(
+                                          context: context,
+                                          text: (ct == null) ? 'ㅡ' : ct!.ctName,
+                                          onTap: () async {
+                                            var result = await DialogCT.showInfoCt(context, ct!);
+                                            if(result != null) return;
+                                          }
+                                      ),
+                                    ],
+                                  )
+                              ),
+                              ButtonT.IconText(
+                                bacground: Colors.transparent,
+                                icon: Icons.add_box,
+                                text: '계약 선택',
+                                onTap: () async {
+                                  Contract? c = await DialogT.selectCt(context);
+                                  FunT.setStateD = () { setStateS(() {}); };
+                                  if(c != null) ct = c;
+                                  await FunT.setStateDT();
+                                },
+                              )
+                            ],
+                          ),
+                        ),
+
+                        dividCol,
+
+                        Row(
+                          children: [
+                            WidgetT.title('생산공정 추가 목록', size: 16),
+                            SizedBox(width: dividHeight * 2,),
+                          ],
+                        ),
+                        SizedBox(height: dividHeight,),
+                        Container( child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: widgetsPu, ),),
+                        SizedBox(height: dividHeight,),
+                        Row(
+                          children: [
+                            TextButton(
+                                onPressed: () {
+                                  var p = Purchase.fromDatabase({});
+                                  p.purchaseAt = DateTime.now().microsecondsSinceEpoch;
+                                  var i = ItemTS.fromDatabase({});
+                                  i.date = DateTime.now().microsecondsSinceEpoch;
+
+                                  itemTs.add(i);
+                                  fileByteList.add({});
+
+                                  FunT.setStateDT();
+                                },
+                                style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0,
+                                    color: StyleT.backgroundColor.withOpacity(0.5), strock: 1),
+                                child: Container(padding: EdgeInsets.all(0), child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container( height: 28, width: 28,
+                                      child: WidgetT.iconMini(Icons.add_box),),
+                                    WidgetT.title('매입추가'),
+                                    SizedBox(width: 6,),
+                                  ],
+                                ))
+                            ),
+                            SizedBox(width: dividHeight,),
+                            SizedBox(width: 6,),
+                            WidgetT.text('품목 직접 입력시 재고 및 단가 연동 불가.   연동이 필요한 품목은 생산관리에서 추가후 입력해 주세요.', size: 10),
+                          ],
+                        ),
+
+                        dividCol,
+                      ],
+                    ),
+                  ),
+                ),
+                actionsPadding: EdgeInsets.zero,
+                actions: <Widget>[
+                  Row(
+                    children: [
+                      Expanded(child:TextButton(
+                          onPressed: () async {
+                            if(ct == null) { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
+                            if(ct!.ctName  == '') { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
+
+                            if(payment == '즉시' && payType == '') { WidgetT.showSnackBar(context, text: '결제방법을 선택해 주세요.'); return;  }
+
+                            var alert = await DialogT.showAlertDl(context, title: 'NULL');
+                            if(alert == false) {
+                              WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
+                              return;
+                            }
+
+                            int i = 0;
+                            for(var it in itemTs) {
+                              if(it.type == '') {
+                                WidgetT.showSnackBar(context, text: '생산공정을 추가해주세요.');
+                                return;
+                              }
+
+                              var files = fileByteList[i++] as Map<String, Uint8List>;
+                              it.ctUid = ct!.id;
+                              it.csUid = ct!.csUid;
+
+                              /// 매입정보 추가 - 매입데이터 및 거래명세서 파일 데이터
+                              await it.update(files: files);
+                              /// 지불 정보 문서 추가
+                            }
+
+                            WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
+                            Navigator.pop(context);
+                          },
+                          style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
+                          child: Container(
+                              color: StyleT.accentColor.withOpacity(0.5), height: 42,
+                              child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  WidgetT.iconMini(Icons.check_circle),
+                                  Text('생산공정 추가하기', style: StyleT.titleStyle(),),
+                                  SizedBox(width: 6,),
+                                ],
+                              )
+                          )
+                      ),),
+                    ],
+                  ),
+                ],
+              );
+            },
+          );
+        });
+
+    if(aa == null) aa = false;
     return aa;
   }
 

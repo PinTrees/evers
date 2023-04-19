@@ -7,10 +7,8 @@ import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/pdfx.dart';
 import 'package:evers/helper/style.dart';
-import 'package:evers/login/auth_service.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
-import 'package:evers/ui/dialog_pu.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +21,7 @@ import 'package:http/http.dart' as http;
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/transaction.dart';
+import '../class/widget/excel.dart';
 import '../helper/aes.dart';
 import '../helper/dialog.dart';
 import '../helper/interfaceUI.dart';
@@ -52,8 +51,13 @@ class DialogCS extends StatelessWidget {
     Map<String, Uint8List> fileByteList = {};
     var cs = Customer.fromDatabase({});
 
+    List<Purchase> purs = [];
     if(org != null) {
       await org.update();
+
+      purs = await org.getPurchase();
+      purs.sort((a, b) => b.purchaseAt.compareTo(a.purchaseAt) );
+
       var jsonString = jsonEncode(org.toJson());
       var json = jsonDecode(jsonString);
       cs = Customer.fromDatabase(json);
@@ -64,6 +68,10 @@ class DialogCS extends StatelessWidget {
         return;
       }
     }
+
+    var pageLimit = 10;
+    var puIndex = 0;
+    var tsIndex = 0;
 
     List<Contract> cts = [];
     if(!isCreate) cts = await DatabaseM.getCtWithCs(cs.id);
@@ -82,6 +90,156 @@ class DialogCS extends StatelessWidget {
               FunT.setStateD = () { setStateS(() {}); };
 
               List<Widget> widgets = [];
+
+
+
+              List<Widget> puW = [];
+              puW.add(WidgetUI.titleRowNone([ '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
+                  [ 28, 80, 200, 50, 80, 80, 80, 80, 80, 999 ], background: true));
+
+              //purs.forEach((e) => allPay += e.totalPrice );
+              int startIndex = puIndex * pageLimit;
+              for(int i = startIndex; i < startIndex + pageLimit; i++) {
+                if(i >= purs.length) break;
+
+                Widget w = SizedBox();
+                var pu = purs[i];
+                var item = SystemT.getItem(pu.item);
+                var itemName = (item == null) ? pu.item : item.name;
+                var itemUnit = (item == null) ? '' : item.unit;
+
+                w = Column(
+                  children: [
+                    Container(
+                      height: 36,
+                      child: Row(
+                          children: [
+                            ExcelT.LitGrid(center: true, text: '${i + 1}', width: 28),
+                            ExcelT.LitGrid(center: true, text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()), width: 80),
+                            ExcelT.LitGrid(center: true, text: itemName, width: 200),
+                            ExcelT.LitGrid(center: true, text: itemUnit, width: 50),
+                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.count.toString()),),
+                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.unitPrice.toString()),),
+                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.supplyPrice.toString()),),
+                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.vat.toString()),),
+                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.totalPrice.toString()),),
+                            ExcelT.LitGrid(center: true, width: 200, text: pu.memo, expand: true),
+
+                            InkWell(
+                              onTap: () async {
+                                FilePickerResult? result;
+                                try {
+                                  result = await FilePicker.platform.pickFiles();
+                                } catch (e) {
+                                  WidgetT.showSnackBar(context, text: '파일선택 오류');
+                                  print(e);
+                                }
+                                FunT.setStateD = () { setStateS(() {}); };
+                                if(result != null){
+                                  //WidgetT.showSnackBar(context, text: '파일선택');
+                                  if(result.files.isNotEmpty) {
+                                    WidgetT.loadingBottomSheet(context, text: '거래명세서 파일을 시스템에 업로드 중입니다.');
+                                    String fileName = result.files.first.name;
+                                    print(fileName);
+                                    Uint8List fileBytes = result.files.first.bytes!;
+                                    await DatabaseM.updatePurchase(pu, files: { fileName: fileBytes });
+                                    Navigator.pop(context);
+                                  }
+                                }
+                                FunT.setStateDT();
+                              },
+                              child: WidgetT.iconMini(Icons.file_copy_rounded, size: 36),
+                            ),
+                            InkWell(
+                              onTap: () async {
+                                Purchase? tmpPu = await DialogRE.showInfoPu(context, org: pu);
+                                FunT.setStateD = () { setStateS(() {}); };
+
+                                if(tmpPu != null) {
+                                  var pu = await DatabaseM.getPurchaseDoc(tmpPu.id);
+                                  purs.removeAt(i);
+                                  purs.insert(0, pu);
+                                  FunT.setStateDT();
+                                }
+                              },
+                              child: WidgetT.iconMini(Icons.create, size: 36),
+                            ),
+                          ]
+                      ),
+                    ),
+                    if(pu.filesMap.isNotEmpty)
+                      Container(
+                        height: 32,
+                        padding: EdgeInsets.only(left: dividHeight,bottom: dividHeight),
+                        child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                  child: Container(
+                                    child: Wrap(
+                                runSpacing: dividHeight * 2, spacing: dividHeight * 2,
+                                children: [
+                                  for(int i = 0; i < pu.filesMap.length; i++)
+                                    InkWell(
+                                        onTap: () async {
+                                          var downloadUrl = pu.filesMap.values.elementAt(i);
+                                          var fileName = pu.filesMap.keys.elementAt(i);
+
+                                          var ens = ENAES.fUrlAES(downloadUrl);
+
+                                          var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                          print(url);
+                                          await launchUrl( Uri.parse(url),
+                                            webOnlyWindowName: true ? '_blank' : '_self',
+                                          );
+                                          FunT.setStateMain();
+                                        },
+                                        child: Container(
+                                            color: Colors.grey.withOpacity(0.15),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                WidgetT.iconMini(Icons.cloud_done, size: 24),
+                                                WidgetT.text(pu.filesMap.keys.elementAt(i), size: 10),
+                                                SizedBox(width: dividHeight,)
+                                              ],
+                                            ))
+                                    ),
+                                ],
+                              ),)),
+                            ]
+                        ),
+                      ),
+                  ],
+                );
+                puW.add(w);
+                puW.add(WidgetT.dividHorizontal(size: 0.35));
+              }
+              puW.add(SizedBox(height: dividHeight,));
+              puW.add(
+                  Row(
+                    children: [
+                      for(int i = 0; i < (purs.length / pageLimit).ceil(); i++)
+                        Container(
+                          padding: EdgeInsets.only(left: dividHeight),
+                          child: InkWell(
+                            onTap: () {
+                              puIndex = i;
+                              FunT.setStateDT();
+                            },
+                            child: Container(
+                              width: 32, height: 32,
+                              alignment: Alignment.center,
+                              color: Colors.grey.withOpacity(0.15),
+                              child: WidgetT.title('${i + 1}'),
+                            ),
+                          ),
+                        )
+                    ],
+                  )
+              );
+
+
 
               List<Widget> widgetsCt = [];
               widgetsCt.add(WidgetUI.titleRowNone([ '순번', '거래처', '계약명', '담당자', '연락처', '', ], [ 32, 250, 250, 150, 150, 999, ]));
@@ -444,6 +602,12 @@ class DialogCS extends StatelessWidget {
                           )),),
                   ],),
 
+                  SizedBox(height: 48,),
+                  WidgetT.title('매입목록', size: StyleT.subTitleSize),
+                  SizedBox(height: dividHeight,),
+                  Container(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: puW,)),
+
+
                   if(!isCreate) SizedBox(height: dividHeight * 4,),
                   if(!isCreate) WidgetT.title('계약목록', size: 14),
                   if(!isCreate) SizedBox(height: dividHeight,),
@@ -533,6 +697,7 @@ class DialogCS extends StatelessWidget {
     if(aa == null) aa = false;
     return aa;
   }
+
 
   static dynamic selectCS(BuildContext context, List<Customer> customerSearch) async {
     var searchInput = TextEditingController();
@@ -681,6 +846,7 @@ class DialogCS extends StatelessWidget {
 
     return aa;
   }
+
 
   ///고객 매입/매출 관리화면
   static dynamic showPUrRevTs(BuildContext context, Customer org ) async {
@@ -1059,6 +1225,7 @@ class DialogCS extends StatelessWidget {
     if(aa == null) aa = false;
     return aa;
   }
+
 
   /// 고객 매입 관리화면
   /// 매입 정렬 완료
@@ -1612,6 +1779,8 @@ class DialogCS extends StatelessWidget {
     if(aa == null) aa = false;
     return aa;
   }
+
+
   ///고객 매출 관리화면
   static dynamic showRevInCs(BuildContext context, Customer cs) async {
     WidgetT.loadingBottomSheet(context);

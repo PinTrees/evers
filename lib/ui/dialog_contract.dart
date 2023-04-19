@@ -22,6 +22,7 @@ import 'package:http/http.dart' as http;
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/transaction.dart';
+import '../class/widget/button.dart';
 import '../helper/aes.dart';
 import '../helper/dialog.dart';
 import '../helper/interfaceUI.dart';
@@ -44,16 +45,20 @@ class DialogCT extends StatelessWidget {
   static Map<String, String> textOutput = new Map();
   static Map<String, bool> editInput = {};
 
-  /// 계약 상세 화면, 매출 매입 리스트 뷰어 필수
+
+  /// 이 함수는 계약 정보를 다이얼로그에 표시하고 작업 결과를 반환합니다.
+  ///
+  /// @return pu 계약정보를 작성했을경우 작성기록이 반환됩니다.
+  ///            계약정보를 작성하지 않았거나 데이터베이스 기록이 실패했을 경우 null 이 반환됩니다.
+  ///
+  /// @Create YM
+  /// @Version 1.0.0
   static dynamic showInfoCt(BuildContext context, Contract original) async {
     WidgetT.loadingBottomSheet(context);
 
     var dividHeight = 6.0;
     var heightSized = 36.0;
     var titleSize = 16.0;
-    //var _dragging = false;
-    //List<XFile> _list = [];
-    //late DropzoneViewController controller;
     Map<String, Uint8List> fileByteList = {};
 
     Map<String, Uint8List> ctFileByteList = {};
@@ -62,7 +67,6 @@ class DialogCT extends StatelessWidget {
     var vatTypeNameList = [ '포함', '별도', ];
     var currentVatType = 0;
 
-    //await original.update();
     var jsonString = jsonEncode(original.toJson());
     var json = jsonDecode(jsonString);
 
@@ -114,6 +118,7 @@ class DialogCT extends StatelessWidget {
                             },
                             child: WidgetT.iconMini(re.selectIsTaxed ? Icons.check_box : Icons.check_box_outline_blank, size: 32),
                         ),
+                        
                         WidgetT.excelGrid(label: '${i + 1}', width: 28),
                         WidgetT.excelGrid(textLite: true, width: 100, text: StyleT.dateInputFormatAtEpoch(re.revenueAt.toString()),),
                         Expanded(child: WidgetT.excelGrid( width: 250, text: SystemT.getItemName(re.item),)),
@@ -431,18 +436,10 @@ class DialogCT extends StatelessWidget {
                 schW.add(WidgetT.dividHorizontal(size: 0.35));
               }
 
-              var divHor = Expanded(
-                child: Row(
-                  children: [
-                    SizedBox(width: dividHeight * 2,),
-                    WidgetT.dividViertical(size: 4, height: 24),
-                    SizedBox(width: dividHeight * 2,),
-                    Expanded(child: WidgetT.dividHorizontal(size: 0.15,)),
-                    SizedBox(width: dividHeight * 2,),
-                    WidgetT.dividViertical(size: 4, height: 24),
-                  ],
-                ),
-              );
+              /// 사용되지 않는 코드 
+              /// 
+              ///
+              /// 사용하지 마세요
               var dividCol = Column(
                 children: [
                   SizedBox(height: dividHeight * 4,),
@@ -841,12 +838,9 @@ class DialogCT extends StatelessWidget {
                         ),
 
                         dividCol,
-                        Row(
-                          children: [
-                            WidgetT.title('스케쥴 및 메모', size: titleSize),
-                            divHor
-                          ],
-                        ),
+                        WidgetT.title('스케쥴 및 메모', size: titleSize),
+
+
                         SizedBox(height: dividHeight,),
                         Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: schW,)),
                         SizedBox(height: dividHeight,),
@@ -874,7 +868,7 @@ class DialogCT extends StatelessWidget {
                         Row(
                           children: [
                             WidgetT.title('매입 / 매출 목록', size: titleSize),
-                            divHor
+                            ButtonT.IconText(),
                           ],
                         ),
                         SizedBox(height: dividHeight,),
@@ -1086,6 +1080,7 @@ class DialogCT extends StatelessWidget {
     if(aa == null) aa = false;
     return aa;
   }
+
 
   static dynamic showCreateCt(BuildContext context,) async {
     WidgetT.loadingBottomSheet(context);
@@ -1724,6 +1719,7 @@ class DialogCT extends StatelessWidget {
     return aa;
   }
 
+
   static dynamic selectCt(BuildContext context, { List<Contract>? contractList, }) async {
     var searchInput = TextEditingController();
     List<Contract> contractSearch = [];
@@ -1880,574 +1876,6 @@ class DialogCT extends StatelessWidget {
 
     return aa;
   }
-
-  /*static dynamic showCreateCtttt(BuildContext context, { Customer? css, }) async {
-    var dividHeight = 6.0;
-    //var _dragging = false;
-    //List<XFile> _list = [];
-    //late DropzoneViewController controller;
-    Map<String, Uint8List> fileByteList = {};
-    Map<String, Uint8List> ctFileByteList = {};
-
-    var vatTypeList = [ 0, 1, ];
-    var vatTypeNameList = [ '포함', '미포함', ];
-
-    Contract ct = Contract.fromDatabase({});
-    ct.contractList.add({});
-    if(css != null) {
-      //ct.c
-    }
-
-    bool? aa = await showDialog(
-        context: context,
-        barrierColor: Colors.black.withOpacity(0.0),
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return  StatefulBuilder(
-            builder: (BuildContext context, StateSetter setStateS) {
-              FunT.setStateD = () { setStateS(() {}); };
-              FunT.setStateDT();
-
-              List<Widget> ctW = [];
-              for(int i = 0; i < ct.contractList.length; i++) {
-                Widget w = SizedBox();
-                var ctl = ct.contractList[i] as Map;
-                if(ctl['unitPrice'] == null) ctl['unitPrice'] = '';
-                if(ctl['count'] == null) ctl['count'] = '0';
-                if(ctl['item'] == null) ctl['item'] = '';
-
-                Item? ctlItem = SystemT.getItem(ctl['item'] ?? '');
-
-                var count = int.tryParse(ctl['count']) ?? 0;
-                var unitPrice = int.tryParse((ctl['unitPrice'] != '') ? ctl['unitPrice'] :
-                (ctlItem != null) ? ctlItem?.unitPrice.toString() : '0') ?? 0;
-                var totalPrice = 0, vat = 0, supplyPrice = 0;
-                var isUnitLink = (ctl['unitPrice'] != '');
-
-                if(ct.vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
-                if(ct.vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
-
-                w = Container( padding: EdgeInsets.only(bottom: 6),
-                  child: TextButton(
-                      onPressed:null,
-                      style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 1),
-                      child: Row(
-                        children: [
-                          WidgetT.title('${i + 1}', width: 28),
-                          WidgetT.dividViertical(height: 28),
-                          WidgetT.excelGrid(width: 200, label: '품목', text: SystemT.getItemName(ctl['item'] ?? ''),),
-                          TextButton(
-                              onPressed: () async {
-                                Item? item = await selectItem(context);
-                                FunT.setStateD = () { setStateS(() {}); };
-                                if(item != null) {
-                                  ctlItem = item;
-                                  ctl['item'] = item.id;
-                                  ctl['unitPrice'] = '';
-                                }
-                                FunT.setStateDT();
-                              },
-                              style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                              child: Container( height: 28, width: 28,
-                                child: WidgetT.iconMini(Icons.add_box),)
-                          ),
-                          TextButton(
-                            onPressed: null,
-                            style: StyleT.buttonStyleNone(padding: 0, round: 0, elevation: 0, color: Colors.transparent, strock: 1.4,),
-                            child: SizedBox(
-                              height: 28, width: 28,
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton2(
-                                  focusColor: Colors.transparent,
-                                  focusNode: FocusNode(),
-                                  autofocus: false,
-                                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                                  items: SystemT.itemMaps.keys.map((item) => DropdownMenuItem<dynamic>(
-                                    value: item,
-                                    child: Text(
-                                      SystemT.getItemName(item),
-                                      style: StyleT.titleStyle(),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  )).toList(),
-                                  onChanged: (value) async {
-                                    ctl['item'] = value;
-                                    ctlItem = SystemT.getItem(value);
-                                    if(ctlItem != null) {
-                                      ctl['unitPrice'] = '';
-                                    }
-                                    print('select item uid: ' + value);
-                                    await FunT.setStateDT();
-                                  },
-                                  itemHeight: 24,
-                                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                                  dropdownWidth: 256.7,
-                                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                                  dropdownDecoration: BoxDecoration(
-                                    border: Border.all(
-                                      width: 1.7,
-                                      color: Colors.grey.withOpacity(0.5),
-                                    ),
-                                    borderRadius: BorderRadius.circular(0),
-                                    color: Colors.white.withOpacity(0.95),
-                                  ),
-                                  dropdownElevation: 0,
-                                  offset: const Offset(-256 + 28, 0),
-                                ),
-                              ),
-                            ),
-                          ),
-                          WidgetT.dividViertical(height: 28),
-                          WidgetT.excelGrid( text: SystemT.getItemUnit(ctl['item'] ?? ''), width: 50, label: '단위'),
-                          WidgetT.dividViertical(height: 28),
-                          WidgetT.excelInput(context, '$i::수량', width: 100, index: i, label: '수량',
-                            onEdite: (i, data) {
-                              var a = int.tryParse(data);
-                              if(a == null) ctl['count'] = '0';
-                              else ctl['count'] = a.toString();
-                            },
-                            text: StyleT.krw(count.toString()), value: count.toString(),
-                          ),
-                          WidgetT.dividViertical(height: 28),
-                          WidgetT.excelInput(context, '$i::단가', width: 100, index: i, label: '단가',
-                            onEdite: (i, data) {
-                              var a = int.tryParse(data);
-                              if(a == null) ctl['unitPrice'] = '';
-                              else ctl['unitPrice'] = a.toString();
-                            },
-                            text: StyleT.krw(unitPrice.toString()), value: unitPrice.toString(),
-                          ),
-                          TextButton(
-                              onPressed: () async {
-                                if(ctl['unitPrice'] == '') ctl['unitPrice'] = ctlItem?.unitPrice.toString();
-                                else ctl['unitPrice'] = '';
-                                FunT.setStateDT();
-                              },
-                              style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                              child: Container( height: 28, width: 28,
-                                child: isUnitLink ? WidgetT.iconMini(Icons.link_off) : WidgetT.iconMini(Icons.link),)
-                          ),
-                          WidgetT.dividViertical(height: 28),
-                          WidgetT.excelInput(context, '$i::공급가액', width: 150, index: i, label: '공급가액',
-                            onEdite: (i, data) {
-                              var a = int.tryParse(data);
-                              if(a == null) ct.contractList[i]['supplyPrice'] = '0';
-                              else ct.contractList[i]['supplyPrice'] = a.toString();
-                            },
-                            text: StyleT.krw(supplyPrice.toString()), value: supplyPrice.toString(),),
-                          WidgetT.dividViertical(height: 28),
-                          WidgetT.excelInput(context, '$i::부가세', width: 100, index: i, label: 'VAT',
-                            onEdite: (i, data) {
-                              var a = int.tryParse(data);
-                              if(a == null) ctl['vat'] = '0';
-                              else ctl['vat'] = a.toString();
-                            },
-                            text: StyleT.krw(vat.toString()), value: vat.toString(),
-                          ),
-                          WidgetT.dividViertical(height: 28),
-                          WidgetT.excelInput(context, '$i::합계', width: 150, index: i, label: '합계',
-                            onEdite: (i, data) {
-                              var a = int.tryParse(data);
-                              if(a == null) ctl['totalPrice'] = '0';
-                              else ctl['totalPrice'] = a.toString();
-                            },
-                            text: StyleT.krw(totalPrice.toString()), value: totalPrice.toString(),
-                          ),
-                          WidgetT.dividViertical(height: 28),
-                          TextButton(
-                              onPressed: () {
-                                ct.contractList.removeAt(i);
-                                FunT.setStateDT();
-                              },
-                              style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                              child: Container( height: 28, width: 28,
-                                child: WidgetT.iconMini(Icons.cancel),)
-                          ),
-                        ],
-                      )
-                  ),
-                );
-                ctW.add(w);
-              }
-
-              return AlertDialog(
-                backgroundColor: StyleT.white.withOpacity(1),
-                elevation: 36,
-                shape: RoundedRectangleBorder(
-                    side: BorderSide(color: Colors.grey.shade700, width: 1.4),
-                    borderRadius: BorderRadius.circular(0)),
-                titlePadding: EdgeInsets.zero,
-                contentPadding: EdgeInsets.zero,
-                title: Column(
-                  children: [
-                    Container(padding: EdgeInsets.all(8), child: Text('계약정보', style: StyleT.titleStyle(bold: true))),
-                    WidgetT.dividHorizontal(color: Colors.grey.withOpacity(0.5)),
-                  ],
-                ),
-                content: SingleChildScrollView(
-                  child: Container(
-                    padding: EdgeInsets.all(12),
-                    child: Column( crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            WidgetT.title('거래처', width: 100),
-                            TextButton(
-                              onPressed: () async {
-                                Customer? c = await selectCS(context);
-                                FunT.setStateD = () { setStateS(() {}); };
-
-                                if(c != null) {
-                                  ct.csUid = c.id;
-                                  print(c.id + ' : ' + SystemT.getCSName(ct.csUid));
-                                }
-                                await FunT.setStateDT();
-                              },
-                              style: StyleT.buttonStyleOutline(padding: 0, round: 0, elevation: 0, strock: 1.4, color: StyleT.backgroundColor.withOpacity(0.5)),
-                              child: Container( height: 28, alignment: Alignment.center,
-                                  child: Row( mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      WidgetT.text('${ct.csUid}', size: 10, width: 120),
-                                      WidgetT.dividViertical(height: 28),
-                                      WidgetT.title(SystemT.getCSName(ct.csUid) ?? '', width: 250),
-                                    ],
-                                  )),),
-                          ],
-                        ),
-                        SizedBox(height: 18,),
-                        WidgetT.textInput(context, '계약명', width: 250, label: '계약명',
-                          onEdite: (i, data) { ct.ctName = data; },
-                          text: ct.ctName,
-                        ),
-                        SizedBox(height: dividHeight,),
-                        Row(
-                          children: [
-                            WidgetT.textInput(context, '구매부서', width: 250, label: '구매부서',
-                              onEdite: (i, data) { ct.purchasingDepartment = data; },
-                              text: ct.purchasingDepartment,
-                            ),
-                            SizedBox(width: dividHeight,),
-                            WidgetT.textInput(context, '담당자', width: 100, label: '담당자', labelSize: 60,
-                              onEdite: (i, data) { ct.manager = data; },
-                              text: ct.manager,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 18,),
-                        Row(
-                          children: [
-                            WidgetT.textInput(context, '납품지주소', width: 250, label: '납품지주소',
-                              onEdite: (i, data) { ct.workSitePlace = data; },
-                              text: ct.workSitePlace,
-                            ),
-                            SizedBox(width: dividHeight,),
-                            WidgetT.textInput(context, '연락처', width: 100, label: '연락처', labelSize: 60,
-                              onEdite: (i, data) { ct.managerPhoneNumber = data; },
-                              text: ct.managerPhoneNumber,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: dividHeight,),
-                        Row(
-                          children: [
-                            //WidgetT.title('세부사항', width: 100 ),
-                            WidgetT.textInput(context, '계약일자', width: 150, label: '계약일자',
-                              onEdite: (i, data) { ct.contractAt = StyleT.dateEpoch(data); },
-                              text: StyleT.dateInputFormatAtEpoch(ct.contractAt.toString()),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: dividHeight,),
-                        Row(
-                          children: [
-                            WidgetT.title('계약서 첨부', width: 100),
-                            TextButton(onPressed: () async {
-                              FilePickerResult? result;
-                              try {
-                                result = await FilePicker.platform.pickFiles();
-                              } catch (e) {
-                                WidgetT.showSnackBar(context, text: '파일선택 오류');
-                                print(e);
-                              }
-                              FunT.setStateD = () { setStateS(() {}); };
-                              if(result != null){
-                                WidgetT.showSnackBar(context, text: '파일선택');
-                                if(result.files.isNotEmpty) {
-                                  String fileName = result.files.first.name;
-                                  print(fileName);
-                                  Uint8List fileBytes = result.files.first.bytes!;
-                                  ctFileByteList[fileName] = fileBytes;
-                                  print(ctFileByteList[fileName]!.length);
-                                }
-                              }
-                              FunT.setStateDT();
-                            },
-                              style: StyleT.buttonStyleOutline(padding: 0, round: 0, elevation: 8, strock: 1, color: StyleT.accentColor.withOpacity(0.5)),
-                              child: Container(
-                                  child: Row(
-                                    children: [
-                                      WidgetT.iconMini(Icons.file_copy_rounded),
-                                      WidgetT.title('선택',),
-                                      SizedBox(width: 4,),
-                                    ],
-                                  )),),
-                            SizedBox(width: 18,),
-                            for(int i = 0; i < ct.contractFiles.length; i++)
-                              TextButton(
-                                  onPressed: () async {
-                                    var downloadUrl = ct.contractFiles.values.elementAt(i);
-                                    var fileName = ct.contractFiles.keys.elementAt(i);
-                                    print(downloadUrl);
-                                    var res = await http.get(Uri.parse(downloadUrl));
-                                    var bodyBytes = res.bodyBytes;
-                                    print(bodyBytes.length);
-                                    PDFX.showPDFtoDialog(context, data: bodyBytes, name: fileName);
-                                    *//* final storageRef = FirebaseStorage.instance.ref();
-                                          final islandRef = storageRef.child("customer/${cs.id}/${cs.filesMap.keys.elementAt(i)}");
-                                          try {
-                                            const oneMegabyte = 2048 * 2048;
-                                            final Uint8List? data = await islandRef.getData(oneMegabyte);
-                                            print(data!.length);
-                                            //PDFX.showPDFtoDialog(context, data: data, name: fileByteList.keys.elementAt(i));
-                                          } on FirebaseException catch (e) {
-                                            print(e);
-                                          }*//*
-                                  },
-                                  style: StyleT.buttonStyleOutline(round: 0, elevation: 8, padding: 0, color: StyleT.accentLowColor.withOpacity(0.5), strock: 1),
-                                  child: Container(padding: EdgeInsets.all(0), child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      SizedBox(width: 6,),
-                                      WidgetT.title(ct.contractFiles.keys.elementAt(i),),
-                                      TextButton(
-                                          onPressed: () {
-                                            fileByteList.remove(fileByteList.keys.elementAt(i));
-                                            FunT.setStateDT();
-                                          },
-                                          style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                          child: Container( height: 28, width: 28,
-                                            child: WidgetT.iconMini(Icons.cancel),)
-                                      ),
-                                    ],
-                                  ))
-                              ),
-                            for(int i = 0; i < ctFileByteList.length; i++)
-                              TextButton(
-                                  onPressed: () {
-                                    PDFX.showPDFtoDialog(context, data: ctFileByteList.values.elementAt(i), name: ctFileByteList.keys.elementAt(i));
-                                  },
-                                  style: StyleT.buttonStyleOutline(round: 0, elevation: 8, padding: 0, color: StyleT.accentLowColor.withOpacity(0.5), strock: 1),
-                                  child: Container(padding: EdgeInsets.all(0), child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      SizedBox(width: 6,),
-                                      WidgetT.title(ctFileByteList.keys.elementAt(i),),
-                                      TextButton(
-                                          onPressed: () {
-                                            ctFileByteList.remove(ctFileByteList.keys.elementAt(i));
-                                            FunT.setStateDT();
-                                          },
-                                          style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                          child: Container( height: 28, width: 28,
-                                            child: WidgetT.iconMini(Icons.cancel),)
-                                      ),
-                                    ],
-                                  ))
-                              ),
-                          ],
-                        ),
-                        SizedBox(height: 18,),
-                        SizedBox(height: 2,),
-                        Row(
-                          children: [
-                            WidgetT.title('메모', width: 100 ),
-                            Expanded(child: WidgetT.textInput(context, '메모', width: 250, height: 64, isMultiLine: true,
-                              onEdite: (i, data) { ct.memo = data; },
-                              text: ct.memo,
-                            ),)
-                          ],
-                        ),
-
-
-                        SizedBox(height: 18,),
-                        Row(
-                          children: [
-                            WidgetT.title('계약내용',),
-                            SizedBox(width: 12,),
-                            TextButton(onPressed: () async {
-                              ct.contractList.add({});
-                              FunT.setStateDT();
-                            },
-                              style: StyleT.buttonStyleOutline(round: 0, elevation: 8, padding: 0,
-                                  color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7),
-                              child: Container(
-                                  child: Row(
-                                    children: [
-                                      WidgetT.iconMini(Icons.add, size: 28),
-                                      WidgetT.title('추가',),
-                                      SizedBox(width: 6,),
-                                    ],
-                                  )),),
-
-                            Row(
-                              children: [
-                                WidgetT.title('지불관련', width: 100 ),
-                                for(var v in vatTypeList)
-                                  Container(
-                                    padding: EdgeInsets.only(right: dividHeight),
-                                    child: TextButton(
-                                        onPressed: () {
-                                          ct.vatType = v;
-                                          FunT.setStateDT();
-                                        },
-                                        style: StyleT.buttonStyleOutline(round: 0, elevation: 8, padding: 0,
-                                            color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7),
-                                        child: Container(padding: EdgeInsets.all(0), child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if(ct.vatType != v)
-                                              Container( height: 28, width: 28,
-                                                child: WidgetT.iconMini(Icons.check_box_outline_blank),),
-                                            if(ct.vatType == v)
-                                              Container( height: 28, width: 28,
-                                                child: WidgetT.iconMini(Icons.check_box),),
-                                            WidgetT.title('부가세 ' + vatTypeNameList[v] ),
-                                            SizedBox(width: 6,),
-                                          ],
-                                        ))
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: dividHeight,),
-                        Column(
-                          children: [
-                            for(var w in ctW) w,
-                          ],
-                        ),
-
-                        SizedBox(height: 18,),
-                        Row(
-                          children: [
-                            WidgetT.title('파일첨부',),
-                            SizedBox(width: 12,),
-                            TextButton(onPressed: () async {
-                              FilePickerResult? result;
-                              try {
-                                result = await FilePicker.platform.pickFiles();
-                              } catch (e) {
-                                WidgetT.showSnackBar(context, text: '파일선택 오류');
-                                print(e);
-                              }
-                              FunT.setStateD = () { setStateS(() {}); };
-                              if(result != null){
-                                WidgetT.showSnackBar(context, text: '파일선택');
-                                if(result.files.isNotEmpty) {
-                                  String fileName = result.files.first.name;
-                                  print(fileName);
-                                  Uint8List fileBytes = result.files.first.bytes!;
-                                  fileByteList[fileName] = fileBytes;
-                                  print(fileByteList[fileName]!.length);
-                                }
-                              }
-                              FunT.setStateDT();
-                            },
-                              style: StyleT.buttonStyleOutline(padding: 0, round: 0, elevation: 8, strock: 1, color: StyleT.accentColor.withOpacity(0.5)),
-                              child: Container(
-                                  child: Row(
-                                    children: [
-                                      WidgetT.iconMini(Icons.file_copy_rounded),
-                                      WidgetT.title('선택',),
-                                      SizedBox(width: 4,),
-                                    ],
-                                  )),)
-                          ],
-                        ),
-                        SizedBox(height: dividHeight,),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                height: 100, color: StyleT.accentLowColor.withOpacity(0.07),
-                                padding: EdgeInsets.all(dividHeight),
-                                child: Wrap(
-                                  runSpacing: dividHeight, spacing: dividHeight,
-                                  children: [
-                                    for(int i = 0; i < ct.filesMap.length; i++)
-                                      TextButton(
-                                          onPressed: () async {
-                                            var downloadUrl = ct.filesMap.values.elementAt(i);
-                                            var fileName = ct.filesMap.keys.elementAt(i);
-                                            print(downloadUrl);
-                                            var res = await http.get(Uri.parse(downloadUrl));
-                                            var bodyBytes = res.bodyBytes;
-                                            print(bodyBytes.length);
-                                            PDFX.showPDFtoDialog(context, data: bodyBytes, name: fileName);
-                                          },
-                                          style: StyleT.buttonStyleOutline(round: 0, elevation: 8, padding: 0, color: StyleT.accentLowColor.withOpacity(0.5), strock: 1),
-                                          child: Container(padding: EdgeInsets.all(0), child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SizedBox(width: 6,),
-                                              WidgetT.title(ct.filesMap.keys.elementAt(i),),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    fileByteList.remove(fileByteList.keys.elementAt(i));
-                                                    FunT.setStateDT();
-                                                  },
-                                                  style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                                  child: Container( height: 28, width: 28,
-                                                    child: WidgetT.iconMini(Icons.cancel),)
-                                              ),
-                                            ],
-                                          ))
-                                      ),
-                                    for(int i = 0; i < fileByteList.length; i++)
-                                      TextButton(
-                                          onPressed: () {
-                                            PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
-                                          },
-                                          style: StyleT.buttonStyleOutline(round: 0, elevation: 8, padding: 0, color: StyleT.accentLowColor.withOpacity(0.5), strock: 1),
-                                          child: Container(padding: EdgeInsets.all(0), child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SizedBox(width: 6,),
-                                              WidgetT.title(fileByteList.keys.elementAt(i),),
-                                              TextButton(
-                                                  onPressed: () {
-                                                    fileByteList.remove(fileByteList.keys.elementAt(i));
-                                                    FunT.setStateDT();
-                                                  },
-                                                  style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                                  child: Container( height: 28, width: 28,
-                                                    child: WidgetT.iconMini(Icons.cancel),)
-                                              ),
-                                            ],
-                                          ))
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                actionsPadding: EdgeInsets.zero,
-                actions: <Widget>[
-                ],
-              );
-            },
-          );
-        });
-
-    if(aa == null) aa = false;
-    return aa;
-  }*/
 
   Widget build(context) {
     return Container();
