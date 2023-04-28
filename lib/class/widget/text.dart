@@ -48,10 +48,13 @@ class TextT extends StatelessWidget {
     BuildContext? context,
     String? text,
     double? width,
-    bool expand=false}) {
+    double? size,
+    Color? color,
+    bool bold=false,
+    bool expand=false,}) {
     var w = Text(
         text ?? '',
-        style: TextStyle(color: StyleT.textColor, fontSize: 10, fontWeight: FontWeight.w900),
+        style: TextStyle(color: color ?? StyleT.textColor, fontSize: size ?? 10, fontWeight: bold ? FontWeight.w900 : FontWeight.w500),
     );
 
     if(expand) {
@@ -60,7 +63,31 @@ class TextT extends StatelessWidget {
       );
     }
 
-    if(width == null) return Container( alignment: Alignment.center, child: w, );
+    if(width == null) return w;
+    else return Container(
+      width: width,
+      alignment: Alignment.center,
+      child: w,
+    );
+  }
+
+  static Widget Title({
+    BuildContext? context,
+    String? text,
+    double? width,
+    bool expand=false}) {
+    var w = Text(
+      text ?? '',
+      style: TextStyle(color: StyleT.titleColor, fontSize: 16, fontWeight: FontWeight.w900),
+    );
+
+    if(expand) {
+      return Expanded(
+        child: Container( alignment: Alignment.center, child: w, ),
+      );
+    }
+
+    if(width == null) return w;
     else return Container(
       width: width,
       alignment: Alignment.center,

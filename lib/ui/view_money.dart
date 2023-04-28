@@ -1004,22 +1004,6 @@ class View_MO extends StatelessWidget {
                           }));
                     }
 
-
-                    //final printDoc = pw.Document();
-                    /*await for (var page in Printing.raster(await doc.save(), pages: [0, 1], dpi: 72)) {
-                      final image = await page.toPng();
-                      //final imagePdf = pw.MemoryImage(aa!.buffer.asUint8List(aa!.offsetInBytes, aa!.lengthInBytes));
-                      final imagePdf = pw.MemoryImage(image);
-                      printDoc.addPage(pw.Page(
-                          pageFormat: PdfPageFormat.a4,
-                          margin: const pw.EdgeInsets.all(0),
-                          build: (pw.Context context) {
-                            return pw.Center(
-                              child: pw.Image(imagePdf),
-                            );
-                          }));
-                    }*/
-
                     var data = await doc.save();
                     await Printing.layoutPdf(onLayout: (format) async => await data);
                   },

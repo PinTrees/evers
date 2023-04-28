@@ -16,20 +16,45 @@ class WidgetUI extends StatelessWidget {
   static Map<String, TextEditingController> textInputs = {};
   static Map<String, bool> isActive = {};
 
-  static Widget titleRowNone(List<String> title, List<double> width, {  List<Widget>? leaging, bool background=false, double? padding=6 }) {
+  static Widget titleRowNone(List<String> title, List<double> width, {  List<Widget>? leaging,
+    bool background=false,
+    bool lite=false,
+    double? padding=6 }) {
     List<Widget> chW = [];
 
+    var fontSize = 12.0;
+    if(lite) {
+      fontSize = 10;
+    }
+
     for(int i = 0; i < title.length; i++) {
-      Widget w =  Container( width: width[i], child: WidgetT.titleT(title[i], size: 12, color: StyleT.titleColor.withOpacity(0.9)), alignment: Alignment.center, );
+      Widget w =  Container( width: width[i], child: WidgetT.titleT(title[i], size: fontSize,
+          color: StyleT.titleColor.withOpacity(0.9)), alignment: Alignment.center, );
       if(width[i] > 900) {
         w = Expanded(child: w);
       }
       chW.add(w);
     }
+
+
+    if (lite) {
+      return Container(
+          decoration: StyleT.inkStyleNone(color: Colors.transparent),
+          child: Container(
+            height: 28,
+            color: background ? Colors.grey.withOpacity(0.35) : Colors.transparent,
+            padding: EdgeInsets.fromLTRB(padding ?? 0, 0, padding ?? 0, 0),
+            child: Row(
+              children: chW,
+            ),
+          )
+      );
+    }
     return Container(
         decoration: StyleT.inkStyleNone(color: Colors.transparent),
         child: Container(
-          height: 36, color: background ? Colors.grey.withOpacity(0.35) : Colors.transparent,
+          height: 36,
+          color: background ? Colors.grey.withOpacity(0.35) : Colors.transparent,
           padding: EdgeInsets.fromLTRB(padding ?? 0, 0, padding ?? 0, 0),
           child: Row(
             children: chW,

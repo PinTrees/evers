@@ -1044,7 +1044,7 @@ class DialogItemTrans extends StatelessWidget {
                             ButtonT.IconText(
                               icon: Icons.add_box,
                               text: '첨부파일 추가',
-                              bacground: Colors.grey.withOpacity(0.15),
+                              color: Colors.grey.withOpacity(0.15),
                               onTap: () async {
                                 FilePickerResult? result;
                                 try {
@@ -1189,7 +1189,7 @@ class DialogItemTrans extends StatelessWidget {
                                   )
                               ),
                               ButtonT.IconText(
-                                bacground: Colors.transparent,
+                                color: Colors.transparent,
                                 icon: Icons.add_box,
                                 text: '계약 선택',
                                 onTap: () async {

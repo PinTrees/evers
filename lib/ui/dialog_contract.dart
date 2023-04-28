@@ -3,6 +3,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/contract.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/class/revenue.dart';
+import 'package:evers/class/widget/excel.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/pdfx.dart';
@@ -26,6 +27,7 @@ import '../class/widget/button.dart';
 import '../helper/aes.dart';
 import '../helper/dialog.dart';
 import '../helper/interfaceUI.dart';
+import '../system/printform.dart';
 import 'cs.dart';
 import 'dl.dart';
 import 'ex.dart';
@@ -57,7 +59,7 @@ class DialogCT extends StatelessWidget {
     WidgetT.loadingBottomSheet(context);
 
     var dividHeight = 6.0;
-    var heightSized = 36.0;
+    var heightSized = 28.0;
     var titleSize = 16.0;
     Map<String, Uint8List> fileByteList = {};
 
@@ -82,6 +84,9 @@ class DialogCT extends StatelessWidget {
 
     Navigator.pop(context);
 
+    bool isLedgerSelectMenu = false;
+    List<Revenue> ledgerList = [];
+
     late Function setData;
     // ignore: use_build_context_synchronously
     bool? aa = await showDialog(
@@ -96,9 +101,10 @@ class DialogCT extends StatelessWidget {
 
               var allPay = 0, allPayedAmount = 0;
 
+              /// 매출
               List<Widget> reW = [];
               reW.add(WidgetUI.titleRowNone([ '', '순번', '매출일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', '' ],
-                  [ 32, 28, 100, 999, 50, 80, 80, 80, 80, 80, 999, 32 ], background: true),);
+                  [ 32, 28, 100, 999, 50, 80, 80, 80, 80, 80, 999, 32 ], background: true, lite: true),);
               for(int i = 0; i < ct.revenueList.length; i++) {
                 Widget w = SizedBox();
                 var re = ct.revenueList[i];
@@ -118,17 +124,17 @@ class DialogCT extends StatelessWidget {
                             },
                             child: WidgetT.iconMini(re.selectIsTaxed ? Icons.check_box : Icons.check_box_outline_blank, size: 32),
                         ),
-                        
-                        WidgetT.excelGrid(label: '${i + 1}', width: 28),
-                        WidgetT.excelGrid(textLite: true, width: 100, text: StyleT.dateInputFormatAtEpoch(re.revenueAt.toString()),),
-                        Expanded(child: WidgetT.excelGrid( width: 250, text: SystemT.getItemName(re.item),)),
-                        WidgetT.excelGrid(textLite: true, text:item.unit, width: 50),
-                        WidgetT.excelGrid(textLite: true, width: 80,  text: StyleT.krw(re.count.toString()),),
-                        WidgetT.excelGrid(textLite: true,width: 80,  text: StyleT.krw(re.unitPrice.toString()),),
-                        WidgetT.excelGrid(textLite: true,width: 80, text: StyleT.krw(re.supplyPrice.toString()),),
-                        WidgetT.excelGrid(textLite: true, width: 80,  text: StyleT.krw(re.vat.toString()), ),
-                        WidgetT.excelGrid(textLite: true, width: 80, text: StyleT.krw(re.totalPrice.toString()),),
-                        Expanded(child: WidgetT.excelGrid( textLite: true,width: 200, text: re.memo,),),
+
+                        ExcelT.LitGrid(text: '${i + 1}', width: 28, center: true),
+                        ExcelT.LitGrid(width: 100, text: StyleT.dateInputFormatAtEpoch(re.revenueAt.toString()), center: true),
+                        ExcelT.Grid(width: 250, text: SystemT.getItemName(re.item), expand: true, textSize: 10),
+                        ExcelT.LitGrid(text: item.unit, width: 50, center: true),
+                        ExcelT.LitGrid(text: StyleT.krwInt(re.count), width: 80, center: true),
+                        ExcelT.LitGrid(text: StyleT.krwInt(re.unitPrice), width: 80, center: true),
+                        ExcelT.LitGrid(text: StyleT.krwInt(re.supplyPrice), width: 80, center: true),
+                        ExcelT.LitGrid(text: StyleT.krwInt(re.vat), width: 80, center: true),
+                        ExcelT.LitGrid(text: StyleT.krwInt(re.totalPrice), width: 80, center: true),
+                        ExcelT.LitGrid(text: re.memo, width: 200, center: true, expand: true),
                         InkWell(
                           onTap: () async {
                             var data = await DialogRE.showInfoRe(context, org: re);
@@ -146,10 +152,29 @@ class DialogCT extends StatelessWidget {
                       ]
                   ),
                 );
+
+                if(isLedgerSelectMenu) {
+                  w = InkWell(
+                    onTap: () {
+                      if(re.isLedger) {
+                        WidgetT.showSnackBar(context, text:"이미 생성된 원장이 존재합니다.");
+                        return;
+                      }
+
+                      if(ledgerList.contains(re)) ledgerList.remove(re);
+                      else ledgerList.add(re);
+                      setData();
+                    },
+                    child: Container( child: w, color: ledgerList.contains(re) ? Colors.green.withOpacity(0.1)
+                        : re.isLedger ? Colors.red.withOpacity(0.1) : Colors.blue.withOpacity(0.1), ) ,
+                  );
+                }
+
                 reW.add(w);
                 reW.add(WidgetT.dividHorizontal(size: 0.35));
               }
 
+              /// 계약
               List<Widget> ctW = [];
               ctW.add(WidgetUI.titleRowNone([ '', '순번', '매출일자', '품목', '단위', '단가', '메모' ], [ 28, 28, 150, 200 + 28 * 2, 50, 120, 999 ], background: true),);
               for(int i = 0; i < ct.contractList.length; i++) {
@@ -198,6 +223,7 @@ class DialogCT extends StatelessWidget {
                 ctW.add(WidgetT.dividHorizontal(size: 0.35));
               }
 
+              /// 결재
               List<Widget> tsW = [];
               tsW.add(WidgetUI.titleRowNone([ '', '순번', '거래일자', '구분', '적요', '결제', '금액', '메모', ], [ 28, 28, 150, 100, 250, 180 + 28, 120, 999,], background: true),);
               for(int i = 0; i < tslist.length; i++) {
@@ -233,6 +259,7 @@ class DialogCT extends StatelessWidget {
                 tsW.add(WidgetT.dividHorizontal(size: 0.35));
               }
 
+              /// (***) 제거 사용하지 마세요
               List<Widget> tsCW = [];
               for(int i = 0; i < tslistCr.length; i++) {
                 var tmpTs = tslistCr[i];
@@ -326,6 +353,7 @@ class DialogCT extends StatelessWidget {
                 tsCW.add(WidgetT.dividHorizontal(size: 0.35));
               }
 
+              /// 결재
               List<Widget> tsAllW = [];
               tsAllW.add( WidgetUI.titleRowNone([ '총매출금액', '총수금금액', '미수금', ], [ 999, 999, 999, ], background: true),);
               tsAllW.add( Container( height: 28,
@@ -338,6 +366,7 @@ class DialogCT extends StatelessWidget {
                 ),
               ));
 
+              /// 일정
               List<Widget> schW = [];
               schW.add(WidgetUI.titleRowNone([ '', '순번', '일정시간', '태그', '메모', ], [ 28, 28, 150, 150, 999, ], background: true),);
               for(int i = 0; i < sch_list.length; i++) {
@@ -868,7 +897,21 @@ class DialogCT extends StatelessWidget {
                         Row(
                           children: [
                             WidgetT.title('매입 / 매출 목록', size: titleSize),
-                            ButtonT.IconText(),
+                            SizedBox(width: 6,),
+
+                            if(isLedgerSelectMenu) ButtonT.IconText(icon: Icons.create_new_folder,
+                            text: '${ ledgerList.length }건 원장 생성', onTap: () async {
+                              var file = await PrintFormT.ReleaseRevenue(revenueList: ledgerList); setData(); }),
+
+                            SizedBox(width: 6,),
+                            ButtonT.IconText(icon: !isLedgerSelectMenu ? Icons.add_box : Icons.cancel,
+                              text: !isLedgerSelectMenu ? "원장 생성" : "취소", onTap: () { isLedgerSelectMenu = !isLedgerSelectMenu; ledgerList.clear(); setData(); },),
+                            SizedBox(width: 6,),
+                            ButtonT.IconText(icon: Icons.open_in_new_sharp, text: "출고원장 작업창으로 이동", onTap: () async {
+                              var url = Uri.base.toString().split('/work').first + '/printform/releaserevenue/${ ct.id }';
+                              await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self');
+                              FunT.setStateMain();
+                            }),
                           ],
                         ),
                         SizedBox(height: dividHeight,),

@@ -4,13 +4,17 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/Customer.dart';
+import 'package:evers/class/database/item.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/helper/firebaseCore.dart';
+import 'package:flutter/material.dart';
 
+import '../helper/interfaceUI.dart';
 import '../helper/style.dart';
 import 'contract.dart';
 import 'system.dart';
 import 'transaction.dart';
+import 'widget/excel.dart';
 
 class RevPur {
   var type = 0;
@@ -33,6 +37,7 @@ class Revenue {
 
   var fixedVat = false;          // 부가세 자동 계산 - 변수명 변경 필요
   var fixedSup = false;          // 공급가액 자동 계산 - 변수명 변경 필요
+  var isLedger = false;
 
   var state = '';       /// 상태
 
@@ -78,6 +83,8 @@ class Revenue {
     isTaxed = json['isTaxed'] ?? false;
     fixedVat = json['fixedVat'] ?? false;
     fixedSup = json['fixedSup'] ?? false;
+    isLedger = json['isLedger'] ?? false;
+
     selectIsTaxed = isTaxed;
     init();
   }
@@ -102,6 +109,7 @@ class Revenue {
       'isTaxed': isTaxed,
       'fixedVat': fixedVat,
       'fixedSup': fixedSup,
+      'isLedger': isLedger,
     };
   }
 
@@ -128,7 +136,6 @@ class Revenue {
     return totalPrice;
   }
 
-  
   Future<String> getSearchText() async {
     var cs = await SystemT.getCS(csUid) ?? Customer.fromDatabase({});
     var ct = await SystemT.getCt(ctUid) ?? Contract.fromDatabase({});
@@ -173,7 +180,8 @@ class Revenue {
       onError: (e) { print("Error createUid() $e"); return false; }
     );
   }
-  
+
+
   /// 이 함수는 해당 클래스를 직렬화하여 데이터베이스에 저장합니다.
   /// @Create YM
   dynamic update({Revenue? org, Map<String, Uint8List>? files, }) async {
@@ -346,6 +354,52 @@ class Revenue {
     }).then(
             (value) { print("DocumentSnapshot successfully updated!"); return true; },
         onError: (e) { print("Error deleteRevenue() $e"); return false; }
+    );
+  }
+
+  List<String> toTable({ int? type }) {
+    var table = [ SystemT.getItemName(item), '-', '-', '-', '-' ];
+    return table;
+  }
+
+
+  /// 이 함수는 해당 클래스를 화면에 출력합니다.
+  /// 인터페이스로 변경
+  /// state와 onEdite간 상태변경 모호성 추후 수정
+  Future<Widget> OnUI({ int? index, Function? state, Function? onEdite }) async {
+    Item? itemData = await SystemT.getItem(item) ?? Item.fromDatabase({ 'name': item, });
+    if(itemData == null) return SizedBox(height: 28,);
+
+    return Container(
+      height: 28,
+      child: Row(
+        children: [
+          InkWell(
+            onTap: () async {
+              selectIsTaxed = !selectIsTaxed;
+              if(state!=null) state();
+            },
+            child: WidgetT.iconMini(selectIsTaxed ? Icons.check_box : Icons.check_box_outline_blank, size: 32),
+          ),
+          ExcelT.LitGrid(text: '${index ?? 0 + 1}', width: 28, center: true),
+          ExcelT.LitGrid(width: 100, text: StyleT.dateInputFormatAtEpoch(revenueAt.toString()), center: true),
+          ExcelT.Grid(width: 250, text: SystemT.getItemName(item), expand: true, textSize: 10),
+          ExcelT.LitGrid(text: itemData.unit, width: 50, center: true),
+          ExcelT.LitGrid(text: StyleT.krwInt(count), width: 80, center: true),
+          ExcelT.LitGrid(text: StyleT.krwInt(unitPrice), width: 80, center: true),
+          ExcelT.LitGrid(text: StyleT.krwInt(supplyPrice), width: 80, center: true),
+          ExcelT.LitGrid(text: StyleT.krwInt(vat), width: 80, center: true),
+          ExcelT.LitGrid(text: StyleT.krwInt(totalPrice), width: 80, center: true),
+          ExcelT.LitGrid(text: memo, width: 200, center: true, expand: true),
+          InkWell(
+            onTap: () async {
+              if(onEdite != null) onEdite();
+              if(state != null) state();
+            },
+            child: WidgetT.iconMini(Icons.create, size: 32),
+          )
+        ],
+      ),
     );
   }
 }

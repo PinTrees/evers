@@ -4,6 +4,7 @@ import 'package:evers/NonePage.dart';
 import 'package:evers/login/LoginPage.dart';
 import 'package:evers/main.dart';
 import 'package:evers/page/page_customer.dart';
+import 'package:evers/page/page_printForm.dart';
 import 'package:evers/page/page_shopingItem.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -87,6 +88,11 @@ final GoRouter router = GoRouter(
             return ShoingItemPage();
           },
         ),
+        GoRoute(path: 'printform/releaserevenue/:id',
+          builder: (BuildContext context, GoRouterState state) {
+            return PFormReleaseRevenuePage(csUid: state.params['id']);
+          },
+        )
       ],
     ),
   ],

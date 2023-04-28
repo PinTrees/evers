@@ -382,6 +382,12 @@ class DateStyle {
     return '${date.year}-${quarter}Q';
   }
 
+
+  static String dateYearMonthDayHipen(int ephoce) {
+    var date = DateTime.fromMicrosecondsSinceEpoch(ephoce);
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
   static String dateYearMM(int ephoce) {
     var date = DateTime.fromMicrosecondsSinceEpoch(ephoce);
     return DateFormat('yyyy-MM').format(date);

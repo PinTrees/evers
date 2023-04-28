@@ -791,7 +791,9 @@ class View_Factory extends StatelessWidget {
                         ],
                       ),
                     )
-                )
+                ),
+                SizedBox(width: divideHeight,),
+
               ],
             ),
             Container(

@@ -178,6 +178,7 @@ class Contract {
 
     revenueList = await DatabaseM.getRevenueOnlyContract(id);
   }
+
   int getItemCountRevenue(String ctIndex) {
     final cl = contractList.firstWhere((a) =>
     a['id'] == ctIndex, orElse: () {
