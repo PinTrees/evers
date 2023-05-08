@@ -920,10 +920,10 @@ class DialogItemTrans extends StatelessWidget {
                                   focusNode: FocusNode(),
                                   autofocus: false,
                                   customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                                  items: MetaT.factorType.keys.map((item) => DropdownMenuItem<dynamic>(
+                                  items: MetaT.processType.keys.map((item) => DropdownMenuItem<dynamic>(
                                     value: item,
                                     child: Text(
-                                      MetaT.factorType[item].toString(),
+                                      MetaT.processType[item].toString(),
                                       style: StyleT.titleStyle(),
                                       overflow: TextOverflow.ellipsis,
                                     ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/contract.dart';
+import 'package:evers/class/database/ledger.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/class/revenue.dart';
 import 'package:evers/class/widget/excel.dart';
@@ -65,27 +66,23 @@ class DialogCT extends StatelessWidget {
 
     Map<String, Uint8List> ctFileByteList = {};
 
-    var vatTypeList = [ 0, 1, ];
     var vatTypeNameList = [ '포함', '별도', ];
-    var currentVatType = 0;
 
     var jsonString = jsonEncode(original.toJson());
     var json = jsonDecode(jsonString);
+    var ct = Contract.fromDatabase(json);
+    await ct.update();
 
     List<TS> tslist = [];
     List<TS> tslistCr = [];
     List<Schedule> sch_list = [];
-    /// 추후 toCopy Function 생성 필요
-    var ct = Contract.fromDatabase(json);
-    await ct.update();
+    List<Ledger> ledgerList = await DatabaseM.getLedgerRevenueList(ct.csUid);
+    List<Purchase> purList = await DatabaseM.getPur_withCT(ct.id);
 
     tslist = await DatabaseM.getTransactionCt(ct.id);
     sch_list = await DatabaseM.getSCH_CT(ct.id);
 
     Navigator.pop(context);
-
-    bool isLedgerSelectMenu = false;
-    List<Revenue> ledgerList = [];
 
     late Function setData;
     // ignore: use_build_context_synchronously
@@ -101,10 +98,30 @@ class DialogCT extends StatelessWidget {
 
               var allPay = 0, allPayedAmount = 0;
 
+
+              /// 매입 UI
+              List<Widget> purWidgets = [];
+              purWidgets.add(Purchase.OnTabelHeader());
+              for(int i = 0; i < purList.length; i++) {
+                var pu = purList[i];
+                var item = SystemT.getItem(pu.item) ?? Item.fromDatabase({});
+                pu.init();
+                allPay += pu.totalPrice;
+
+                var w = pu.OnTableUI(
+                  context,
+                  index: i + 1,
+                  setState: setData,
+                  itemName: item.name,
+                  itemUnit: item.unit,
+                );
+                purWidgets.add(w);
+                purWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+              }
+
               /// 매출
               List<Widget> reW = [];
-              reW.add(WidgetUI.titleRowNone([ '', '순번', '매출일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', '' ],
-                  [ 32, 28, 100, 999, 50, 80, 80, 80, 80, 80, 999, 32 ], background: true, lite: true),);
+              reW.add(Revenue.buildTitleUI());
               for(int i = 0; i < ct.revenueList.length; i++) {
                 Widget w = SizedBox();
                 var re = ct.revenueList[i];
@@ -113,66 +130,44 @@ class DialogCT extends StatelessWidget {
                 re.init();
                 allPay += re.totalPrice;
 
-                w = Container(
-                  height: heightSized,
-                  child: Row(
-                      children: [
-                        InkWell(
-                            onTap: () async {
-                              re.selectIsTaxed = !re.selectIsTaxed;
-                              FunT.setStateDT();
-                            },
-                            child: WidgetT.iconMini(re.selectIsTaxed ? Icons.check_box : Icons.check_box_outline_blank, size: 32),
-                        ),
+                w = re.buildUsAsync(
+                  item,
+                  state: setData,
+                  onEdite:  () async {
+                    var data = await DialogRE.showInfoRe(context, org: re);
+                    FunT.setStateD = setData;
 
-                        ExcelT.LitGrid(text: '${i + 1}', width: 28, center: true),
-                        ExcelT.LitGrid(width: 100, text: StyleT.dateInputFormatAtEpoch(re.revenueAt.toString()), center: true),
-                        ExcelT.Grid(width: 250, text: SystemT.getItemName(re.item), expand: true, textSize: 10),
-                        ExcelT.LitGrid(text: item.unit, width: 50, center: true),
-                        ExcelT.LitGrid(text: StyleT.krwInt(re.count), width: 80, center: true),
-                        ExcelT.LitGrid(text: StyleT.krwInt(re.unitPrice), width: 80, center: true),
-                        ExcelT.LitGrid(text: StyleT.krwInt(re.supplyPrice), width: 80, center: true),
-                        ExcelT.LitGrid(text: StyleT.krwInt(re.vat), width: 80, center: true),
-                        ExcelT.LitGrid(text: StyleT.krwInt(re.totalPrice), width: 80, center: true),
-                        ExcelT.LitGrid(text: re.memo, width: 200, center: true, expand: true),
-                        InkWell(
-                          onTap: () async {
-                            var data = await DialogRE.showInfoRe(context, org: re);
-                            FunT.setStateD = setData;
-
-                            WidgetT.loadingBottomSheet(context, text:'로딩중');
-                            if(data != null) {
-                              await ct.update();
-                            }
-                            Navigator.pop(context);
-                            FunT.setStateDT();
-                          },
-                            child: WidgetT.iconMini(Icons.create, size: 32),
-                        )
-                      ]
-                  ),
+                    WidgetT.loadingBottomSheet(context, text:'로딩중');
+                    if(data != null) {
+                      await ct.update();
+                    }
+                    Navigator.pop(context);
+                    FunT.setStateDT();
+                  },
                 );
-
-                if(isLedgerSelectMenu) {
-                  w = InkWell(
-                    onTap: () {
-                      if(re.isLedger) {
-                        WidgetT.showSnackBar(context, text:"이미 생성된 원장이 존재합니다.");
-                        return;
-                      }
-
-                      if(ledgerList.contains(re)) ledgerList.remove(re);
-                      else ledgerList.add(re);
-                      setData();
-                    },
-                    child: Container( child: w, color: ledgerList.contains(re) ? Colors.green.withOpacity(0.1)
-                        : re.isLedger ? Colors.red.withOpacity(0.1) : Colors.blue.withOpacity(0.1), ) ,
-                  );
-                }
 
                 reW.add(w);
                 reW.add(WidgetT.dividHorizontal(size: 0.35));
               }
+
+              int ledgerIndex = 0;
+              List<Widget> ledgerWidgets = [];
+              ledgerWidgets.add(Row(
+                children: [
+                  Expanded(child: Ledger.onTableHeader()),
+                  ButtonT.Icon( icon: Icons.refresh,
+                      onTap: () async {
+                        WidgetT.loadingBottomSheet(context);
+                        ledgerList = await DatabaseM.getLedgerRevenueList(original.csUid);
+                        Navigator.pop(context);
+                        setData();
+                      }),
+                ]
+              ));
+              ledgerList.forEach((e) {
+                ledgerWidgets.add(e.onTableUI(index: ledgerIndex++));
+                ledgerWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+              });
 
               /// 계약
               List<Widget> ctW = [];
@@ -204,18 +199,6 @@ class DialogCT extends StatelessWidget {
                         WidgetT.excelGrid(width: 200 + 28 * 2, text: SystemT.getItemName(ctl['item'] ?? ''),),
                         WidgetT.excelGrid( text: SystemT.getItemUnit(ctl['item'] ?? ''), width: 50, ),
                         WidgetT.excelGrid( width: 120,  text: StyleT.krw(unitPrice.toString()), value: unitPrice.toString(),),
-                        /*WidgetT.dividViertical(height: 28),
-                            WidgetT.excelGrid(width: 80, label: '계약수량 ' + StyleT.krw(count.toString()),),
-                            WidgetT.dividViertical(height: 28),
-                            WidgetT.excelGrid(width: 80, label: '매출수량 ' + StyleT.krw(ct.getItemRevenueCount(ctl['id'] ?? '').toString()),),
-                            WidgetT.dividViertical(height: 28),
-                            WidgetT.excelGrid(width: 80, label: '잔량 ' + StyleT.krw(ct.getItemCountRevenue(ctl['id'] ?? '').toString()),),
-                            WidgetT.dividViertical(height: 28),
-                            WidgetT.excelGrid(width: 150, label: '공급가액 ' +  StyleT.krw(supplyPrice.toString()),),
-                            WidgetT.dividViertical(height: 28),
-                            WidgetT.excelGrid(width: 100,label: '부가세 ' + StyleT.krw(vat.toString()),),
-                            WidgetT.dividViertical(height: 28),
-                            WidgetT.excelGrid(width: 100, label: '합계 ' + StyleT.krw(totalPrice.toString())),*/
                         Expanded(child: WidgetT.excelGrid( text: ctl['memo'], width: 200,),),
                       ],
                     ));
@@ -368,99 +351,15 @@ class DialogCT extends StatelessWidget {
 
               /// 일정
               List<Widget> schW = [];
-              schW.add(WidgetUI.titleRowNone([ '', '순번', '일정시간', '태그', '메모', ], [ 28, 28, 150, 150, 999, ], background: true),);
+
+              schW.add(Schedule.buildTitle());
               for(int i = 0; i < sch_list.length; i++) {
                 var sch = sch_list[i];
-
-                var w = Column(
-                  children: [
-                    Container(
-                      child: IntrinsicHeight(
-                        child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: heightSized,),
-                              WidgetT.title('', width: 28),
-                              WidgetT.excelGrid(label:'${i + 1}', width: 28),
-                              WidgetT.excelGrid(textLite: true, text: StyleT.dateFormatAtEpoch(sch.date.toString()), width: 150, ),
-                              WidgetT.excelGrid(textLite: false, text: StyleT.getSCHTag(sch.type), width: 150,),
-                              Expanded(child: WidgetT.excelGrid(textLite: true, width: 250,
-                                alignment: Alignment.centerLeft, text: sch.memo,),),
-                              InkWell(
-                                  onTap: () async {
-                                    var data = await DialogSHC.showSCHEdite(context, sch);
-                                    FunT.setStateD = setData;
-
-                                    if(data != null) {
-                                      sch_list = await DatabaseM.getSCH_CT(ct.id);
-                                      FunT.setStateDT();
-                                    }
-                                  },
-                                  child: Container( height: 28, width: 28,
-                                    child: WidgetT.iconMini(Icons.create),)
-                              ),
-                            ]
-                        ),
-                      ),
-                    ),
-                    if(sch.filesMap.isNotEmpty)
-                      Container(
-                        height: heightSized,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            SizedBox(height: 32, width: 32,),
-                            WidgetT.text('첨부파일',),
-                            SizedBox(width: 32,),
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  for(int i = 0; i < sch.filesMap.length; i++)
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        InkWell(
-                                            onTap: () async {
-                                              var downloadUrl = sch.filesMap.values.elementAt(i);
-                                              var fileName = sch.filesMap.keys.elementAt(i);
-                                              var ens = ENAES.fUrlAES(downloadUrl);
-
-                                              var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                              print(url);
-                                              await launchUrl( Uri.parse(url),
-                                                webOnlyWindowName: true ? '_blank' : '_self',
-                                              );
-                                            },
-                                            child: Container(
-                                                height: 24,
-                                                decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
-                                                child: Row(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  children: [
-                                                    SizedBox(width: 6,),
-                                                    WidgetT.title(sch.filesMap.keys.elementAt(i), size: 12),
-                                                    InkWell(
-                                                        onTap: () {
-                                                          WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
-                                                          FunT.setStateDT();
-                                                        },
-                                                        child: Container( height: 24, width: 24,
-                                                          child: WidgetT.iconMini(Icons.cancel),)
-                                                    ),
-                                                  ],
-                                                ))
-                                        ),
-                                        SizedBox(width: dividHeight*2,),
-                                      ],
-                                    ),
-                                ],
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                  ],
-                );
+                var w = sch.buildUIAsync(index: i + 1, onEdite: () async {
+                  var data = await DialogSHC.showSCHEdite(context, sch);
+                  if(data != null) {
+                  }
+                });
                 schW.add(w);
                 schW.add(WidgetT.dividHorizontal(size: 0.35));
               }
@@ -868,8 +767,6 @@ class DialogCT extends StatelessWidget {
 
                         dividCol,
                         WidgetT.title('스케쥴 및 메모', size: titleSize),
-
-
                         SizedBox(height: dividHeight,),
                         Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: schW,)),
                         SizedBox(height: dividHeight,),
@@ -894,19 +791,17 @@ class DialogCT extends StatelessWidget {
                         ),
 
                         dividCol,
+                        WidgetT.title('매입 목록', size: titleSize),
+                        SizedBox(height: dividHeight,),
+                        Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: purWidgets,)),
+
+
+                        dividCol,
                         Row(
                           children: [
-                            WidgetT.title('매입 / 매출 목록', size: titleSize),
+                            WidgetT.title('매출 목록', size: titleSize),
                             SizedBox(width: 6,),
 
-                            if(isLedgerSelectMenu) ButtonT.IconText(icon: Icons.create_new_folder,
-                            text: '${ ledgerList.length }건 원장 생성', onTap: () async {
-                              var file = await PrintFormT.ReleaseRevenue(revenueList: ledgerList); setData(); }),
-
-                            SizedBox(width: 6,),
-                            ButtonT.IconText(icon: !isLedgerSelectMenu ? Icons.add_box : Icons.cancel,
-                              text: !isLedgerSelectMenu ? "원장 생성" : "취소", onTap: () { isLedgerSelectMenu = !isLedgerSelectMenu; ledgerList.clear(); setData(); },),
-                            SizedBox(width: 6,),
                             ButtonT.IconText(icon: Icons.open_in_new_sharp, text: "출고원장 작업창으로 이동", onTap: () async {
                               var url = Uri.base.toString().split('/work').first + '/printform/releaserevenue/${ ct.id }';
                               await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self');
@@ -988,6 +883,12 @@ class DialogCT extends StatelessWidget {
                             ),
                           ],
                         ),
+
+                        dividCol,
+                        WidgetT.title('출고원장', size: titleSize),
+                        SizedBox(height: dividHeight,),
+                        Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:ledgerWidgets,)),
+
 
                         dividCol,
                         WidgetT.title('수금현황', size: titleSize),
@@ -1077,23 +978,6 @@ class DialogCT extends StatelessWidget {
                               WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
                               return;
                             }
-
-                            /*for(var p in reCreate) {
-                              p.ctUid = ct.id;
-                              p.csUid = ct.csUid;
-                              //p.vatType = currentVatType;
-
-                              await FireStoreT.updateRevenue(p);
-                              /// 지불 정보 문서 추가
-                              //if(payment == '즉시') await FireStoreT.updateTransaction(TS.fromPu(p, payType));
-                              /// 아이템 이동 거래 문서 추가
-                              //if(isAddItem) await FireStoreT.updateItemTS(ItemTS.fromPu(p), DateTime.fromMicrosecondsSinceEpoch(p.purchaseAt));
-                            }
-                            for(var ts in tslistCr) {
-                              ts.ctUid = ct.id;
-                              ts.csUid = ct.csUid;
-                              await FireStoreT.updateTransaction(ts);
-                            }*/
 
                             await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
                             original.fromJson(ct.toJson());

@@ -25,8 +25,7 @@ class LogInPage extends StatefulWidget {
 class _LogInPageState extends State<LogInPage> {
   TextEditingController emailInput = new TextEditingController();
   TextEditingController passwordInput = new TextEditingController();
-  //var menus = [ '', '통합'];
-  //var menuTs = ['대표', '이사', '실장', '과장', '대리', '주임', '사원', '통합'];
+
   var currentMenu = null;
 
   @override
@@ -88,6 +87,10 @@ class _LogInPageState extends State<LogInPage> {
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
             textInputAction: TextInputAction.none,
             keyboardType: TextInputType.text,
+            obscuringCharacter: '*',
+            obscureText: true,
+            onChanged: (str) {
+            },
             onEditingComplete: () async {
               try {
                 var id = '';
@@ -128,7 +131,7 @@ class _LogInPageState extends State<LogInPage> {
               hintStyle: StyleT.hintStyle(size: 16),
               contentPadding: EdgeInsets.all(8),
             ),
-            controller: passwordInput,
+            controller: passwordInput
           ),
         ),
         SizedBox(height: 18,),

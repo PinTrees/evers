@@ -5,6 +5,8 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/contract.dart';
+import 'package:evers/class/database/ledger.dart';
+import 'package:evers/class/database/process.dart';
 import 'package:evers/class/employee.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/helper/style.dart';
@@ -881,6 +883,26 @@ class DatabaseM {
     });
     return data;
   }
+  static dynamic getPur_withCT(String id) async {
+    List<Purchase> data = [];
+    CollectionReference coll = await FirebaseFirestore.instance.collection('purchase');
+    await coll.orderBy('purchaseAt', descending: true)
+        .where('ctUid', isEqualTo: id).where('state', whereIn: [ '' ]).get().then((value) {
+      print('get purchase data');
+      if(value.docs == null) return false;
+      print(value.docs.length);
+
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+        var ct = Purchase.fromDatabase(a.data() as Map);
+        if(ct.state == 'DEL') continue;
+        data.add(ct);
+      }
+    });
+    return data;
+  }
+
+
   static dynamic getPurchaseDelete({ String? startAt }) async {
     List<Purchase> data = [];
     CollectionReference coll = FirebaseFirestore.instance.collection('purchase');
@@ -1321,6 +1343,7 @@ class DatabaseM {
     await coll.doc(id).get().then((value) {
       print('get contract doc data');
       if(!value.exists) return false;
+      if(value.data() == null) return false;
       data = Contract.fromDatabase(value.data() as Map);
     });
     return data;
@@ -1818,6 +1841,31 @@ class DatabaseM {
     }
     return factory_list;
   }
+
+  static dynamic getLedgerRevenueList(String csUid) async {
+    List<Ledger> list = [];
+
+    await FirebaseFirestore.instance.collection('ledger/revenue/article')
+        .orderBy('date', descending: true)
+        .where('csUid', isEqualTo: csUid)
+        .where('state', isEqualTo: '')
+        .limit(25).get().then((value) {
+      if(value.docs == null) return;
+      print(value.docs.length);
+
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+        var map = a.data() as Map;
+
+        var ts = Ledger.fromDatabase(map);
+        ts.id = a.id;
+        list.add(ts);
+      }
+    });
+
+    return list;
+  }
+
   static dynamic getItemTranList({ String? startAt, int? startDate, int? lastDate, }) async {
     List<ItemTS> itemTs_list = [];
 
@@ -1873,8 +1921,83 @@ class DatabaseM {
 
     return itemTs_list;
   }
+  static dynamic getItemTranListProduct({ String? startAt, int? startDate, int? lastDate, }) async {
+    List<ItemTS> itemTs_list = [];
+
+    var mainRoot = FirebaseFirestore.instance.collection('transaction-items');
+    Query<Map<String, dynamic>> root = mainRoot.limit(25);
+    if(startAt != null)  {
+      if(startAt == '') return itemTs_list;
+      var doc = await mainRoot.doc(startAt).get();
+      if(startDate != null && lastDate != null) {
+        root = mainRoot
+            .orderBy('date', descending: true)
+            .where('date', isLessThan: lastDate)
+            .where('date', isGreaterThan: startDate)
+            .where('state', isEqualTo: "")
+            .where('type', whereIn: [ 'PR', 'FR', 'DR' ] )
+            .startAfterDocument(doc).limit(25);
+      }
+      else {
+        root = await mainRoot.orderBy('date', descending: true)
+            .where('state', isEqualTo: "")
+            .where('type', whereIn: [ 'PR', 'FR', 'DR' ] )
+            .startAfterDocument(doc).limit(25);
+      }
+    }
+    else {
+      if(startDate != null && lastDate != null) {
+        root = await mainRoot
+            .orderBy('date', descending: true)
+            .where('date', isLessThan: lastDate)
+            .where('date', isGreaterThan: startDate)
+            .where('state', isEqualTo: "")
+            .where('type', whereIn: [ 'PR', 'FR', 'DR' ] )
+            .limit(25);
+      }
+      else {
+        root = await mainRoot
+            .orderBy('date', descending: true)
+            .where('state', isEqualTo: "")
+            .where('type', whereIn: [ 'PR', 'FR', 'DR' ] )
+            .limit(25);
+      }
+    }
+
+    await root.get().then((value) {
+      if(value.docs == null) return;
+      print(value.docs.length);
+
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+        var map = a.data() as Map;
+
+        var ts = ItemTS.fromDatabase(map);
+        ts.id = a.id;
+        itemTs_list.add(ts);
+      }
+    });
+
+    return itemTs_list;
+  }
 
 
+  static dynamic getItemProcessPu(String puUid) async {
+    List<ProcessItem> itemProcessList = [];
+
+    var mainRoot = FirebaseFirestore.instance.collection('purchase/${puUid}/item-process');
+    await mainRoot.limit(50).get().then((value) {
+      if(value.docs == null) return;
+      print(value.docs.length);
+
+      value.docs.forEach((e) {
+        if(e.data() == null) return;
+        itemProcessList.add(ProcessItem.fromDatabase(e.data()));
+      });
+    });
+
+    return itemProcessList;
+  }
 
   static dynamic updateProductDWithFile(ProductD data, { Map<String, Uint8List>? files, }) async {
     if(data.id == '') data.id = data.getID();

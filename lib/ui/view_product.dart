@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/dialog/dialog_itemInventory.dart';
 import 'package:evers/dialog/dialog_itemts.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
@@ -54,6 +55,7 @@ class View_Factory extends StatelessWidget {
   List<FactoryD> factory_list = [];
   List<ProductD> product_list = [];
   List<ItemTS> itemTs_list = [];
+  List<ItemTS> itemProductList = [];
 
   bool sort = false;
   bool query = false;
@@ -126,9 +128,10 @@ class View_Factory extends StatelessWidget {
     }
     if(refresh) {
       clear();
-
       query = false; sort = false;
       pur_query = '';
+
+      itemProductList = await DatabaseM.getItemTranListProduct();
     }
 
     this.menu = menu;
@@ -767,6 +770,14 @@ class View_Factory extends StatelessWidget {
       );
 
       if(subMenu == "생산관리") {
+
+        List<Widget> productItemWidgets = [];
+        productItemWidgets.add(ItemTS.onTableHeader());
+        itemProductList.forEach((e) {
+          productItemWidgets.add(e.OnTableUI());
+          productItemWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+        });
+
         childrenW.add(Column(
           children: [
             Row(
@@ -796,10 +807,8 @@ class View_Factory extends StatelessWidget {
 
               ],
             ),
-            Container(
-              child: WidgetUI.titleRowNone([ '순번', '입출일', '구분', '품목', '단위', '수량', '단가', '합계', '', '' ],
-                  [ 32, 100, 100, 999, 50, 100, 100, 100, 100, 64 ]),
-            ),
+            for(var w in productItemWidgets) w,
+
             WidgetT.dividHorizontal(size: 0.7),
           ],
         ));
@@ -815,10 +824,6 @@ class View_Factory extends StatelessWidget {
                 InkWell(
                     onTap: () async {
                       WidgetT.showSnackBar(context, text: "개발중 입니다.");
-                      /*var result = await DialogItemTrans.showCreate(context);
-                    if(result != null) {
-
-                    }*/
                     },
                     child: Container(
                       color: Colors.grey.withOpacity(0.35),
@@ -856,73 +861,13 @@ class View_Factory extends StatelessWidget {
           var ct = await SystemT.getCt(itemTs.ctUid) ?? Contract.fromDatabase({});
 
           var item = SystemT.getItem(itemTs.itemUid);
-          var itemName = (item == null) ? itemTs.itemUid : item!.name;
-
-          w = InkWell(
+          w = itemTs.OnTableUI(index: i, cs: cs, ct: ct, item: item,
             onTap: () async {
-              await DialogCS.showPurInCs(context, cs);
-            },
-            child: Container(
-              height: 36 + divideHeight,
-              decoration: StyleT.inkStyleNone(color: Colors.transparent),
-              child: Row(
-                  children: [
-                    ExcelT.LitGrid(text: "${ i }", width: 32),
-                    ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(itemTs.date.toString()), width: 80),
-                    ExcelT.Grid(text: MetaT.itemTsType[itemTs.type] ?? 'NULL', width: 50, textSize: 10),
-
-                    ListBoxT.Rows(
-                        width: 150,
-                        expand: true,
-                        children: [
-                          TextT.OnTap(
-                            //expand: true,
-                              text: '${ cs.businessName }',
-                              onTap: () async {
-                                var result = await DialogCS.showCustomerDialog(context, org: cs);
-                                return result;
-                              }
-                          ),
-                          TextT.Lit(text: " / "),
-                          TextT.OnTap(
-                            //expand: true,
-                              text: '${ ct!.ctName }',
-                              onTap: () async {
-                                var result = await DialogCT.showInfoCt(context, ct);
-                                return result;
-                              }
-                          ),
-                        ]
-                    ),
-
-                    ExcelT.Grid(text: itemName, width: 150, textSize: 10, expand: true, alignment: Alignment.center),
-                    ExcelT.LitGrid(text: StyleT.krw(itemTs.amount.toString()),
-                        width: 80, textSize: 10, alignment: Alignment.center),
-                    ExcelT.LitGrid(text: "${itemTs.rh} RH(%)",
-                        width: 80, textSize: 10, alignment: Alignment.center),
-                    ExcelT.LitGrid(text: "${ itemTs.getStorageLC() }",
-                        width: 80, textSize: 10, alignment: Alignment.center),
-                    ExcelT.LitGrid(text: "${ itemTs.manager }",
-                        width: 80, textSize: 10, alignment: Alignment.center),
-                    //WidgetT.excelGrid(textLite: true, text:item?.unit, width: 50),
-                    InkWell(
-                      onTap: () async {
-                      },
-                      child: WidgetT.iconMini(Icons.create, size: 32),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        /* var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
-                      if(aa) {
-                        await FireStoreT.deletePu(itemTs);
-                        WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
-                      }*/
-                      },
-                      child: WidgetT.iconMini(Icons.delete, size: 32),
-                    ),
-                  ]
-              ),
-            ),
+              var result =  await DialogItemInven.showInfo(context, org: itemTs);
+              if(result != null) {
+                mainView(context, menu);
+              }
+            }
           );
 
           childrenW.add(w);

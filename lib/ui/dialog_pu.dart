@@ -16,12 +16,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../class/Customer.dart';
 import '../class/contract.dart';
 import '../class/purchase.dart';
 import '../class/system.dart';
 import '../class/transaction.dart';
+import '../helper/aes.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
@@ -1330,7 +1332,7 @@ class DialogPU extends StatelessWidget {
   ///            매입결과를 작석하지 않았거나 데이터베이스 기록이 실패했을 경우 null 이 반환됩니다.
   ///
   /// @Create YM
-  /// @Version 1.0.0
+  /// @Version 1.2.0
   static dynamic showInfoPu(BuildContext context, { Purchase? org }) async {
     var dividHeight = 6.0;
     Map<String, Uint8List> fileByteList = {};
@@ -1338,9 +1340,6 @@ class DialogPU extends StatelessWidget {
     Customer? cs;
 
     var isContractLinking = false;
-
-    var vatTypeList = [ 0, 1, ];
-    var vatTypeNameList = [ '포함', '미포함', ];
 
     var pu = Purchase.fromDatabase({});
     pu.purchaseAt = DateTime.now().microsecondsSinceEpoch;
@@ -1365,16 +1364,14 @@ class DialogPU extends StatelessWidget {
 
               List<Widget> widgetsPu = [];
               widgetsPu.add( WidgetUI.titleRowNone([ '', '매출일자', '품목', '단위', '수량', '단가', '공급가액',  'VAT', '합계', '메모', '', ],
-                [ 28, 150, 200 + 28 * 2, 50, 100, 100 + 28, 150, 100, 150, 200, 0], ));
-              widgetsPu.add(WidgetT.dividHorizontal(size: 0.7));
+                [ 28, 150, 200 + 28 * 2, 50, 50, 80 + 28, 80, 80, 80, 200, 0], lite: true, background: true ),);
 
               var item = SystemT.getItem(pu.item) ?? Item.fromDatabase({});
               pu.init();
-
               /// 매입 수정 UI
               var w = Column(
                 children: [
-                  Container( height: 36,
+                  Container( height: 32,
                     child: Row(
                         children: [
                           WidgetT.title('', width: 28),
@@ -1383,27 +1380,26 @@ class DialogPU extends StatelessWidget {
                             text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()),
                           ),
 
-                          WidgetT.excelInput(context, 'pu.info::품목', width: 200, label: '품목',
-                              onEdite: (i, data) {
+                          ExcelT.Input(context, 'pu.info::품목', width: 200, textSize: 10,
+                              onEdited: (i, data) {
                                 var item = SystemT.getItem(pu.item);
                                 if (item == null) { pu.item = data; return; }
                                 if (item.name == data) { return; }
                                 pu.item = data;
                               },
+                              setState: () { setStateS(() {}); },
                               text: SystemT.getItemName(pu.item), value: SystemT.getItemName(pu.item)),
-                          TextButton(
-                              onPressed: () async {
+                          ButtonT.Icon(
+                              icon: Icons.open_in_new_sharp,
+                              onTap: () async {
                                 Item? item = await DialogT.selectItem(context);
                                 FunT.setStateD = () { setStateS(() {}); };
                                 if(item != null) {
                                   pu.item = item.id;
                                   pu.unitPrice = item.unitPrice;
                                 }
-                                FunT.setStateDT();
-                              },
-                              style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                              child: Container( height: 28, width: 28,
-                                child: WidgetT.iconMini(Icons.add_box),)
+                                setStateS(() {});
+                              }
                           ),
 
                           TextButton(
@@ -1453,44 +1449,52 @@ class DialogPU extends StatelessWidget {
                             ),
                           ),
 
-                          WidgetT.excelGrid(label: '단위', text:item.unit, width: 50),
-                          WidgetT.excelInput(context, 'pu.info::수량', width: 100, label: '수량',
-                              onEdite: (i, data) {
+                          ExcelT.LitGrid(text:item.unit, width: 50, center: true),
+                          ExcelT.Input(context, 'pu.info::수량', width: 50, textSize: 10,
+                              onEdited: (i, data) {
                                 pu.count = int.tryParse(data) ?? 0;
                               },
+                              setState: () { setStateS(() {}); },
                               text: StyleT.krw(pu.count.toString()), value: pu.count.toString()),
-                          WidgetT.excelInput(context, 'pu.info::단가', width: 100, label: '단가',
-                            onEdite: (i, data) {
+
+                          ExcelT.Input(context, 'pu.info::단가', width: 80, textSize: 10,
+                            onEdited: (i, data) {
                               pu.unitPrice = int.tryParse(data) ?? 0;
                             },
+                            setState: () { setStateS(() {}); },
                             text: StyleT.krwInt(pu.unitPrice), value: pu.unitPrice.toString(),),
+                          ButtonT.Icon(
+                            icon: Icons.link,
+                            onTap: () async {
+                              if(item.name == '') return;
 
-                          TextButton(
-                            onPressed: () async {
                               pu.unitPrice = item.unitPrice;
-                              FunT.setStateDT();
-                            },
-                            style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                            child: (pu.unitPrice == item.unitPrice) ? WidgetT.iconMini(Icons.link, size: 28) : WidgetT.iconMini(Icons.link_off, size: 28) ,
+                              setStateS(() {});
+                            }
                           ),
 
-                          WidgetT.excelInput(context, 'info.pu.supplyPrice',
-                            width: 150, textSize: 10,
-                            onEdite: (i, data) {
+                          ExcelT.Input(context, 'info.pu.supplyPrice',
+                            width: 80, textSize: 10,
+                            onEdited: (i, data) {
                               pu.supplyPrice = int.tryParse(data) ?? 0;
                               pu.fixedSup = true;
-                            }, text: StyleT.krwInt(pu.supplyPrice), value: pu.supplyPrice.toString(),),
-
-                          WidgetT.excelInput(context, 'info.pu.vat',
-                            width: 150, textSize: 10,
-                            onEdite: (i, data) {
+                            },
+                            setState: () { setStateS(() {}); },
+                            text: StyleT.krwInt(pu.supplyPrice), value: pu.supplyPrice.toString(),),
+                          ExcelT.Input(context, 'info.pu.vat',
+                            width: 80, textSize: 10,
+                            onEdited: (i, data) {
                               pu.vat = int.tryParse(data) ?? 0;
                               pu.fixedVat = true;
-                            }, text: StyleT.krwInt(pu.vat), value: pu.vat.toString(),),
-                          WidgetT.excelGrid(width: 150,label: '합계', text: StyleT.krw(pu.totalPrice.toString()),),
-                          WidgetT.excelInput(context, 'pu.info::메모', width: 200, label: '메모',
-                            onEdite: (i, data) { pu.memo  = data ?? ''; },
+                            },
+                            setState: () { setStateS(() {}); },
+                            text: StyleT.krwInt(pu.vat), value: pu.vat.toString(),),
+                          ExcelT.LitGrid(text: StyleT.krw(pu.totalPrice.toString()), width: 80, center: true),
+                          ExcelT.Input(context, 'pu.info::메모', width: 200, textSize: 10,
+                            onEdited: (i, data) { pu.memo  = data ?? ''; },
+                            setState: () { setStateS(() {}); },
                             text: pu.memo,
+                            expand: true,
                           ),
 
                           InkWell(
@@ -1538,13 +1542,11 @@ class DialogPU extends StatelessWidget {
                         ]
                     ),
                   ),
-                  WidgetT.dividHorizontal(size: 0.35),
                   Container(
-                    height: 36 + dividHeight * 1,
+                    height: 28,
                     child: Row(
                         children: [
                           WidgetT.excelGrid( width: 178, label: '거래명세서 첨부파일', ),
-                          WidgetT.dividViertical(),
                           Expanded(
                               child: Container( padding: EdgeInsets.all(6),
                                 child: Wrap(
@@ -1552,58 +1554,28 @@ class DialogPU extends StatelessWidget {
                                   children: [
                                     SizedBox(width: dividHeight, height: 36,),
                                     for(int i = 0; i < pu.filesMap.length; i++)
-                                      InkWell(
-                                          onTap: () async {
-                                            var downloadUrl = pu.filesMap.values.elementAt(i);
-                                            var fileName = pu.filesMap.keys.elementAt(i);
-                                            print(downloadUrl);
-                                            var res = await http.get(Uri.parse(downloadUrl));
-                                            var bodyBytes = res.bodyBytes;
-                                            print(bodyBytes.length);
-                                            PDFX.showPDFtoDialog(context, data: bodyBytes, name: fileName);
-                                          },
-                                          child: Container(
-                                              decoration: StyleT.inkStyle(round: 8, stroke: 1,),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  WidgetT.iconMini(Icons.cloud_done, size: 28),
-                                                  WidgetT.title(pu.filesMap.keys.elementAt(i),),
-                                                  TextButton(
-                                                      onPressed: () {
-                                                        //pu.filesMap.remove(pu.filesMap.keys.elementAt(i));
-                                                        //FunT.setStateDT();
-                                                      },
-                                                      style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                                      child: Container( height: 28, width: 28,
-                                                        child: WidgetT.iconMini(Icons.cancel),)
-                                                  ),
-                                                ],
-                                              ))
+                                      ButtonT.IconText(
+                                        icon: Icons.cloud_done,
+                                        text: pu.filesMap.keys.elementAt(i),
+                                        onTap: () async {
+                                          var downloadUrl = pu.filesMap.values.elementAt(i);
+                                          var fileName = pu.filesMap.keys.elementAt(i);
+                                          var ens = ENAES.fUrlAES(downloadUrl);
+
+                                          var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                          print(url);
+                                          await launchUrl( Uri.parse(url),
+                                            webOnlyWindowName: true ? '_blank' : '_self',
+                                          );
+                                        },
                                       ),
                                     for(int i = 0; i < fileByteList.length; i++)
-                                      InkWell(
-                                          onTap: () {
-                                            PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
-                                          },
-                                          child: Container(
-                                              decoration: StyleT.inkStyle(round: 8, stroke: 1,),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  WidgetT.iconMini(Icons.file_copy_rounded, size: 28),
-                                                  WidgetT.title(fileByteList.keys.elementAt(i),),
-                                                  TextButton(
-                                                      onPressed: () {
-                                                        fileByteList.remove(fileByteList.keys.elementAt(i));
-                                                        FunT.setStateDT();
-                                                      },
-                                                      style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                                      child: Container( height: 28, width: 28,
-                                                        child: WidgetT.iconMini(Icons.cancel),)
-                                                  ),
-                                                ],
-                                              ))
+                                      ButtonT.IconText(
+                                        icon: Icons.file_copy_rounded,
+                                        text: fileByteList.keys.elementAt(i),
+                                        onTap: () async {
+                                          PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
+                                        },
                                       ),
                                   ],
                                 ),)),
@@ -1615,10 +1587,7 @@ class DialogPU extends StatelessWidget {
               widgetsPu.add(w);
 
               /// 매입 수정 UI
-              var widgetPU = Container(
-                decoration: StyleT.inkStyle(color: Colors.black.withOpacity(0.02), stroke: 2, strokeColor: Colors.grey.withOpacity(0.35)),
-                child: Column(children: widgetsPu,  ),
-              );
+              var widgetPU = Column(children: widgetsPu,);
 
               return AlertDialog(
                 backgroundColor: StyleT.white.withOpacity(1),
@@ -1641,7 +1610,7 @@ class DialogPU extends StatelessWidget {
                         if(!isContractLinking) Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            WidgetT.title('거래처', size: 18),
+                            TextT.Title(text: '거래처'),
                             SizedBox(height: dividHeight,),
                             Container(
                                 height: 36, width: 250, alignment: Alignment.center,
@@ -1658,7 +1627,7 @@ class DialogPU extends StatelessWidget {
                         if(isContractLinking) Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            WidgetT.title('계약명', size: 18),
+                            TextT.Title(text: '계약명'),
                             SizedBox(height: dividHeight,),
                             Container(
                                 height: 36, width: 250, alignment: Alignment.center,
@@ -1672,7 +1641,7 @@ class DialogPU extends StatelessWidget {
                         ),
                         SizedBox(height: dividHeight * 8,),
 
-                        WidgetT.title('매입정보', size: 18),
+                        TextT.Title(text: '매입정보'),
                         SizedBox(height: dividHeight,),
                         widgetPU,
                         SizedBox(height: dividHeight * 8,),
@@ -1692,8 +1661,10 @@ class DialogPU extends StatelessWidget {
                               return;
                             }
 
-                            WidgetT.loadingBottomSheet(context, text: '저장중');
-                            await DatabaseM.updatePurchase(pu, org: org, files: fileByteList);
+                            WidgetT.loadingBottomSheet(context,);
+                            var result = await pu.update(files: fileByteList);
+                            if(!result) WidgetT.showSnackBar(context, text: 'Error');
+                            else WidgetT.showSnackBar(context, text: '저장됨');
 
                             WidgetT.showSnackBar(context, text: '저장됨');
                             Navigator.pop(context); Navigator.pop(context, pu);
@@ -1733,8 +1704,6 @@ class DialogPU extends StatelessWidget {
     var heightSize = 36.0;
 
     Contract? ct;
-    Customer? cs;
-
     var payment = '매입';
     var payType = '';
 
@@ -1770,7 +1739,7 @@ class DialogPU extends StatelessWidget {
 
               List<Widget> widgetsPu = [];
               widgetsPu.add( WidgetUI.titleRowNone([ '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액',  'VAT', '합계', '메모', '', ],
-                  [ 28, 100, 200 + 28 * 2, 50, 80, 80 + 28, 80, 80, 80, 999, 0], background: true),);
+                  [ 28, 100, 200 + 28 * 2, 50, 80, 80 + 28, 80, 80, 80, 999, 0], background: true, lite: true),);
               for(int i = 0; i < pus.length; i++) {
                 Widget w = SizedBox();
                 var pu = pus[i];
@@ -2276,23 +2245,23 @@ class DialogPU extends StatelessWidget {
                     children: [
                       Expanded(child:TextButton(
                           onPressed: () async {
-                            if(ct == null) { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
-                            if(ct!.ctName  == '') { WidgetT.showSnackBar(context, text: '계약을 선택해 주세요.'); return; }
+                            if(ct == null) { WidgetT.showSnackBar(context, text: '계약은 비워둘 수 없습니다.'); return; }
+                            if(ct!.ctName  == '') { WidgetT.showSnackBar(context, text: '계약은 비워둘 수 없습니다.'); return; }
 
                             if(itemTs.length != pus.length) { WidgetT.showSnackBar(context, text: '내부 정보가 올바르지 않습니다. 창을 종료하고 다시 시도해 주세요.'); return; }
-                            if(payment == '즉시' && payType == '') { WidgetT.showSnackBar(context, text: '결제방법을 선택해 주세요.'); return;  }
+                            if(payment == '즉시' && payType == '') { WidgetT.showSnackBar(context, text: '결제방법은 비워둘 수 없습니다.'); return;  }
 
                             for(var pu in pus) {
                                 var item = SystemT.getItem(pu.item);
                                 if(item == null) {
-                                  WidgetT.showSnackBar(context, text: '품목을 재고에 추가할 수 없습니다. 품목을 다시 선택해 주세요.');
+                                  WidgetT.showSnackBar(context, text: '품목은 등록된 품목목록에서만 추가되어야 합니다.');
                                   return;
                                 }
                             }
 
                             var alert = await DialogT.showAlertDl(context, title: pu.csUid ?? 'NULL');
                             if(alert == false) {
-                              WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
+                              WidgetT.showSnackBar(context, text: '취소됨');
                               return;
                             }
 
@@ -2304,14 +2273,9 @@ class DialogPU extends StatelessWidget {
                               p.ctUid = ct!.id;
                               p.csUid = ct!.csUid;
                               p.vatType = currentVatType;
+                              p.isItemTs = true;
 
-                              /// 품목 매입아이디
-                              ///p.isItemTs = 'isAddItem';
-
-                              /// 매입정보 추가 - 매입데이터 및 거래명세서 파일 데이터
-                              await DatabaseM.updatePurchase(p, files: files);
-                              await it.update();
-                              /// 지불 정보 문서 추가
+                              await p.update(files: files, itemTs: it);
                               if(payment == '즉시') await TS.fromPu(p, payType, now: true).update();
                             }
 

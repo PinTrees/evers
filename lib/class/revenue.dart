@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 
 import '../helper/interfaceUI.dart';
 import '../helper/style.dart';
+import '../ui/ux.dart';
 import 'contract.dart';
 import 'system.dart';
 import 'transaction.dart';
@@ -144,7 +145,7 @@ class Revenue {
     return cs.businessName + '&:' + ct.ctName + '&:' + it + '&:' + memo;
   }
 
-  /// 2023.03.22 요청사항 문서 UID 발급 함수
+  /// 문서 UID 발급 함수
   /// 이 함수는 데이터베이스에서 유일한 키값 발급을 요청하고 결과를 반환합니다.
   dynamic createUid() async {
     // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
@@ -366,10 +367,24 @@ class Revenue {
   /// 이 함수는 해당 클래스를 화면에 출력합니다.
   /// 인터페이스로 변경
   /// state와 onEdite간 상태변경 모호성 추후 수정
-  Future<Widget> OnUI({ int? index, Function? state, Function? onEdite }) async {
+  Future<Widget> buildUI({ int? index, Function? state, Function? onEdite }) async {
     Item? itemData = await SystemT.getItem(item) ?? Item.fromDatabase({ 'name': item, });
     if(itemData == null) return SizedBox(height: 28,);
 
+    return buildUsAsync(itemData, onEdite: onEdite, state: state);
+  }
+
+
+  static Widget buildTitleUI() {
+    return WidgetUI.titleRowNone([ '', '순번', '매출일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', '' ],
+        [ 32, 28, 100, 999, 50, 80, 80, 80, 80, 80, 999, 32 ], background: true, lite: true);
+  }
+
+
+  /// 이 함수는 해당 클래스를 화면에 출력합니다.
+  /// 인터페이스로 변경
+  /// state와 onEdite간 상태변경 모호성 추후 수정
+  Widget buildUsAsync(Item itemData, { int? index, Function? state, Function? onEdite }) {
     return Container(
       height: 28,
       child: Row(

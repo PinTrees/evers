@@ -91,130 +91,22 @@ class DialogCS extends StatelessWidget {
 
               List<Widget> widgets = [];
 
-
-
               List<Widget> puW = [];
-              puW.add(WidgetUI.titleRowNone([ '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
-                  [ 28, 80, 200, 50, 80, 80, 80, 80, 80, 999 ], background: true));
-
-              //purs.forEach((e) => allPay += e.totalPrice );
+              puW.add(Purchase.OnTabelHeader());
               int startIndex = puIndex * pageLimit;
               for(int i = startIndex; i < startIndex + pageLimit; i++) {
                 if(i >= purs.length) break;
 
-                Widget w = SizedBox();
                 var pu = purs[i];
                 var item = SystemT.getItem(pu.item);
-                var itemName = (item == null) ? pu.item : item.name;
-                var itemUnit = (item == null) ? '' : item.unit;
 
-                w = Column(
-                  children: [
-                    Container(
-                      height: 36,
-                      child: Row(
-                          children: [
-                            ExcelT.LitGrid(center: true, text: '${i + 1}', width: 28),
-                            ExcelT.LitGrid(center: true, text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()), width: 80),
-                            ExcelT.LitGrid(center: true, text: itemName, width: 200),
-                            ExcelT.LitGrid(center: true, text: itemUnit, width: 50),
-                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.count.toString()),),
-                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.unitPrice.toString()),),
-                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.supplyPrice.toString()),),
-                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.vat.toString()),),
-                            ExcelT.LitGrid(center: true, width: 80, text: StyleT.krw(pu.totalPrice.toString()),),
-                            ExcelT.LitGrid(center: true, width: 200, text: pu.memo, expand: true),
-
-                            InkWell(
-                              onTap: () async {
-                                FilePickerResult? result;
-                                try {
-                                  result = await FilePicker.platform.pickFiles();
-                                } catch (e) {
-                                  WidgetT.showSnackBar(context, text: '파일선택 오류');
-                                  print(e);
-                                }
-                                FunT.setStateD = () { setStateS(() {}); };
-                                if(result != null){
-                                  //WidgetT.showSnackBar(context, text: '파일선택');
-                                  if(result.files.isNotEmpty) {
-                                    WidgetT.loadingBottomSheet(context, text: '거래명세서 파일을 시스템에 업로드 중입니다.');
-                                    String fileName = result.files.first.name;
-                                    print(fileName);
-                                    Uint8List fileBytes = result.files.first.bytes!;
-                                    await DatabaseM.updatePurchase(pu, files: { fileName: fileBytes });
-                                    Navigator.pop(context);
-                                  }
-                                }
-                                FunT.setStateDT();
-                              },
-                              child: WidgetT.iconMini(Icons.file_copy_rounded, size: 36),
-                            ),
-                            InkWell(
-                              onTap: () async {
-                                Purchase? tmpPu = await DialogRE.showInfoPu(context, org: pu);
-                                FunT.setStateD = () { setStateS(() {}); };
-
-                                if(tmpPu != null) {
-                                  var pu = await DatabaseM.getPurchaseDoc(tmpPu.id);
-                                  purs.removeAt(i);
-                                  purs.insert(0, pu);
-                                  FunT.setStateDT();
-                                }
-                              },
-                              child: WidgetT.iconMini(Icons.create, size: 36),
-                            ),
-                          ]
-                      ),
-                    ),
-                    if(pu.filesMap.isNotEmpty)
-                      Container(
-                        height: 32,
-                        padding: EdgeInsets.only(left: dividHeight,bottom: dividHeight),
-                        child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                  child: Container(
-                                    child: Wrap(
-                                runSpacing: dividHeight * 2, spacing: dividHeight * 2,
-                                children: [
-                                  for(int i = 0; i < pu.filesMap.length; i++)
-                                    InkWell(
-                                        onTap: () async {
-                                          var downloadUrl = pu.filesMap.values.elementAt(i);
-                                          var fileName = pu.filesMap.keys.elementAt(i);
-
-                                          var ens = ENAES.fUrlAES(downloadUrl);
-
-                                          var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                          print(url);
-                                          await launchUrl( Uri.parse(url),
-                                            webOnlyWindowName: true ? '_blank' : '_self',
-                                          );
-                                          FunT.setStateMain();
-                                        },
-                                        child: Container(
-                                            color: Colors.grey.withOpacity(0.15),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                WidgetT.iconMini(Icons.cloud_done, size: 24),
-                                                WidgetT.text(pu.filesMap.keys.elementAt(i), size: 10),
-                                                SizedBox(width: dividHeight,)
-                                              ],
-                                            ))
-                                    ),
-                                ],
-                              ),)),
-                            ]
-                        ),
-                      ),
-                  ],
-                );
+                var w = pu.OnTableUI(context,
+                    setState: () { setStateS(() {}); }, index: i + 1,
+                  itemName: item != null ? item.name : '', itemUnit: item!=null? item.unit : '');
                 puW.add(w);
                 puW.add(WidgetT.dividHorizontal(size: 0.35));
               }
+
               puW.add(SizedBox(height: dividHeight,));
               puW.add(
                   Row(
@@ -1234,7 +1126,6 @@ class DialogCS extends StatelessWidget {
     WidgetT.loadingBottomSheet(context);
     var dividHeight = 6.0;
 
-    ///List<Purchase> purs = await FireStoreT.getPur_withCS(cs.id);
     List<Purchase> purs = await cs.getPurchase();
     purs.sort((a, b) => b.purchaseAt.compareTo(a.purchaseAt) );
 
@@ -1280,122 +1171,7 @@ class DialogCS extends StatelessWidget {
                 var itemName = (item == null) ? pu.item : item.name;
                 var itemUnit = (item == null) ? '' : item.unit;
 
-                w = Column(
-                  children: [
-                    InkWell(
-                      onTap: () {
-
-                      },
-                      child: Container(
-                        height: 36,
-                        child: Row(
-                            children: [
-                              InkWell(
-                                  onTap: () async {
-                                    FunT.setStateDT();
-                                  },
-                                  child: WidgetT.iconMini(Icons.check_box_outline_blank, size: 28),
-                              ),
-                              WidgetT.excelGrid( width: 28, label: '${i + 1}',),
-                              WidgetT.excelGrid( width: 100, text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()),),
-                              WidgetT.excelGrid( width: 150 + 28 * 2, text: itemName,),
-                              WidgetT.excelGrid(text: itemUnit, width: 50),
-                              WidgetT.excelGrid(textLite: true, width: 80, text: StyleT.krw(pu.count.toString()),),
-                              WidgetT.excelGrid(textLite: true, width: 80 + 28, text: StyleT.krw(pu.unitPrice.toString()),),
-                              WidgetT.excelGrid(textLite: true, width: 80, text: StyleT.krw(pu.supplyPrice.toString()),),
-                              WidgetT.excelGrid(textLite: true,  width: 80, text: StyleT.krw(pu.vat.toString()), ),
-                              WidgetT.excelGrid(textLite: true, width: 80, text: StyleT.krw(pu.totalPrice.toString()),),
-                              Expanded(
-                                child: WidgetT.excelGrid(textLite: true, width: 200, text: pu.memo,),
-                              ),
-                              InkWell(
-                                  onTap: () async {
-                                    FilePickerResult? result;
-                                    try {
-                                      result = await FilePicker.platform.pickFiles();
-                                    } catch (e) {
-                                      WidgetT.showSnackBar(context, text: '파일선택 오류');
-                                      print(e);
-                                    }
-                                    FunT.setStateD = () { setStateS(() {}); };
-                                    if(result != null){
-                                      //WidgetT.showSnackBar(context, text: '파일선택');
-                                      if(result.files.isNotEmpty) {
-                                        WidgetT.loadingBottomSheet(context, text: '거래명세서 파일을 시스템에 업로드 중입니다.');
-                                        String fileName = result.files.first.name;
-                                        print(fileName);
-                                        Uint8List fileBytes = result.files.first.bytes!;
-                                        await DatabaseM.updatePurchase(pu, files: { fileName: fileBytes });
-                                        Navigator.pop(context);
-                                      }
-                                    }
-                                    FunT.setStateDT();
-                                  },
-                                  child: WidgetT.iconMini(Icons.file_copy_rounded, size: 36),
-                              ),
-                              InkWell(
-                                onTap: () async {
-                                  Purchase? tmpPu = await DialogRE.showInfoPu(context, org: pu);
-                                  FunT.setStateD = () { setStateS(() {}); };
-
-                                  if(tmpPu != null) {
-                                    var pu = await DatabaseM.getPurchaseDoc(tmpPu.id);
-                                    purs.removeAt(i);
-                                    purs.insert(0, pu);
-                                    FunT.setStateDT();
-                                  }
-                                },
-                                child: WidgetT.iconMini(Icons.create, size: 36),
-                              ),
-                            ]
-                        ),
-                      ),
-                    ),
-                    if(pu.filesMap.isNotEmpty)
-                      Container(
-                      height: 36, padding: EdgeInsets.only(bottom: dividHeight),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              WidgetT.excelGrid( textLite: true, width: 150 + 28 * 2, text: '거래명세서 첨부파일', ),
-                              Expanded(child: Container(   child: Wrap(
-                                runSpacing: dividHeight * 2, spacing: dividHeight * 2,
-                                children: [
-                                  for(int i = 0; i < pu.filesMap.length; i++)
-                                    InkWell(
-                                        onTap: () async {
-                                          var downloadUrl = pu.filesMap.values.elementAt(i);
-                                          var fileName = pu.filesMap.keys.elementAt(i);
-
-                                          var ens = ENAES.fUrlAES(downloadUrl);
-
-                                          var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                          print(url);
-                                          await launchUrl( Uri.parse(url),
-                                            webOnlyWindowName: true ? '_blank' : '_self',
-                                          );
-                                          FunT.setStateMain();
-                                        },
-                                        child: Container(
-                                          color: Colors.grey.withOpacity(0.15),
-                                            padding: EdgeInsets.all(0), 
-                                            child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            WidgetT.iconMini(Icons.cloud_done, size: 28),
-                                            WidgetT.text(pu.filesMap.keys.elementAt(i), size: 12),
-                                            SizedBox(width: dividHeight,)
-                                          ],
-                                        ))
-                                    ),
-                                ],
-                              ),)),
-                            ]
-                        ),
-                      ),
-                  ],
-                );
-                puW.add(w);
+                puW.add(pu.OnTableUI(context, index: i + 1, itemUnit: itemUnit, itemName: itemName));
                 puW.add(WidgetT.dividHorizontal(size: 0.35));
               }
               puW.add(SizedBox(height: dividHeight,));

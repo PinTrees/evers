@@ -1,15 +1,31 @@
 
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/system.dart';
 import 'package:evers/class/transaction.dart';
+import 'package:evers/class/widget/button.dart';
+import 'package:evers/class/widget/excel.dart';
+import 'package:evers/dialog/dialog_itemInventory.dart';
+import 'package:evers/helper/firebaseCore.dart';
+import 'package:evers/ui/dialog_pu.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../helper/aes.dart';
+import '../helper/interfaceUI.dart';
+import '../helper/style.dart';
+import '../ui/dialog_revenue.dart';
+import '../ui/ux.dart';
 import 'Customer.dart';
 import 'contract.dart';
+import 'database/item.dart';
 
 class Purchase {
   var state = '';
@@ -30,6 +46,7 @@ class Purchase {
   var totalPrice = 0;
   var paymentAt = 0;
   var purchaseAt = 0;
+  var updateAt = 0;
 
   var isItemTs = false;
 
@@ -50,13 +67,17 @@ class Purchase {
     totalPrice = json['totalPrice'] ?? 0;
     paymentAt = json['paymentAt'] ?? 0;
     purchaseAt = json['purchaseAt'] ?? 0;
+    updateAt = json['updateAt'] ?? 0;
+
     memo = json['memo'] ?? '';
     filesMap = (json['filesMap'] == null) ? {} : json['filesMap'] as Map;
 
     fixedVat = json['fixedVat'] ?? false;
     fixedSup = json['fixedSup'] ?? false;
+    isItemTs = json['isItemTs'] ?? false;
     init();
   }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -72,9 +93,12 @@ class Purchase {
       'totalPrice': totalPrice,
       'paymentAt': paymentAt,
       'purchaseAt': purchaseAt,
+      'updateAt': updateAt,
+
       'memo': memo,
       'fixedVat': fixedVat,
       'fixedSup': fixedSup,
+      'isItemTs': isItemTs,
       'filesMap': filesMap as Map,
     };
   }
@@ -122,6 +146,285 @@ class Purchase {
   }
 
 
+
+  dynamic getHistory() async {
+    List<Purchase> history = [];
+   /* await FirebaseFirestore.instance.collection('purchase/${id}/history').in.get().then((value) {
+      if(value.docs == null) return;
+      print(value.docs.length);
+
+      *//*for(var a in value.docs) {
+        if(a.data() == null) continue;
+        var map = a.data() as Map;
+
+        var ts = ItemTS.fromDatabase(map);
+        ts.id = a.id;
+        itemTs_list.add(ts);
+      }*//*
+    });*/
+    return history;
+  }
+
+  dynamic createUid() async {
+    var dateIdDay = DateStyle.dateYearMD(purchaseAt);
+    var dateIdMonth = DateStyle.dateYearMM(purchaseAt);
+
+    var db = FirebaseFirestore.instance;
+    final refMeta = db.collection('meta/uid/dateM-purchase').doc(dateIdMonth);
+
+    return await db.runTransaction((transaction) async {
+      final snMeta = await transaction.get(refMeta);
+
+      /// 개수는 100% 트랜잭션을 보장할 수 없음
+      /// 고유한 형식만 보장
+      /// 개수가 업데이트된 후 문서 저장에 실패할 경우 예외처리 안함
+      if(snMeta.exists) {
+        if((snMeta.data() as Map)[dateIdDay] != null) {
+          var currentRevenueCount = (snMeta.data() as Map)[dateIdDay] as int;
+          currentRevenueCount++;
+          id = '$dateIdDay-$currentRevenueCount';
+          transaction.update(refMeta, { dateIdDay: FieldValue.increment(1)});
+        }
+        else {
+          id = '$dateIdDay-1';
+          transaction.update(refMeta, { dateIdDay: 1});
+        }
+      } else {
+        id = '$dateIdDay-1';
+        transaction.set(refMeta, { dateIdDay: 1 });
+      }
+    }).then(
+            (value) { print("meta/date-M/purchase UID successfully updated createUid!"); return true; },
+        onError: (e) { print("Error createUid() $e"); return false; }
+    );
+  }
+
+  Future<bool> update({ Map<String, Uint8List>? files, ItemTS? itemTs}) async {
+    var create = false;
+    var result = false;
+
+    if(id == '') { await createUid(); create = true; }
+    if(id == '') return result;
+
+    updateAt = DateTime.now().microsecondsSinceEpoch;
+
+    Purchase? org;
+    if(!create) {
+      org = await DatabaseM.getPurchaseDoc(id);
+      if(org != null) org!.id = SystemT.generateRandomString(16);
+    }
+
+    var orgHistoryDate = 0;
+    var orgDateId = '-';
+    var orgDateQuarterId = '-';
+    var orgDateIdHarp = '-';
+    if(org != null) {
+      orgHistoryDate = org.updateAt == 0 ? org.purchaseAt : org.updateAt;
+      orgDateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(org.purchaseAt));
+      orgDateQuarterId = DateStyle.dateYearsQuarter(org.purchaseAt);
+      orgDateIdHarp = DateStyle.dateYearsHarp(org.purchaseAt);
+    }
+
+    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(purchaseAt));
+    var dateIdHarp = DateStyle.dateYearsHarp(purchaseAt);
+    var dateIdQuarter = DateStyle.dateYearsQuarter(purchaseAt);
+    var searchText = await getSearchText();
+
+    /// 거래명세서 파일 업로드
+    if(files != null) {
+      try {
+        for(int i = 0; i < files.length; i++) {
+          var f = files.values.elementAt(i);
+          var k = files.keys.elementAt(i);
+
+          if(filesMap[k] != null) continue;
+
+          final mountainImagesRef = FirebaseStorage.instance.ref().child("purchase/${id}/${k}");
+          await mountainImagesRef.putData(f);
+          var url = await mountainImagesRef.getDownloadURL();
+          if(url == null) {
+            print('pur file upload failed');
+            continue;
+          }
+
+          filesMap[k] = url;
+        }
+      } catch (e) {
+        print(e);
+      }
+    }
+
+    var db = FirebaseFirestore.instance;
+    /// 메인문서 기록
+    final docRef = db.collection("purchase").doc(id);
+    /// 이전기록 히스토리 문서경로
+    final docHistoryRef = (org != null) ? docRef.collection("history").doc(orgHistoryDate.toString()) : null;
+    /// 월별 매입기록 읽기 효율화
+    final dateRef = db.collection('meta/date-m/purchase').doc(dateId);
+    final orgDateRef = db.collection('meta/date-m/purchase').doc(orgDateId);
+    /// 거래처 총매입 개수 읽기 효율화
+    final csRef = db.collection('customer').doc(csUid);
+    /// 거래처 매입문서 읽기 효율화
+    final csDetailRef = db.collection('customer/${csUid}/cs-dateH-purchase').doc(dateIdHarp);
+    final orgCsDetailRef = db.collection('customer/${csUid}/cs-dateH-purchase').doc(orgDateIdHarp);
+    /// 검색 기록 문서 경로로
+    final searchRef = db.collection('meta/search/dateQ-purchase').doc(dateIdQuarter);
+    final orgSearchRef = db.collection('meta/search/dateQ-purchase').doc(orgDateQuarterId);
+    final itemInvenRef = db.collection('meta/itemInven/${item}').doc(dateIdQuarter);
+
+    var itemRef = null;
+    if(isItemTs) {
+      if(itemTs == null) {
+        itemTs = await DatabaseM.getItemTrans(id);
+        if(itemTs != null) itemTs.fromPu(this);
+        else itemTs = ItemTS.fromPu(this);
+      }
+      itemRef = db.collection('transaction-items').doc(id);
+    }
+
+    await db.runTransaction((transaction) async {
+      final docRefSn = await transaction.get(docRef);
+      final docHistorySn = docHistoryRef != null ? await transaction.get(docHistoryRef) : null;
+      final dateRefSn = await transaction.get(dateRef);
+      final orgDateRefSn = await transaction.get(orgDateRef);
+      final csDetailRefSn = await transaction.get(csDetailRef);
+      final searchRefSn = await transaction.get(searchRef);
+      final orgSearchSn = await transaction.get(orgSearchRef);
+      final orgCsDetailSn = await transaction.get(orgCsDetailRef);
+      final itemInvenSn = await transaction.get(itemInvenRef);
+
+      DocumentSnapshot<Map<String, dynamic>>? itemSn = null;
+      if(itemRef != null) itemSn = await transaction.get(itemRef);
+
+
+      if(org != null) {
+        if(orgDateRefSn.exists && dateId != orgDateId && orgDateId != '-') {
+          transaction.update(orgDateRef, {'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        }
+        if(orgSearchSn.exists && dateIdQuarter != orgDateQuarterId && orgDateQuarterId != '-') {
+          transaction.update(orgSearchRef, {'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        }
+        if(orgCsDetailSn.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-') {
+          transaction.update(orgCsDetailRef, {'list\.${org.id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        }
+      }
+
+      /// 품목 UID 개별 메타데이터 하위 날짜분기 하위 거래목록으로 저장
+      if(itemInvenSn.exists) transaction.update(itemInvenRef, { id: count.abs() });
+      else transaction.set(itemInvenRef, { id: count.abs() });
+
+      /// 품목 매입의 경우 매입 문서와 함께 추가
+      if(itemSn != null) {
+        if(itemSn!.exists) transaction.update(itemRef, itemTs!.toJson());
+        else transaction.set(itemRef, itemTs!.toJson());
+      }
+
+      /// 과거 기록추가
+      if(docHistorySn != null) {
+        transaction.set(docHistoryRef!, org!.toJson());
+      }
+
+      /// 매입문서 기조 저장경로
+      if(docRefSn.exists) {
+        transaction.update(docRef, toJson());
+      } else {
+        transaction.set(docRef, toJson());
+      }
+
+      /// 추후 리스트내부 목록으로 저장이 아닌 필드값으로 변경
+      if(dateRefSn.exists) {
+        transaction.update(dateRef, {'list\.${id}': toJson(), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+      } else {
+        transaction.set(dateRef, {  'list': { id: toJson() }, 'updateAt': DateTime.now().microsecondsSinceEpoch, });
+      }
+
+      /// 추후 리스트내부 목록으로 저장이 아닌 필드값으로 변경
+      /// 기존 모든 기록 마이그레이션 필요
+      if(csDetailRefSn.exists) {
+        transaction.update(csDetailRef, { 'list\.${id}': toJson(),  'updateAt': DateTime.now().microsecondsSinceEpoch, });
+      } else {
+        transaction.set(csDetailRef, { 'list': { id: toJson() }, 'updateAt': DateTime.now().microsecondsSinceEpoch, });
+      }
+
+      if(create) transaction.update(csRef, {'puCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+
+      if(searchRefSn.exists) {
+        transaction.update(searchRef, { 'list\.${id}': searchText, 'updateAt': DateTime.now().microsecondsSinceEpoch, },);
+      } else {
+        transaction.set(searchRef, { 'list' : { id : searchText },   'updateAt': DateTime.now().microsecondsSinceEpoch,  },);
+      }
+    }).then(
+          (value) {
+            print("DocumentSnapshot successfully updated!");
+            result = true;
+            },
+      onError: (e) { print("Error updatePurchase() $e");
+            result = false;
+            },
+    );
+
+    return result;
+  }
+  dynamic delete() async {
+    state = 'DEL';
+    updateAt = DateTime.now().microsecondsSinceEpoch;
+    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(purchaseAt));
+    var dateIdHarp = DateStyle.dateYearsHarp(purchaseAt);
+    var dateIdQuarter = DateStyle.dateYearsQuarter(purchaseAt);
+    var searchText = await getSearchText();
+
+    ItemTS? itemTS = await DatabaseM.getItemTrans(id);
+    itemTS!.state = "DEL";
+
+    var db = FirebaseFirestore.instance;
+    /// 메인문서 기록
+    final docRef = db.collection("purchase").doc(id);
+    /// 월별 매입기록 읽기 효율화
+    final dateRef = db.collection('meta/date-m/purchase').doc(dateId);
+    /// 거래처 총매입 개수 읽기 효율화
+    final csRef = db.collection('customer').doc(csUid);
+    /// 거래처 매입문서 읽기 효율화
+    final csDetailRef = db.collection('customer/${csUid}/cs-dateH-purchase').doc(dateIdHarp);
+    /// 검색 기록 문서 경로로
+    final searchRef = db.collection('meta/search/dateQ-purchase').doc(dateIdQuarter);
+    var itemRef = null;
+    if(isItemTs) {
+      itemRef = db.collection('transaction-items').doc(id);
+    }
+    db.runTransaction((transaction) async {
+      final docRefSn = await transaction.get(docRef);
+      final dateRefSn = await transaction.get(dateRef);
+      final csDetailRefSn = await transaction.get(csDetailRef);
+      final searchRefSn = await transaction.get(searchRef);
+      DocumentSnapshot<Map<String, dynamic>>? itemSn = null;
+      if(itemRef != null) itemSn = await transaction.get(itemRef);
+
+      /// 품목 매입의 경우 매입 문서와 함께 추가
+      if(itemSn != null) {
+        if(itemSn!.exists) transaction.update(itemRef, itemTS!.toJson());
+      }
+
+      /// 매입문서 기조 저장경로
+      if(docRefSn.exists) transaction.update(docRef, toJson());
+
+      /// 추후 리스트내부 목록으로 저장이 아닌 필드값으로 변경
+      if(dateRefSn.exists) transaction.update(dateRef, {'list\.${id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+
+      /// 추후 리스트내부 목록으로 저장이 아닌 필드값으로 변경
+      /// 기존 모든 기록 마이그레이션 필요
+      if(csDetailRefSn.exists) transaction.update(csDetailRef, { 'list\.${id}': null,  'updateAt': DateTime.now().microsecondsSinceEpoch, });
+
+      transaction.update(csRef, {'puCount': FieldValue.increment(-1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+
+      if(searchRefSn.exists) transaction.update(searchRef, { 'list\.${id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch, },);
+    }).then(
+          (value) => print("DocumentSnapshot successfully updated!"),
+      onError: (e) => print("Error updatePurchase() $e"),
+    );
+  }
+
+
+
   dynamic setUpdate() {
     var db = FirebaseFirestore.instance;
     final docRef = db.collection("purchase").doc(id);
@@ -135,7 +438,122 @@ class Purchase {
     );
   }
 
-  dynamic delete() {
+  static dynamic OnTabelHeader() {
+    return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
+        [ 28, 80, 200, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
+  }
+  dynamic OnTableUI(BuildContext context, { Function? setState, int? index, String? itemName, String? itemUnit }) {
+    var w = Column(
+      children: [
+        Container(
+          height: 28,
+          child: Row(
+              children: [
+                ExcelT.LitGrid(center: true, text: index == null ? "" : '${index}', width: 28),
+                ExcelT.LitGrid(center: true, text: StyleT.dateInputFormatAtEpoch(purchaseAt.toString()), width: 80),
+                ExcelT.LitGrid(center: true, text: itemName ?? '', width: 200),
+                ExcelT.LitGrid(center: true, text: itemUnit, width: 50),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(count),),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(unitPrice),),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(supplyPrice),),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(vat),),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(totalPrice),),
+                ExcelT.LitGrid(center: true, width: 200, text: memo, expand: true),
 
+                ButtonT.Icon(
+                  icon: Icons.file_copy_rounded,
+                  onTap: () async {
+                    FilePickerResult? result;
+                    try {
+                      result = await FilePicker.platform.pickFiles();
+                    } catch (e) {
+                      WidgetT.showSnackBar(context, text: '파일선택 오류');
+                      print(e);
+                    }
+
+                    if(result != null){
+                      if(result.files.isNotEmpty) {
+                        WidgetT.loadingBottomSheet(context, text: '거래명세서 파일을 시스템에 업로드 중입니다.');
+                        String fileName = result.files.first.name;
+                        print(fileName);
+                        Uint8List fileBytes = result.files.first.bytes!;
+                        await DatabaseM.updatePurchase(this, files: { fileName: fileBytes });
+                        Navigator.pop(context);
+                      }
+                    }
+                    if(setState != null) setState();
+                  },
+                ),
+                InkWell(
+                  onTap: () async {
+                    Purchase? tmpPu = await DialogPU.showInfoPu(context, org: this);
+                    if(setState != null) setState();
+                  },
+                  child: WidgetT.iconMini(Icons.create, size: 36),
+                ),
+                isItemTs ? ButtonT.IconText(
+                  icon: Icons.account_tree,
+                  text: '품목확인',
+                  color: Colors.transparent,
+                  onTap: () async {
+                    var itemTs = await DatabaseM.getItemTrans(id);
+                    if(itemTs == null) return;
+
+                    var result = await DialogItemInven.showInfo(context, org: itemTs);
+                    if(result == null) {}
+                    else {}
+
+                    if(setState != null) setState();
+                  },
+                )
+                : SizedBox(),
+              ]
+          ),
+        ),
+        if(filesMap.isNotEmpty)
+          Container(
+            height: 32,
+            padding: EdgeInsets.only(left: 6, bottom: 6),
+            child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                      child: Container(
+                        child: Wrap(
+                          runSpacing: 6 * 2, spacing: 6 * 2,
+                          children: [
+                            for(int i = 0; i < filesMap.length; i++)
+                              InkWell(
+                                  onTap: () async {
+                                    var downloadUrl = filesMap.values.elementAt(i);
+                                    var fileName = filesMap.keys.elementAt(i);
+
+                                    var ens = ENAES.fUrlAES(downloadUrl);
+
+                                    var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                    print(url);
+                                    await launchUrl( Uri.parse(url),
+                                      webOnlyWindowName: true ? '_blank' : '_self',
+                                    );
+                                  },
+                                  child: Container(
+                                      color: Colors.grey.withOpacity(0.15),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          WidgetT.iconMini(Icons.cloud_done, size: 24),
+                                          WidgetT.text(filesMap.keys.elementAt(i), size: 10),
+                                          SizedBox(width: 6,)
+                                        ],
+                                      ))
+                              ),
+                          ],
+                        ),)),
+                ]
+            ),
+          ),
+      ],
+    );
+    return w;
   }
 }

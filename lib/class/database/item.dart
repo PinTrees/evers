@@ -3,14 +3,19 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/ui/ux.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../helper/firebaseCore.dart';
+import '../../helper/interfaceUI.dart';
 import '../Customer.dart';
 import '../contract.dart';
 import '../revenue.dart';
 import '../system.dart';
+import '../widget/excel.dart';
+import '../widget/list.dart';
+import '../widget/text.dart';
 
 /// 품목 선언 파일 변경
 ///
@@ -148,10 +153,27 @@ class ItemTS {
     csUid = purchase.csUid;
     ctUid = purchase.ctUid;
     date = purchase.purchaseAt;
+    amount = purchase.count.toDouble();
+    unitPrice = purchase.unitPrice;
 
     var item = SystemT.getItem(itemUid);
     if(item == null) return;
   }
+
+  void fromPu(Purchase pu) {
+    type = 'PU';
+    rpUid = pu.id;
+    itemUid = pu.item;
+    csUid = pu.csUid;
+    ctUid = pu.ctUid;
+    date = pu.purchaseAt;
+    amount = pu.count.toDouble();
+    unitPrice = pu.unitPrice;
+
+    var item = SystemT.getItem(itemUid);
+    if(item == null) return;
+  }
+
   Map<String, dynamic> toJson() {
     return {
      'id' : id,
@@ -235,12 +257,9 @@ class ItemTS {
     var create = false;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(date));
 
-    // 추후 아이디 발급 형태 
     if(id == '')  { create = true; }
     if(create) await createUID();
     if(id == '') return false;
-    // 현재까지 정상적으로 실행된 경우
-    // id 존재
 
     ItemTS? org = await DatabaseM.getItemTrans(id);
 
@@ -348,5 +367,80 @@ class ItemTS {
 
   dynamic delete() async {
 
+  }
+
+
+  static Widget onTableHeader() {
+    return WidgetUI.titleRowNone([ '순번', '입출일', '구분', '품목', '단위', '수량', '단가', '합계', '', '' ],
+        [ 32, 100, 100, 999, 50, 100, 100, 100, 100, 64 ]);
+  }
+  Widget OnTableUI({int? index, Customer? cs, Function? onCs, Contract? ct, Item? item,
+    Function? onTap,
+  }) {
+    return InkWell(
+      onTap: () {
+        if(onTap != null) onTap();
+      },
+      child: Container(
+        height: 36,
+        decoration: StyleT.inkStyleNone(color: Colors.transparent),
+        child: Row(
+            children: [
+              ExcelT.LitGrid(text: "${ index ?? 0 + 1 }", width: 32),
+              ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(date.toString()), width: 80),
+              ExcelT.Grid(text: MetaT.itemTsType[type] ?? 'NULL', width: 50, textSize: 10),
+
+              ListBoxT.Rows(
+                  width: 150,
+                  expand: true,
+                  children: [
+                    TextT.OnTap(
+                      //expand: true,
+                        text: '${ cs == null ? '-' : cs.businessName }',
+                        onTap: () async {
+                          if(onCs != null) onCs();
+                        }
+                    ),
+                    TextT.Lit(text: " / "),
+                    TextT.OnTap(
+                      //expand: true,
+                        text: '${ ct == null ? '-' : ct.ctName }',
+                        onTap: () async {
+                          /*var result = await DialogCT.showInfoCt(context, ct);
+                          return result;*/
+                        }
+                    ),
+                  ]
+              ),
+
+              ExcelT.Grid(text: item == null ? '-' : item.name, width: 150, textSize: 10, expand: true, alignment: Alignment.center),
+              ExcelT.LitGrid(text: StyleT.krw(amount.toString()),
+                  width: 80, textSize: 10, alignment: Alignment.center),
+              ExcelT.LitGrid(text: "${rh} RH(%)",
+                  width: 80, textSize: 10, alignment: Alignment.center),
+              ExcelT.LitGrid(text: "${ getStorageLC() }",
+                  width: 80, textSize: 10, alignment: Alignment.center),
+              ExcelT.LitGrid(text: "${ manager }",
+                  width: 80, textSize: 10, alignment: Alignment.center),
+              //WidgetT.excelGrid(textLite: true, text:item?.unit, width: 50),
+              InkWell(
+                onTap: () async {
+                },
+                child: WidgetT.iconMini(Icons.create, size: 32),
+              ),
+              InkWell(
+                onTap: () async {
+                  /* var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
+                      if(aa) {
+                        await FireStoreT.deletePu(itemTs);
+                        WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
+                      }*/
+                },
+                child: WidgetT.iconMini(Icons.delete, size: 32),
+              ),
+            ]
+        ),
+      ),
+    );
   }
 }

@@ -3,13 +3,19 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evers/class/widget/button.dart';
+import 'package:evers/class/widget/excel.dart';
 import 'package:evers/helper/style.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../helper/aes.dart';
 import '../helper/firebaseCore.dart';
+import '../helper/interfaceUI.dart';
+import '../ui/ux.dart';
 
 class Schedule {
   var id = '';
@@ -165,6 +171,76 @@ class Schedule {
     );
 
     return true;
+  }
+
+  static Widget buildTitle() {
+    return WidgetUI.titleRowNone([ '순번', '일정시간', '태그', '메모', ], [ 28, 150, 150, 999, ], background: true, lite: true);
+  }
+
+  Widget buildUIAsync({ int? index, Function? onEdite, }) {
+    var w = Column(
+      children: [
+        Container(
+          child: IntrinsicHeight(
+            child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ExcelT.LitGrid(text: '${index ?? 0 + 1}', width: 28),
+                  ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(date.toString()), width: 150),
+                  ExcelT.Grid(text: StyleT.getSCHTag(type), width: 150, textSize: 10),
+                  ExcelT.LitGrid(text: memo, width: 250, expand: true, multiLine: true),
+
+                  InkWell(
+                      onTap: () {
+                        if(onEdite != null) onEdite();
+                      },
+                      child: Container( height: 28, width: 28,
+                        child: WidgetT.iconMini(Icons.create),)
+                  ),
+                ]
+            ),
+          ),
+        ),
+        if(filesMap.isNotEmpty)
+          Container(
+            height: 28,
+            margin: EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      for(int i = 0; i < filesMap.length; i++)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ButtonT.IconText(
+                                icon: Icons.file_copy_rounded,
+                                text: filesMap.keys.elementAt(i),
+                                color: Colors.grey.withOpacity(0.15),
+                                onTap: () async {
+                                  var downloadUrl = filesMap.values.elementAt(i);
+                                  var fileName = filesMap.keys.elementAt(i);
+                                  var ens = ENAES.fUrlAES(downloadUrl);
+
+                                  var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                  print(url);
+                                  await launchUrl( Uri.parse(url),
+                                    webOnlyWindowName: true ? '_blank' : '_self',
+                                  );
+                                })
+                          ],
+                        ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+      ],
+    );
+    return w;
   }
 }
 

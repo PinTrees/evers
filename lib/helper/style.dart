@@ -205,10 +205,16 @@ class StyleT {
   static String dateFormat(DateTime date) {
     return DateFormat('yyyy-MM-dd').format(date) ?? '';
   }
+
   static String dateFormatBarAtEpoch(String epoch) {
     var epochInt = int.tryParse(epoch);
     if(epochInt == null) return ' - ';
     return DateFormat('yyyy-MM-dd').format(DateTime.fromMicrosecondsSinceEpoch(epochInt));
+  }
+
+  static String dateFormatBarAtEpochInt(int epoch) {
+    if(epoch == null) return ' - ';
+    return DateFormat('yyyy-MM-dd').format(DateTime.fromMicrosecondsSinceEpoch(epoch));
   }
 
   static String dateFormatYYMMDD(int ephoce) {

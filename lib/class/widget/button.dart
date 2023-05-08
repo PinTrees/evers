@@ -17,8 +17,12 @@ class ButtonT extends StatelessWidget {
   static Map<String, TextEditingController> textInputs = {};
   static Map<String, bool> isActive = {};
 
-  static Widget Icon({IconData? icon, Function? onTap}) {
-    return InkWell(
+  static Widget Icon({IconData? icon, Function? onTap, Widget? leaging}) {
+    if(leaging != null) {
+
+    }
+
+    var w = InkWell(
       onTap: () async {
         if(onTap != null) return await onTap();
       },
@@ -30,6 +34,9 @@ class ButtonT extends StatelessWidget {
         ),
       ),
     );
+
+
+    return w;
   }
 
   static Widget IconText({ String? text, IconData? icon, Function? onTap,
