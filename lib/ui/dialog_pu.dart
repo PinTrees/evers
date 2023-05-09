@@ -1324,6 +1324,280 @@ class DialogPU extends StatelessWidget {
   }
 
 
+  /// 이 함수는 일반 매입추가 다이얼로그를 실행하고 결과를 반환합니다.
+  /// showCreatePu 함수가 마이그레이션 되었습니다.
+  ///
+  /// @return pu 매입결과를 작성했을경우 작성기록이 반환됩니다.
+  ///            매입결과를 작석하지 않았거나 데이터베이스 기록이 실패했을 경우 null 이 반환됩니다.
+  ///
+  /// @Create YM
+  /// @Version 1.0.0
+  static dynamic showCreateNormalPuWithCS(BuildContext context, Customer cs) async {
+    var dividHeight = 6.0;
+    var heightSize = 36.0;
+
+    List<Map<String, Uint8List>> fileByteList = [];
+    var payment = '매입';
+    var payType = '';
+
+    var vatTypeList = [ 0, 1, ];
+    var vatTypeNameList = [ '포함', '미포함', ];
+    var currentVatType = 0;
+
+    List<Purchase> pus = [];
+    var pu = Purchase.fromDatabase({});
+    pu.purchaseAt = DateTime.now().microsecondsSinceEpoch;
+
+    pus.add(pu);
+    fileByteList.add({});
+
+    bool? aa = await showDialog(
+        context: context,
+        barrierColor: Colors.black.withOpacity(0.0),
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return  StatefulBuilder(
+            builder: (BuildContext context, StateSetter setStateS) {
+              FunT.setStateD = () { setStateS(() {}); };
+              FunT.setStateDT();
+
+              List<Widget> widgetsPu = [];
+              for(int i = 0; i < pus.length; i++) {
+                Widget w = SizedBox();
+                var pu = pus[i];
+                if(pu.state == "DEL") {
+                  pus.removeAt(i);
+                  fileByteList.removeAt(i--);
+                  continue;
+                }
+
+                var item = SystemT.getItem(pu.item) ?? Item.fromDatabase({});
+                var fileMap = fileByteList[i] as Map<String, Uint8List>;
+
+                pu.vatType = currentVatType;
+                pu.init();
+
+                w = pu.OnTableUI(context,
+                  setState: () { setStateS(() {}); },
+                  index: i + 1,
+                  itemData: item,
+                  files: fileMap,
+                  isInput: true,
+                );
+
+                widgetsPu.add(w);
+                widgetsPu.add(WidgetT.dividHorizontal(size: 0.35));
+              }
+
+              return AlertDialog(
+                backgroundColor: StyleT.white.withOpacity(1),
+                elevation: 36,
+                shape: RoundedRectangleBorder(
+                    side: BorderSide(color: Colors.grey.withOpacity(0), width: 0.01), borderRadius: BorderRadius.circular(0)),
+                titlePadding: EdgeInsets.zero,
+                contentPadding: EdgeInsets.zero,
+                title: WidgetDT.dlTitle(context, title: '매입추가', ),
+                content: SingleChildScrollView(
+                  child: Container(
+                    width: 1280,
+                    padding: EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextT.Lit(text:'거래처와 연결되는 매입 등록입니다. 품목 재고를 추가하려면 품목매입 버튼을 클릭해 주세요.', ),
+                        SizedBox(height: dividHeight * 4,),
+                        TextT.Title(text:'거래처 정보', ),
+                        TextT.Lit(text:  cs!.id + ' / ' + cs!.businessName, ),
+                        SizedBox(height: dividHeight * 8,),
+
+                        TextT.Title(text: '매입 추가 목록',),
+                        SizedBox(height: dividHeight,),
+                        Purchase.OnTabelHeader(),
+                        Container( child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: widgetsPu, ),),
+                        SizedBox(height: dividHeight,),
+                        Row(
+                          children: [
+                            TextButton(
+                                onPressed: () {
+                                  var p = Purchase.fromDatabase({});
+                                  p.purchaseAt = DateTime.now().microsecondsSinceEpoch;
+                                  pus.add(p);
+                                  fileByteList.add({});
+
+                                  FunT.setStateDT();
+                                },
+                                style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0,
+                                    color: StyleT.backgroundColor.withOpacity(0.5), strock: 1),
+                                child: Container(padding: EdgeInsets.all(0), child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container( height: 28, width: 28,
+                                      child: WidgetT.iconMini(Icons.add_box),),
+                                    WidgetT.title('매입추가'),
+                                    SizedBox(width: 6,),
+                                  ],
+                                ))
+                            ),
+                            SizedBox(width: dividHeight,),
+                            Row(
+                              children: [
+                                WidgetT.title('지불관련', width: 100 ),
+                                for(var v in vatTypeList)
+                                  Container(
+                                    padding: EdgeInsets.only(right: dividHeight),
+                                    child: TextButton(
+                                        onPressed: () {
+                                          currentVatType = v;
+                                          FunT.setStateDT();
+                                        },
+                                        style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0,
+                                            color: StyleT.backgroundColor.withOpacity(0.5), strock: 1),
+                                        child: Container(padding: EdgeInsets.all(0), child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if(currentVatType != v)
+                                              Container( height: 28, width: 28,
+                                                child: WidgetT.iconMini(Icons.check_box_outline_blank),),
+                                            if(currentVatType == v)
+                                              Container( height: 28, width: 28,
+                                                child: WidgetT.iconMini(Icons.check_box),),
+                                            WidgetT.title('부가세 ' + vatTypeNameList[v] ),
+                                            SizedBox(width: 6,),
+                                          ],
+                                        ))
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            SizedBox(width: 6,),
+                            WidgetT.text('품목 직접 입력시 재고 및 단가 연동 불가.   연동이 필요한 품목은 생산관리에서 추가후 입력해 주세요.', size: 10),
+                          ],
+                        ),
+                        SizedBox(height: dividHeight * 8,),
+
+                        WidgetT.title('지불관련', size: 16 ),
+                        SizedBox(height: dividHeight,),
+                        Row(
+                          children: [
+                            TextButton(
+                                onPressed: () {
+                                  payment = '매입';
+                                  FunT.setStateDT();
+                                },
+                                style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0,
+                                    color: StyleT.backgroundColor.withOpacity(0.5), strock: 1),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if(payment != '매입')
+                                      Container( height: 28, width: 28,
+                                        child: WidgetT.iconMini(Icons.check_box_outline_blank),),
+                                    if(payment == '매입')
+                                      Container( height: 28, width: 28,
+                                        child: WidgetT.iconMini(Icons.check_box),),
+                                    WidgetT.title('매입만'),
+                                    SizedBox(width: 6,),
+                                  ],
+                                )
+                            ),
+                            SizedBox(width: dividHeight,),
+                            TextButton(
+                                onPressed: () {
+                                  payment = '즉시';
+                                  FunT.setStateDT();
+                                },
+                                style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0,
+                                    color: StyleT.backgroundColor.withOpacity(0.5), strock: 1),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if(payment != '즉시')
+                                      Container( height: 28, width: 28,
+                                        child: WidgetT.iconMini(Icons.check_box_outline_blank),),
+                                    if(payment == '즉시')
+                                      Container( height: 28, width: 28,
+                                        child: WidgetT.iconMini(Icons.check_box),),
+                                    WidgetT.title('즉시지불'),
+                                    SizedBox(width: 6,),
+                                  ],
+                                )
+                            ),
+                            SizedBox(width: dividHeight,),
+                            if(payment == '즉시')
+                              Row(
+                                children: [
+                                  WidgetT.dropMenuMapD(dropMenuMaps: SystemT.accounts, width: 130, label: '구분',
+                                    onEdite: (i, data) {
+                                      payType = data;
+                                      print('select account: ' + payType);
+                                    },
+                                    text: (SystemT.accounts[payType] == null) ? '선택안됨' : SystemT.accounts[payType]!.name,
+                                  ),
+                                  SizedBox(width: dividHeight,),
+                                  WidgetT.text('즉시수금 시 적요는 품목명으로 추가됩니다.', size: 10),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                actionsPadding: EdgeInsets.zero,
+                actions: <Widget>[
+                  Row(
+                    children: [
+                      Expanded(child:TextButton(
+                          onPressed: () async {
+                            if(payment == '즉시' && payType == '') { WidgetT.showSnackBar(context, text: '결재방법은 공란일 수 없습니다.'); return;  }
+
+                            var alert = await DialogT.showAlertDl(context, title: pu.csUid ?? 'NULL');
+                            if(alert == false) {
+                              WidgetT.showSnackBar(context, text: '취소됨');
+                              return;
+                            }
+
+                            for(int i = 0; i < pus.length; i++) {
+                              var p = pus[i]; var files = fileByteList[i] as Map<String, Uint8List>;
+
+                              p.csUid = cs.id;
+                              p.vatType = currentVatType;
+                              p.isItemTs = false;
+
+                              /// 매입정보 추가 - 매입데이터 및 거래명세서 파일 데이터
+                              var result = await p.update(files: files);
+                              /// 지불 정보 문서 추가
+                              if(payment == '즉시') await TS.fromPu(p, payType, now: true).update();
+                            }
+
+                            WidgetT.showSnackBar(context, text: '저장됨');
+                            Navigator.pop(context);
+                          },
+                          style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
+                          child: Container(
+                              color: StyleT.accentColor.withOpacity(0.5), height: 42,
+                              child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  WidgetT.iconMini(Icons.check_circle),
+                                  Text('매입 저장', style: StyleT.titleStyle(),),
+                                  SizedBox(width: 6,),
+                                ],
+                              )
+                          )
+                      ),),
+                    ],
+                  ),
+                ],
+              );
+            },
+          );
+        });
+
+    if(aa == null) aa = false;
+    return aa;
+  }
+
+
   /// 이 함수는 이미 존재하는 매입데이터를 표시하고 수정합니다.
   /// DialogRE.showInfoPu 함수가 마이그레이션 되었습니다.
   ///
@@ -1699,7 +1973,7 @@ class DialogPU extends StatelessWidget {
   ///
   /// @Create YM
   /// @Version 1.0.0
-  static dynamic showCreateItemPu(BuildContext context) async {
+  static dynamic showCreateItemPu(BuildContext context, { Customer? cs }) async {
     var dividHeight = 6.0;
     var heightSize = 36.0;
 

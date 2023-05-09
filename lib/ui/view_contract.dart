@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../class/Customer.dart';
 import '../class/contract.dart';
@@ -20,6 +21,7 @@ import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/transaction.dart';
+import '../class/widget/button.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
@@ -268,7 +270,26 @@ class View_Contract extends StatelessWidget {
 
     var main = Column(
       children: [
-        if(topWidget != null) topWidget,
+        if(topWidget != null)
+          Stack(
+            children: [
+              topWidget,
+              Positioned(
+                top: 0, bottom: 0,
+                right: 0,
+                child: ButtonT.IconText(
+                    icon: Icons.open_in_new_sharp,
+                    text: "페이지 문서로 이동",
+                    color: Colors.transparent, textColor: Colors.white.withOpacity(0.7),
+                    onTap: () async {
+                      var url = Uri.base.toString().split('/work').first + '/documents/customer';
+                      await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self',);
+                    }
+                ),
+              )
+            ],
+          ),
+
         Expanded(
           child: Row(
             children: [

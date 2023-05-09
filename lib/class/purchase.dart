@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/system.dart';
 import 'package:evers/class/transaction.dart';
 import 'package:evers/class/widget/button.dart';
@@ -20,12 +21,15 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../helper/aes.dart';
 import '../helper/interfaceUI.dart';
+import '../helper/pdfx.dart';
 import '../helper/style.dart';
 import '../ui/dialog_revenue.dart';
 import '../ui/ux.dart';
 import 'Customer.dart';
 import 'contract.dart';
 import 'database/item.dart';
+import 'package:http/http.dart' as http;
+
 
 class Purchase {
   var state = '';
@@ -440,9 +444,14 @@ class Purchase {
 
   static dynamic OnTabelHeader() {
     return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
-        [ 28, 80, 200, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
+        [ 28, 80, 999, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
   }
-  dynamic OnTableUI(BuildContext context, { Function? setState, int? index, String? itemName, String? itemUnit }) {
+  dynamic OnTableUI(BuildContext context, { Function? setState, int? index, String? itemName,
+    Item? itemData,
+    String? itemUnit,
+    Map<String, Uint8List>? files,
+    bool isInput = false,
+  }) {
     var w = Column(
       children: [
         Container(
@@ -451,7 +460,7 @@ class Purchase {
               children: [
                 ExcelT.LitGrid(center: true, text: index == null ? "" : '${index}', width: 28),
                 ExcelT.LitGrid(center: true, text: StyleT.dateInputFormatAtEpoch(purchaseAt.toString()), width: 80),
-                ExcelT.LitGrid(center: true, text: itemName ?? '', width: 200),
+                ExcelT.LitGrid(center: true, text: itemName == null ? item : itemName == "" ? item : itemName, width: 200, expand: true),
                 ExcelT.LitGrid(center: true, text: itemUnit, width: 50),
                 ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(count),),
                 ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(unitPrice),),
@@ -554,6 +563,231 @@ class Purchase {
           ),
       ],
     );
+    if(isInput && files != null) {
+      w = Column(
+        children: [
+          Container(
+            height: 28,
+            child: Row(
+                children: [
+                  ExcelT.LitGrid(text: '${index ?? '-' }', width: 28),
+                  ExcelT.LitInput(context, '${index ?? '-'}::매출일자', width: 100, index: index,
+                    onEdited: (i, data) {
+                      purchaseAt = StyleT.dateEpoch(data);
+                    }, setState: setState,
+                    text: StyleT.dateInputFormatAtEpoch(purchaseAt.toString()),
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        ExcelT.LitInput(context, '${index ?? '-'}::품목', width: 200 - 28, index: index,
+                          onEdited: (i, data) {
+                            var item = SystemT.getItem(this.item);
+                            if (item == null) { this.item = data; return; }
+                            if (item.name == data) { return; }
+                            this.item = data;
+                          }, setState: setState,
+                          expand: true,
+                          text: SystemT.getItemName(this.item), value: SystemT.getItemName(this.item),
+                        ),
+                        SizedBox(
+                          height: 28, width: 28,
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton2(
+                              focusColor: Colors.transparent,
+                              focusNode: FocusNode(),
+                              autofocus: false,
+                              customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
+                              items: SystemT.itemMaps.keys.map((item) => DropdownMenuItem<dynamic>(
+                                value: item,
+                                child: Text(
+                                  SystemT.getItemName(item),
+                                  style: StyleT.titleStyle(),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              )).toList(),
+                              onChanged: (value) async {
+                                var item = SystemT.getItem(value);
+                                if(item != null) {
+                                  this.item = item.id;
+                                  unitPrice = item.unitPrice;
+                                }
+                                print('select item uid: ' + value);
+                                if(setState != null) await setState();
+                              },
+                              itemHeight: 24,
+                              itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                              dropdownWidth: 256.7,
+                              dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                              dropdownDecoration: BoxDecoration(
+                                border: Border.all(
+                                  width: 1.7,
+                                  color: Colors.grey.withOpacity(0.5),
+                                ),
+                                borderRadius: BorderRadius.circular(0),
+                                color: Colors.white.withOpacity(0.95),
+                              ),
+                              dropdownElevation: 0,
+                              offset: const Offset(-256 + 28, 0),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ExcelT.LitGrid(text: itemUnit ?? '-', width: 50, center: true),
+                  ExcelT.LitInput(context, '${index ?? '-'}::수량', width: 80, index: index,
+                    onEdited: (i, data) {
+                      count = int.tryParse(data) ?? 0;
+                    }, setState: setState,
+                      text: StyleT.krw(count.toString()), value: count.toString()
+                  ),
+                  ExcelT.LitInput(context, '${index ?? '-'}::단가', width: 80, index: index,
+                      onEdited: (i, data) {
+                        unitPrice = int.tryParse(data) ?? 0;
+                      }, setState: setState,
+                      text: StyleT.krwInt(unitPrice), value: unitPrice.toString()
+                  ),
+                  ExcelT.LitInput(context, '${index ?? '-'}::pu.supplyPrice', width: 80, index: index,
+                    setState: setState,
+                    onEdited: (i, data) {
+                      supplyPrice = int.tryParse(data) ?? 0;
+                      fixedSup = true;
+                    }, text: StyleT.krwInt(supplyPrice), value: supplyPrice.toString(),
+                  ),
+                  ExcelT.LitInput(context, '${index ?? '-'}::pu.vat', width: 80, index: index,
+                    setState: setState,
+                    onEdited: (i, data) {
+                      vat = int.tryParse(data) ?? 0;
+                      fixedVat = true;
+                    }, text: StyleT.krwInt(vat), value: vat.toString(),
+                  ),
+
+                  ExcelT.LitGrid(text: StyleT.krw(totalPrice.toString()), width: 80, center: true),
+                  ExcelT.LitInput(context, '${index ?? '-'}::메모', width: 200, index: index,
+                    setState: setState,
+                    onEdited: (i, data) { memo  = data ?? ''; }, text: memo,
+                    expand: true,
+                  ),
+                  InkWell(
+                      onTap: () async {
+                        state = "DEL";
+                        if(setState != null) await setState();
+                      },
+                      child: Container( height: 28, width: 28,
+                        child: WidgetT.iconMini(Icons.cancel),)
+                  ),
+                ]
+            ),
+          ),
+          if(filesMap.length > 0 || files.length > 0)
+            Container( height: 28,
+              child: Row(
+                  children: [
+                    WidgetT.excelGrid( width: 150, label: '거래명세서 첨부파일', ),
+                    Expanded(child: Container( padding: EdgeInsets.all(0),  child: Wrap(
+                      runSpacing: 6 * 2, spacing: 6 * 2,
+                      children: [
+                        for(int i = 0; i < filesMap.length; i++)
+                          InkWell(
+                              onTap: () async {
+                                var downloadUrl = filesMap.values.elementAt(i);
+                                var fileName = filesMap.keys.elementAt(i);
+
+                                var ens = ENAES.fUrlAES(downloadUrl);
+
+                                var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                print(url);
+                                await launchUrl( Uri.parse(url),
+                                  webOnlyWindowName: true ? '_blank' : '_self',
+                                );
+                              },
+                              child: Container(
+                                  color: Colors.grey.withOpacity(0.15),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      WidgetT.iconMini(Icons.cloud_done, size: 24),
+                                      WidgetT.text(filesMap.keys.elementAt(i), size: 10),
+                                      SizedBox(width: 6,)
+                                    ],
+                                  ))
+                          ),
+                        for(int i = 0; i < files.length; i++)
+                          InkWell(
+                              onTap: () async {
+                                PDFX.showPDFtoDialog(context, data: files!.values.elementAt(i), name: files!.keys.elementAt(i));
+                              },
+                              child: Container(
+                                  color: Colors.grey.withOpacity(0.15),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      WidgetT.iconMini(Icons.cloud_done, size: 24),
+                                      WidgetT.text(files.keys.elementAt(i), size: 10),
+                                      InkWell(
+                                          onTap: () async {
+                                            files.remove(files.keys.elementAt(i));
+                                            if(setState != null) await setState();
+                                           },
+                                          child: Container( height: 28, width: 28,
+                                            child: WidgetT.iconMini(Icons.cancel),)
+                                      ),
+                                    ],
+                                  ))
+                          ),
+                      ],
+                    ),)),
+                  ]
+              ),
+            ),
+          Container(
+            height: 28,
+            child: Row(
+              children: [
+                ButtonT.IconText(
+                  icon: Icons.auto_mode,
+                  text: '금액 자동계산',
+                  color: Colors.transparent,
+                  onTap: () async {
+                    fixedVat = false;
+                    fixedSup = false;
+                    if(setState != null) await setState();
+                  },
+                ),
+                ButtonT.IconText(
+                  icon: Icons.file_copy_rounded,
+                  text: '파일첨부',
+                  color: Colors.transparent,
+                  onTap: () async {
+                    FilePickerResult? result;
+                    try {
+                      result = await FilePicker.platform.pickFiles();
+                    } catch (e) {
+                      WidgetT.showSnackBar(context, text: '파일선택 오류');
+                      print(e);
+                    }
+
+                    if(result != null){
+                      WidgetT.showSnackBar(context, text: '파일선택');
+                      if(result.files.isNotEmpty) {
+                        String fileName = result.files.first.name;
+                        print(fileName);
+                        Uint8List fileBytes = result.files.first.bytes!;
+                        files[fileName] = fileBytes;
+                        print(files[fileName]!.length);
+                      }
+                    }
+                    if(setState != null) await setState();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
     return w;
   }
 }

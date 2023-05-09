@@ -434,10 +434,6 @@ class WidgetT extends StatelessWidget {
                   onEditingComplete: () async {
                     if(search != null) await search(controller!.text);
                   },
-                  onChanged: (text) async {
-                    if(text == '')
-                      if(search != null) await search(text);
-                  },
                   decoration: InputDecoration(
                     enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(18),

@@ -98,7 +98,11 @@ class ExcelT extends StatelessWidget {
     Color? textColor,
     double? width, double? height, double? textSize,
     String? hint,
+    bool expand=false,
     bool isMultiLine=false}) {
+
+    if(expand) width = null;
+
     if(textInputs[key] == null) textInputs[key] = new TextEditingController();
     Widget w = SizedBox();
     if(isActive[key] == true) {
@@ -166,6 +170,8 @@ class ExcelT extends StatelessWidget {
         ),
       );
     }
+
+    if(expand) return Expanded(child: w);
     return w;
   }
 
@@ -260,6 +266,7 @@ class ExcelT extends StatelessWidget {
     if(expand) return Expanded(child: w);
     else return w;
   }
+
 
 
   static Widget LabelInput(BuildContext context, String key, {

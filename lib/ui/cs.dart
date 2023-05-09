@@ -9,6 +9,8 @@ import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/pdfx.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/dialog_ts.dart';
+import 'package:evers/ui/dialog_pu.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
 import 'package:file_picker/file_picker.dart';
@@ -86,15 +88,22 @@ class DialogCS extends StatelessWidget {
 
     List<ProcessItem> processingList = await DatabaseM.getProcessItemGroupByCsUid(cs.id);
     List<ProcessItem> outputList = await DatabaseM.getProcessItemGroupByCsUid(cs.id, isOutput: true);
+    Map<String, double> usedAmount = {};
     Map<String, ItemCount> outputAmount = {};
 
     for(var data in outputList) {
       var item = SystemT.getItem(data.itUid);
       if(item == null) continue;
 
+      /// 작업 완료 품목 물량 통합관리
       if(outputAmount.containsKey(item.id)) outputAmount[item.id]!.incrementCount(data.amount);
-      else  outputAmount[item.id] = ItemCount.fromData(item, data.amount);
+      else outputAmount[item.id] = ItemCount.fromData(item, data.amount);
+
+      /// 작업에 소모된 수량을 확인하여 통합
+      if(usedAmount.containsKey(data.prUid)) usedAmount[data.prUid] = usedAmount[data.prUid]! + data.usedAmount;
+      else usedAmount[data.prUid] = data.usedAmount;
     }
+
 
     Navigator.pop(context);
     // ignore: use_build_context_synchronously
@@ -164,6 +173,7 @@ class DialogCS extends StatelessWidget {
                   context: context,
                   cs: cs,
                   item: item,
+                  usedAmount: usedAmount[prs.id] ?? 0.0,
                 ));
                 processingWidgets.add(WidgetT.dividHorizontal(size: 0.35));
               }
@@ -565,29 +575,10 @@ class DialogCS extends StatelessWidget {
                     borderRadius: BorderRadius.circular(0)),
                 titlePadding: EdgeInsets.zero,
                 contentPadding: EdgeInsets.zero,
-                title: WidgetDT.dlTitle(context, title: '거래처 상세 정보', onSave: () async {
-                  var alert = await DialogT.showAlertDl(context, title: cs.businessName ?? 'NULL');
-                  if(alert == false) {
-                    WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
-                    return;
-                  }
-
-                  await DatabaseM.updateCustomer(cs, files: fileByteList,);
-                  //original = cs;
-                  WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
-                  Navigator.pop(context);
-                },
-                onFull: () async {
-                  var url = Uri.base.toString().split('/work').first + '/customer/${cs.id}';
-                  print(url);
-                  await launchUrl( Uri.parse(url),
-                      webOnlyWindowName: true ? '_blank' : '_self',
-                  );
-                }
-                ),
+                title: WidgetDT.dlTitle(context, title: '거래처 상세 정보창', ),
                 content: SingleChildScrollView(
                   child: Container(
-                    width: 1280,
+                    width: 1580,
                     padding: EdgeInsets.all(18),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -597,6 +588,84 @@ class DialogCS extends StatelessWidget {
                 ),
                 actionsPadding: EdgeInsets.zero,
                 actions: <Widget>[
+                  Row(
+                    children: [
+                      Expanded(
+                        child:InkWell(
+                            onTap: () async {
+                              var result = await DialogRE.showCreateRe(context);
+                              if(result != null) return;
+                            },
+                            child: Container(
+                                color: Colors.blue.withOpacity(0.5), height: 42,
+                                child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    WidgetT.iconMini(Icons.output),
+                                    Text('신규 매출 등록', style: StyleT.titleStyle(),),
+                                    SizedBox(width: 6,),
+                                  ],
+                                )
+                            )
+                        ),),
+                      Expanded(
+                        child:InkWell(
+                            onTap: () async {
+                              var result = await DialogPU.showCreateNormalPuWithCS(context, cs);
+                              if(result != null) {
+                                purs = await DatabaseM.getPur_withCS(cs.id);
+                                setStateS(() {});
+                              };
+                            },
+                            child: Container(
+                                color: Colors.red.withOpacity(0.5), height: 42,
+                                child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    WidgetT.iconMini(Icons.input),
+                                    Text('신규 매입 등록', style: StyleT.titleStyle(),),
+                                    SizedBox(width: 6,),
+                                  ],
+                                )
+                            )
+                        ),),
+                      Expanded(
+                        child:InkWell(
+                            onTap: () async {
+                              WidgetT.showSnackBar(context, text: "품목에 대한매입은 계약을 비워둘 수 없습니다. 계약화면에서 추가해주세요.");
+                            },
+                            child: Container(
+                                color: Colors.blueGrey.withOpacity(0.5), height: 42,
+                                child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    WidgetT.iconMini(Icons.input),
+                                    Text('신규 품목 매입 등록', style: StyleT.titleStyle(),),
+                                    SizedBox(width: 6,),
+                                  ],
+                                )
+                            )
+                        ),),
+                      Expanded(
+                        child:InkWell(
+                            onTap: () async {
+                              UIState.mdiController!.addWindow_TS(widget: WindowTS(cs: cs,));
+                              var result = await DialogTS.showCreateTSOnlyCS(context, cs);
+                              if(result != null) {
+                                tslist = await DatabaseM.getTransactionCs(cs.id);
+                                setStateS(() {});
+                              }
+                            },
+                            child: Container(
+                                color: StyleT.accentOver.withOpacity(0.5), height: 42,
+                                child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    WidgetT.iconMini(Icons.monetization_on_sharp),
+                                    Text('신규 수납 등록', style: StyleT.titleStyle(),),
+                                    SizedBox(width: 6,),
+                                  ],
+                                )
+                            )
+                        ),),
+                    ],
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -645,9 +714,6 @@ class DialogCS extends StatelessWidget {
 
   static dynamic selectCS(BuildContext context, List<Customer> customerSearch) async {
     var searchInput = TextEditingController();
-    //var _dragging = false;
-    //List<XFile> _list = [];
-    //late DropzoneViewController controller;
     Customer? aa = await showDialog(
         context: context,
         barrierColor: Colors.black.withOpacity(0.0),

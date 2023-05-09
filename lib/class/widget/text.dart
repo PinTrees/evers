@@ -13,8 +13,10 @@ class TextT extends StatelessWidget {
   /// 이 함수는 텍스트 위젯을 반환합니다.
   ///
   static Widget OnTap({ BuildContext? context, String? text, Function? onTap, double? width,
-  bool expand=false}) {
-    var w = RichText(
+    bool expand=false,
+    bool enable=true,
+  }) {
+    Widget w = RichText(
       text: TextSpan(
           children: [
             TextSpan(
@@ -28,6 +30,10 @@ class TextT extends StatelessWidget {
           ]
       ),
     );
+
+    if(!enable) {
+      w = Lit(text: text, width: width);
+    }
 
     if(expand) {
       return Expanded(
@@ -79,6 +85,31 @@ class TextT extends StatelessWidget {
     var w = Text(
       text ?? '',
       style: TextStyle(color: StyleT.titleColor, fontSize: 16, fontWeight: FontWeight.w900),
+    );
+
+    if(expand) {
+      return Expanded(
+        child: Container( alignment: Alignment.center, child: w, ),
+      );
+    }
+
+    if(width == null) return w;
+    else return Container(
+      width: width,
+      alignment: Alignment.center,
+      child: w,
+    );
+  }
+
+
+  static Widget TitleMain({
+    BuildContext? context,
+    String? text,
+    double? width,
+    bool expand=false}) {
+    var w = Text(
+      text ?? '',
+      style: TextStyle(color: StyleT.titleColor, fontSize: 24, fontWeight: FontWeight.w900),
     );
 
     if(expand) {

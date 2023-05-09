@@ -3,6 +3,7 @@ import 'package:evers/MainPage.dart';
 import 'package:evers/NonePage.dart';
 import 'package:evers/login/LoginPage.dart';
 import 'package:evers/main.dart';
+import 'package:evers/page/document/main.dart';
 import 'package:evers/page/page_customer.dart';
 import 'package:evers/page/page_printForm.dart';
 import 'package:evers/page/page_shopingItem.dart';
@@ -91,6 +92,11 @@ final GoRouter router = GoRouter(
         GoRoute(path: 'printform/releaserevenue/:id',
           builder: (BuildContext context, GoRouterState state) {
             return PFormReleaseRevenuePage(csUid: state.params['id']);
+          },
+        ),
+        GoRoute(path: 'documents/:path',
+          builder: (BuildContext context, GoRouterState state) {
+            return DocumentPage(path: state.params['path']);
           },
         )
       ],

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_revenue.dart';
@@ -22,6 +23,7 @@ import '../class/purchase.dart';
 import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
+import '../class/system/search.dart';
 import '../class/transaction.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
@@ -51,13 +53,12 @@ class View_MO extends StatelessWidget {
   List<TS> ts_sort_list = [];
 
   bool sort = false;
-  bool query = false;
-
   var currentView = '매입';
 
   var pur_sort_menu = [ '최신순',  ];
   var pur_sort_menu_date = [ '최근 1주일', '최근 1개월', '최근 3개월' ];
-  var crRpmenuRp = '', pur_query = '';
+  var crRpmenuRp = '', currentQuery = '';
+
   DateTime rpStartAt = DateTime.now();
   DateTime rpLastAt = DateTime.now();
 
@@ -68,8 +69,7 @@ class View_MO extends StatelessWidget {
   dynamic search(String search) async {
     if(search == '') {
       sort = false;
-      pur_query = '';
-      query = false;
+      currentQuery = '';
       clear();
 
       FunT.setStateMain();
@@ -78,16 +78,19 @@ class View_MO extends StatelessWidget {
 
     sort = true;
     if(menu == '금전출납현황') {
-      ts_sort_list = await SystemT.searchTSMeta(searchInput.text,
-        startAt: (sort && query) ? rpStartAt.microsecondsSinceEpoch.toString().substring(0, 8) : null,
-        lastAt: (sort && query) ? rpLastAt.microsecondsSinceEpoch.toString().substring(0, 8) : null,
+      await SystemT.searchTSMeta(
+        searchInput.text,
+        startAt: rpStartAt.microsecondsSinceEpoch.toString().substring(0, 8),
+        lastAt: rpLastAt.microsecondsSinceEpoch.toString().substring(0, 8),
       );
+
+      ts_sort_list = await Search.searchTS();
     }
 
     FunT.setStateMain();
   }
   void query_init() {
-    sort = false; query = true;
+    sort = false;
     ts_list.clear();
   }
   void clear() async {
@@ -113,8 +116,10 @@ class View_MO extends StatelessWidget {
     }
     if(refresh) {
       clear();
-      query = false; sort = false;
-      pur_query = '';
+      sort = false;
+      currentQuery = '';
+      rpLastAt = DateTime.now();
+      rpStartAt = DateTime(rpLastAt.year, rpLastAt.month, rpLastAt.day - 180);
     }
 
     this.menu = menu;
@@ -171,20 +176,19 @@ class View_MO extends StatelessWidget {
                   for(var m in pur_sort_menu_date)
                     InkWell(
                       onTap: () async {
-                        if(pur_query == m) return;
-                        pur_query = m;
-
+                        if(currentQuery == m) return;
+                        currentQuery = m;
                         query_init();
 
                         rpLastAt = DateTime.now();
-                        if(pur_query == pur_sort_menu_date[0]) {
-                          rpStartAt = DateTime(rpStartAt.year, rpStartAt.month, rpStartAt.day - 7); // DateTime.now().add(const Duration(days: -7));
+                        if(currentQuery == pur_sort_menu_date[0]) {
+                          rpStartAt = DateTime(rpLastAt.year, rpLastAt.month, rpLastAt.day - 7);
                         }
-                        else if(pur_query == pur_sort_menu_date[1]) {
-                          rpStartAt = DateTime(rpStartAt.year, rpStartAt.month - 1, rpStartAt.day); //DateTime.now().add(const Duration(days: -30));
+                        else if(currentQuery == pur_sort_menu_date[1]) {
+                          rpStartAt = DateTime(rpLastAt.year, rpLastAt.month - 1, rpLastAt.day);
                         }
-                        else if(pur_query == pur_sort_menu_date[2]) {
-                          rpStartAt = DateTime(rpStartAt.year, rpStartAt.month - 3, rpStartAt.day); //DateTime.now().add(const Duration(days: -90));
+                        else if(currentQuery == pur_sort_menu_date[2]) {
+                          rpStartAt = DateTime(rpLastAt.year, rpLastAt.month - 3, rpLastAt.day);
                         }
 
                         FunT.setStateMain();
@@ -194,7 +198,7 @@ class View_MO extends StatelessWidget {
                         decoration: StyleT.inkStyleNone(color: Colors.transparent),
                         padding:menuPadding,
                         child: WidgetT.text(m, size: 14, bold: true,
-                            color: (m == pur_query) ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
+                            color: (m == currentQuery) ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
                       ),
                     ),
 
@@ -210,17 +214,18 @@ class View_MO extends StatelessWidget {
                       );
                       if(selectedDate != null) {
                         if (selectedDate.microsecondsSinceEpoch < rpLastAt.microsecondsSinceEpoch) rpStartAt = selectedDate;
-                        pur_query = '';
+                        currentQuery = '';
+
+                        ts_sort_list.clear();
+                        clear();
                       }
-                      FunT.setStateMain();
                     },
                     child: Container(
                       height: 32,
                       padding: EdgeInsets.all(divideHeight),
                       alignment: Alignment.center,
                       decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                      child:WidgetT.text(StyleT.dateFormat(rpStartAt), size: 14, bold: true,
-                          color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
+                      child:WidgetT.text(StyleT.dateFormat(rpStartAt), size: 14, bold: true, color: StyleT.titleColor),
                     ),
                   ),
                   WidgetT.text('~',  size: 14, color: StyleT.textColor.withOpacity(0.5)),
@@ -234,40 +239,26 @@ class View_MO extends StatelessWidget {
                       );
                       if(selectedDate != null) {
                         rpLastAt = selectedDate;
-                        pur_query = '';
+                        currentQuery = '';
+
+                        ts_sort_list.clear();
+                        clear();
                       }
-                      FunT.setStateMain();
                     },
                     child: Container(
                       height: 32,
                       padding: EdgeInsets.all(divideHeight),
                       alignment: Alignment.center,
                       decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                      child:WidgetT.text(StyleT.dateFormat(rpLastAt), size: 14, bold: true,
-                          color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
+                      child:WidgetT.text(StyleT.dateFormat(rpLastAt), size: 14, bold: true, color: StyleT.titleColor),
                     ),
                   ),
-                  InkWell(
-                    onTap: () async {
-                      pur_query = '기간검색';
-                      query_init();
-                      FunT.setStateMain();
-                    },
-                    child: Container(
-                      height: 32,
-                      decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                      padding: EdgeInsets.all(divideHeight),
-                      child: WidgetT.text('기간검색', size: 14, bold: true,
-                          color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                    ),
-                  ),
+
                   SizedBox(width: divideHeight * 4,),
                   InkWell(
                     onTap: () async {
-                      pur_query = '';
-                      query = false;
-                      clear();
-                      FunT.setStateMain();
+                      await mainView(context, menu, refresh: true);
+                      await FunT.setStateMain();
                     },
                     child: Container( height: 32,
                       padding: menuPadding,
@@ -283,89 +274,58 @@ class View_MO extends StatelessWidget {
 
         if(ts_list.length < 1) {
           ts_list = await DatabaseM.getTransaction(
-            startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-            lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
+            startDate: rpStartAt.microsecondsSinceEpoch,
+            lastDate: rpLastAt.microsecondsSinceEpoch,
           );
         }
 
         var datas = sort ? ts_sort_list : ts_list;
         for(int i = 0; i < datas.length; i++) {
           var tmpTs = datas[i];
-          Account? account = SystemT.getAccount(tmpTs.account);
-          Widget w = SizedBox();
           var cs = await SystemT.getCS(tmpTs.csUid);
-
-
-          w = InkWell(
+          Widget w = tmpTs.OnTableUIMain(
+            context: context, index: i + 1,
+            setState: () { mainView(context, menu); },
             onTap: () async {
               await DialogTS.showInfoTs(context, org: tmpTs);
             },
-            child: Container(
-              height: 36 + divideHeight,
-              decoration: StyleT.inkStyleNone(color: Colors.transparent),
-              child: Row(
-                  children: [
-                    WidgetT.excelGrid(label: '${i}', width: 32),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, text: tmpTs.id, width: 80),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(tmpTs.transactionAt.toString()), width: 80, ),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, text: (cs.businessName == '') ? 'ㅡ' : cs.businessName, width: 200,),
-                    Expanded(child: WidgetT.excelGrid(textSize: 10, textLite: false, text: tmpTs.summary, width: 999,)),
-                    WidgetT.excelGrid(textSize: 10, text: StyleT.krwInt(tmpTs.amount), width: 100,
-                        textColor: (tmpTs.type != 'PU') ? Colors.blue.withOpacity(0.7) : Colors.red.withOpacity(0.7)),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, text: SystemT.getAccountName(tmpTs.account), width: 100, ),
-                    Expanded(child: WidgetT.excelGrid(textSize: 10, textLite: true, text: tmpTs.memo, width: 999,)),
-                    InkWell(
-                      onTap: () {
-
-                      },
-                      child: WidgetT.iconMini(Icons.open_in_new, size: 36),
-                    ),
-                    WidgetEX.excelButtonIcon(icon: Icons.delete, onTap: () async {
-                      if(!await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?')){
-                        WidgetT.showSnackBar(context, text: '삭제 취소됨');
-                        return;
-                      }
-                      WidgetT.loadingBottomSheet(context, text: '삭제중');
-                      var ret = await tmpTs.delete();
-                      Navigator.pop(context);
-
-                      if(ret) WidgetT.showSnackBar(context, text: '삭제됨');
-                      else WidgetT.showSnackBar(context, text: '삭제에 실패했습니다. 나중에 다시 시도해 주세요.');
-                    }),
-                  ]
-              ),
-            ),
+            cs: cs,
           );
           childrenW.add(w);
           childrenW.add(WidgetT.dividHorizontal(size: 0.35));
         }
 
-        if(!sort) {
-          childrenW.add(InkWell(
-            onTap: () async {
-              WidgetT.loadingBottomSheet(context, text: '로딩중');
+        childrenW.add(InkWell(
+          onTap: () async {
+            WidgetT.loadingBottomSheet(context, text: '로딩중');
 
-              var list = await DatabaseM.getTransaction(
-                startAt: ts_list.last.id,
-                startDate: query ? rpStartAt.microsecondsSinceEpoch: null,
-                lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
-              );
-              ts_list.addAll(list);
-
+            if(sort) {
+              ts_sort_list.addAll(await Search.searchTS());
               Navigator.pop(context);
               await FunT.setStateMain();
-            },
-            child: Container(
-              height: 36,
-              child: Row(
-                children: [
-                  WidgetT.iconMini(Icons.add_box, size: 36),
-                  WidgetT.title('더보기'),
-                ],
-              ),
+              return;
+            }
+
+            var list = await DatabaseM.getTransaction(
+              startAt: ts_list.last.id,
+              startDate: rpStartAt.microsecondsSinceEpoch,
+              lastDate: rpLastAt.microsecondsSinceEpoch,
+            );
+            ts_list.addAll(list);
+
+            Navigator.pop(context);
+            await FunT.setStateMain();
+          },
+          child: Container(
+            height: 36,
+            child: Row(
+              children: [
+                WidgetT.iconMini(Icons.add_box, size: 36),
+                WidgetT.title('더보기'),
+              ],
             ),
-          ));
-        }
+          ),
+        ));
 
         for(var a in SystemT.accounts.values) {
           var amount = await DatabaseM.getAmountAccount(a.id);
@@ -1319,17 +1279,16 @@ class View_MO extends StatelessWidget {
               Expanded(
                 child: Column(
                   children: [
-                    WidgetT.searchBar(search: (text) async {
-                      WidgetT.loadingBottomSheet(context, text:'검색중');
-                      await search(text);
-                      Navigator.pop(context);
-                    }, controller: searchInput ),
+                    WidgetT.searchBar(
+                        search: (text) async {
+                          WidgetT.loadingBottomSheet(context, text:'검색중');
+                          await search(text);
+                          Navigator.pop(context);
+                        },
+                        controller: searchInput
+                    ),
                     titleMenu,
-                    if(menu == '금전출납현황' && currentMenu == '목록')
-                      Container( padding: EdgeInsets.fromLTRB(divideHeight * 1, 0, divideHeight * 1, divideHeight),
-                        child: WidgetUI.titleRowNone([ '순번', '거래번호', '거래일자', '거래처', '적요', '수입/지출', '계좌', '메모', '', ],
-                            [ 32, 80, 80, 200, 999, 100, 100, 999, 64, 0,  ]),
-                      ),
+                    if(menu == '금전출납현황' && currentMenu == '목록') TS.OnTableHeaderMain(),
                     if(menu == '금전출납현황' && currentMenu == '금전출납부')
                       Container( padding: EdgeInsets.fromLTRB(divideHeight, 0, divideHeight, divideHeight),
                         child: WidgetUI.titleRowNone([ '순번', '계좌', '잔고', '전일잔고', '변동금', '수입', '지출', ],

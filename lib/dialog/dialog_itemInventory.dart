@@ -76,6 +76,8 @@ class DialogItemInven extends StatelessWidget {
       }
     });
 
+    print(itemTs.rpUid);
+
     ItemTS? aa = await showDialog(
         context: context,
         barrierColor: Colors.black.withOpacity(0.0),
@@ -163,12 +165,11 @@ class DialogItemInven extends StatelessWidget {
                   [ 28, 200, 100, 100, 200], background: true, lite: true));
               processingWidgets.add(ProcessItem.onTableHeader());
 
-              var usedCount = 0.0;
-              processList.forEach((e) { usedCount += e.amount.abs(); });
-
               /// 기초 품목에 대한 가공가능목록 생성
-              var am = amountMap.containsKey(itemTs.id) ? amountMap[itemTs.id] : 0;
-              if(itemTs.amount - am!.abs() > 0) {
+              var usedCount = 0.0;
+              processList.forEach((e) { if(e.prUid.trim() == itemTs.rpUid || e.prUid.trim() == '') usedCount += e.amount.abs(); });
+              print(usedCount);
+              if(itemTs.amount - usedCount!.abs() > 0) {
                 outputWidgets.add(InkWell(
                   onTap: () async {
                     var process = ProcessItem.fromItemTS(itemTs);
@@ -177,7 +178,6 @@ class DialogItemInven extends StatelessWidget {
                     process.itUid = itemTs.itemUid;
 
                     var result = await selectProcess(context, process: process);
-
                     if(result != null) {
                       processList = await DatabaseM.getItemProcessPu(itemTs.rpUid);
                       outputList = processList.where((e) => e.isOutput).toList();

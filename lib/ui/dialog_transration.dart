@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/widget/button.dart';
+import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/ex.dart';
@@ -186,6 +188,7 @@ class DialogTS extends StatelessWidget {
     if(aa == null) aa = null;
     return aa;
   }
+
 
   /// 수납 추가화면
   static dynamic showCreateTS(BuildContext context) async {
@@ -568,6 +571,145 @@ class DialogTS extends StatelessWidget {
     if(aa == null) aa = false;
     return aa;
   }
+
+
+  /// 수납 추가화면
+  static dynamic showCreateTSOnlyCS(BuildContext context, Customer cs) async {
+    var dividHeight = 6.0;
+
+    List<TS> tslistCr = [];
+    tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
+
+    bool? aa = await showDialog(
+        context: context,
+        barrierColor: Colors.black.withOpacity(0.0),
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return  StatefulBuilder(
+            builder: (BuildContext context, StateSetter setStateS) {
+
+              List<Widget> tsCW = [];
+              for(int i = 0; i < tslistCr.length; i++) {
+                var tmpTs = tslistCr[i];
+                if(tmpTs.type == 'DEL') {
+                  tslistCr.removeAt(i--);
+                  continue;
+                }
+
+                var w = tmpTs.OnTableUIInput(
+                  index: i + 1,
+                  context: context, cs: cs,
+                  setState: () { setStateS(() {}); },
+                );
+                tsCW.add(w);
+                tsCW.add(WidgetT.dividHorizontal(size: 0.35));
+              }
+
+              return Dialog(
+                elevation: 36,
+                shape: RoundedRectangleBorder(
+                    side: BorderSide(color: Colors.blueGrey, width: 1.4),
+                    borderRadius: BorderRadius.circular(0)),
+                child: Container(
+                  width: 1280,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      WidgetDT.dlTitle(context, title: '수납추가', ),
+                      SingleChildScrollView(
+                        padding: EdgeInsets.all(18),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: dividHeight,),
+                            TextT.Title(text: '거래처 정보'),
+                            TextT.Lit(text: cs!.businessName ),
+                            SizedBox(height: dividHeight * 4,),
+
+                            TextT.Title(text: '수납추가 목록',),
+                            SizedBox(height: dividHeight,),
+                            TS.OnTableHeader(),
+                            for(var w in tsCW) w,
+
+                            SizedBox(height: dividHeight,),
+                            Row(
+                              children: [
+                                ButtonT.IconText(
+                                  icon: Icons.add_box,
+                                  text: '지급추가',
+                                  onTap: () {
+                                    tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
+                                    setStateS(() {});
+                                  }
+                                ),
+                                SizedBox(width: 6,),
+                                ButtonT.IconText(
+                                    icon: Icons.add_box,
+                                    text: '수입추가',
+                                    onTap: () {
+                                      tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'RE' }));
+                                      setStateS(() {});
+                                    }
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: dividHeight * 8,),
+                          ],
+                        ),
+                      ),
+
+
+                      /// action
+                      Row(
+                        children: [
+                          Expanded(child:TextButton(
+                              onPressed: () async {
+                                if(tslistCr.length < 1) { WidgetT.showSnackBar(context, text: '최소 1개 이상의 거래기록을 입력 후 시도해주세요.'); return; }
+                                for(var t in tslistCr) {
+                                  if(t.amount < 1) { WidgetT.showSnackBar(context, text: '하나 이상의 거래데이터의 금액이 비정상 적입니다. ( 0원 )'); return; }
+                                  if(t.transactionAt == 0) {WidgetT.showSnackBar(context, text: '날짜를 정확히 입력해 주세요.'); return; }
+                                }
+
+                                var alert = await DialogT.showAlertDl(context, title: '수납현황' ?? 'NULL');
+                                if(alert == false) {
+                                  WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
+                                  return;
+                                }
+
+                                for(var ts in tslistCr) {
+                                  ts.csUid = cs.id;
+                                  await ts.update();
+                                }
+
+                                WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
+                                Navigator.pop(context);
+                              },
+                              style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
+                              child: Container(
+                                  color: StyleT.accentColor.withOpacity(0.5), height: 42,
+                                  child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      WidgetT.iconMini(Icons.check_circle),
+                                      Text('수납 저장', style: StyleT.titleStyle(),),
+                                      SizedBox(width: 6,),
+                                    ],
+                                  )
+                              )
+                          ),),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        });
+
+    if(aa == null) aa = false;
+    return aa;
+  }
+
 
   Widget build(context) {
     return Container();

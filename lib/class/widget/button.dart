@@ -17,7 +17,10 @@ class ButtonT extends StatelessWidget {
   static Map<String, TextEditingController> textInputs = {};
   static Map<String, bool> isActive = {};
 
-  static Widget Icon({IconData? icon, Function? onTap, Widget? leaging}) {
+  static Widget Icon({IconData? icon, Function? onTap,
+    Widget? leaging,
+    Color? background
+  }) {
     if(leaging != null) {
 
     }
@@ -27,6 +30,7 @@ class ButtonT extends StatelessWidget {
         if(onTap != null) return await onTap();
       },
       child: Container(
+        color: background,
         child: Row(
           children: [
             WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28),
@@ -38,7 +42,6 @@ class ButtonT extends StatelessWidget {
 
     return w;
   }
-
   static Widget IconText({ String? text, IconData? icon, Function? onTap,
     bool bold=false,
     Color? color,
@@ -64,6 +67,27 @@ class ButtonT extends StatelessWidget {
     if(padding != null) return Container( padding: padding,  child: w, );
 
     return w;
+  }
+
+  static Widget InfoMenu(String text, IconData icon, {
+    Function? onTap,
+    Function? setState,
+  }) {
+    return InkWell(
+        onTap: () async {
+          if(onTap != null) await onTap();
+          if(setState != null) await setState();
+        },
+        child: Container(
+          height: 36,
+          child: Row(
+            children: [
+              WidgetT.iconNormal(icon,  size: 36),
+              SizedBox(width: 6 * 2,),
+              WidgetT.text(text, size: 14),
+            ],
+          ),
+        ));
   }
 
   Widget build(context) {

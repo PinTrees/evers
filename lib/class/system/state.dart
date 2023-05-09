@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/window/MdiController.dart';
+
 /// 화면 타입
 enum UIType {
   dialog_customer('customer', '거래처'),
@@ -25,5 +27,6 @@ enum UIType {
 
 /// 화면 상태 관리 클래스입니다.
 class UIState {
+  static MdiController? mdiController;
   static UIType current = UIType.undefined;
 }
