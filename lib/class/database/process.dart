@@ -2,10 +2,12 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/purchase.dart';
+import 'package:evers/class/system/state.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/dialog/dialog_itemInventory.dart';
 import 'package:evers/helper/dialog.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/ui/cs.dart';
 import 'package:evers/ui/ux.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -85,6 +87,11 @@ class ProcessItem {
 
     memo = json['memo'] ?? '';
   }
+  ProcessItem.fromItemTS(ItemTS itemTS) {
+    csUid = itemTS.csUid;
+    ctUid = itemTS.ctUid;
+    rpUid = itemTS.rpUid;
+  }
   Map<String, dynamic> toJson() {
     return {
       'id' : id,
@@ -141,24 +148,44 @@ class ProcessItem {
     if(create) await createUID();
     if(id == '') return false;
 
+
+    ProcessItem? parent;
+    List<ProcessItem> outputList = [];
+    if(isOutput) {
+      parent = await DatabaseM.getProcessItemDoc(rpUid, prUid);
+      outputList= await DatabaseM.getProcessItemGroupByPrUid(prUid);
+
+      var usedAmount = 0.0;
+      outputList.forEach((e) { usedAmount += e.usedAmount.abs(); });
+      if(parent != null && usedAmount > 0.0) {
+        parent.endAt = date;
+        if(parent.amount <= usedAmount - 0.0001) parent.isDone = true;
+      }
+    }
+
     ProcessItem? org = await DatabaseM.getItemTrans(id);
     var dateIdHarp = DateStyle.dateYearsHarp(date);
     var dateIdQuarter = DateStyle.dateYearsQuarter(date);
 
-    Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
-    var db = FirebaseFirestore.instance;
-
     /// 내부 트랜잭션 다시 작성
     /// 테스트 필요
     /// 메인문서 기록
+    Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
+    var db = FirebaseFirestore.instance;
+
     final docRef = db.collection("purchase/$rpUid/item-process").doc(id);
     var docParentRef = null;
-    if(isOutput && prUid != "") docParentRef = db.collection("purchase/$rpUid/item-process").doc(prUid);
+    if(isOutput && parent != null) docParentRef = db.collection("purchase/$rpUid/item-process").doc(prUid);
+    final balanceRef = db.collection('balance/dateQ-process/${itUid}').doc(dateIdQuarter);
+    final mainBalanceRef = db.collection('meta/itemInven/${itUid}').doc(dateIdQuarter);
 
     /// 매입 트랜잭션을 수행합니다.
     return await db.runTransaction((transaction) async {
       Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
       final docRefSn = await transaction.get(docRef);
+      final balanceSn = await transaction.get(balanceRef);
+      final mainBalanceSn = await transaction.get(mainBalanceRef);
+
       DocumentSnapshot<Map<String, dynamic>>? docParentSn = null;
       if(docParentRef != null) docParentSn = await transaction.get(docParentRef);
 
@@ -167,8 +194,21 @@ class ProcessItem {
       if(docRefSn.exists) transaction.update(docRef, toJson());
       else transaction.set(docRef, toJson());
 
+      /// 출고품이 아닐경우 사용량 재고에서 카운트
+      /// 해당 로직은 최초 가공공정 등록시에만 실행되는 로직입니다.
+      if(!isOutput && !isDone) {
+        if(mainBalanceSn.exists) transaction.update(mainBalanceRef, { id: amount.abs() * -1 });
+        else transaction.set(mainBalanceRef, { id: amount.abs() * -1 });
+      }
+
+      /// 출고품일 경우 기초 재고 및 작업내역값에서도 적용
+      if(isOutput) {
+        if(mainBalanceSn.exists) transaction.update(mainBalanceRef, { id: amount.abs() });
+        else transaction.set(mainBalanceRef, { id: amount.abs() });
+      }
+
       if(docParentSn != null) {
-        if(docParentSn.exists) transaction.update(docParentRef, { 'endAt': date, });
+        if(docParentSn.exists) transaction.update(docParentRef, parent!.toJson());
         /// else 분기 오류
       }
     }).then(
@@ -177,18 +217,46 @@ class ProcessItem {
     );
   }
 
+  /// 이 함수는 해당 클래스를 직렬화 하여 데이터베이스에 기록합니다.
+  dynamic updateOnlyIsDone() async {
+    if(rpUid == '') return false;
+    if(id == '') return false;
+    if(id == '') return false;
+
+    /// 메인문서 기록
+    var db = FirebaseFirestore.instance;
+    final docRef = db.collection("purchase/$rpUid/item-process").doc(id);
+
+    /// 매입 트랜잭션을 수행합니다.
+    return await db.runTransaction((transaction) async {
+      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
+      final docRefSn = await transaction.get(docRef);
+
+      if(docRefSn.exists) transaction.update(docRef, { 'isDone': true });
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated!"); return true; },
+        onError: (e) { print("Error update ts item() $e"); return false; }
+    );
+  }
+
 
   dynamic delete() async {
-
   }
 
   static Widget onTableHeader() {
-    return WidgetUI.titleRowNone(['순번', '품목명', '가공공정', '상태', '작업시작 수량', '작업완료 수량', '작업중인 수량', '가공일'],
-        [ 28, 200, 100, 100, 100, 100, 100, 150], background: true, lite: true);
+    return WidgetUI.titleRowNone(['순번', '거래처', '품목명', '가공공정', '상태', '작업시작 수량', '작업완료 수량', '작업중인 수량', '가공일', ''],
+        [ 28, 999, 999, 100, 50, 80, 80, 80, 150, 150], background: true, lite: true);
   }
-  Widget OnTableUI( { BuildContext? context,  Item? item, Function? onTap, Function? setState,
+  Widget OnTableUI( { BuildContext? context, Customer? cs, Item? item, Function? onTap, Function? setState,
     double? usedAmount,
   } ) {
+    if(item == null) {
+      return Container(
+        height: 28,
+        child: TextT.Lit(text: '품목정보는 NULL일 수 없습니다.'),
+      );
+    }
+
     if(isOutput) {
       return InkWell(
         onTap: () async {
@@ -202,7 +270,7 @@ class ProcessItem {
               ExcelT.LitGrid(text: "-", width: 28),
               ExcelT.LitGrid(text: item == null ? 'NULL' : item.name, width: 200, center: true),
               ExcelT.LitGrid(text: MetaT.processType[type] ?? 'NULL', width: 100, center: true),
-              ExcelT.LitGrid(text: isDone ? "완료" : '가공중', width: 100, center: true),
+              ExcelT.LitGrid(text: '가공가능', width: 100, center: true),
               ExcelT.LitGrid(text: StyleT.krwInt((amount).toInt()), width: 200, center: true),
               ExcelT.LitGrid(text: DateStyle.dateYearMonthDayHipen(date), width: 150, center: true),
               ButtonT.IconText(
@@ -235,15 +303,27 @@ class ProcessItem {
           child: Row(
             children: [
               ExcelT.LitGrid(text: "-", width: 28),
-              ExcelT.LitGrid(text: item == null ? 'NULL' : item.name, width: 200, center: true),
+              TextT.OnTap(
+                context: context,
+                text: cs == null ? 'NUll' : cs.businessName,
+                width: 200,
+                expand: true,
+                onTap: () async {
+                  if(context == null || cs == null) return;
+                  if(UIState.current == UIType.dialog_customer) { WidgetT.showSnackBar(context, text: 'UI Error (Screen duplicate prevention error)'); return; }
+
+                  var result = await DialogCS.showCustomerDialog(context, org: cs);
+                  if(result != null)
+                    if(setState != null) setState();
+                  else {}
+                },
+              ),
+              ExcelT.LitGrid(text: item.name, width: 200, center: true, expand: true),
               ExcelT.LitGrid(text: MetaT.processType[type] ?? 'NULL', width: 100, center: true),
-              ExcelT.LitGrid(text: amountM <= 0 ? "완료" : '가공중', width: 100, center: true),
-              ExcelT.LitGrid(text: StyleT.krwInt(amount.toInt()),
-                  width: 100, center: true),
-              ExcelT.LitGrid(text: StyleT.krwInt(((usedAmount == null) ? 0 : usedAmount!.abs()).toInt()),
-                  width: 100, center: true),
-              ExcelT.LitGrid(text: StyleT.krwInt((amount - ((usedAmount == null) ? 0 : usedAmount!.abs())).toInt()),
-                  width: 100, center: true),
+              ExcelT.LitGrid(text: amountM <= 0 ? "완료" : isDone ? "완료" : '가공중', width: 50, center: true),
+              ExcelT.LitGrid(text: StyleT.krwInt(amount.toInt()) + item.unit, width: 80, center: true),
+              ExcelT.LitGrid(text: StyleT.krwInt(((usedAmount == null) ? 0 : usedAmount!.abs()).toInt()) + item.unit, width: 80, center: true),
+              ExcelT.LitGrid(text: StyleT.krwInt((amount - ((usedAmount == null) ? 0 : usedAmount!.abs())).toInt()) + item.unit, width: 80, center: true),
 
               ExcelT.LitGrid(text: DateStyle.dateYearMonthDayHipen(date), width: 150, center: true),
               ButtonT.IconText(
@@ -267,22 +347,27 @@ class ProcessItem {
                 onTap: () async {
                   if(context == null) return;
 
+                  /// 현재 작업은 완료로 변경
+                  /// 작업 완료 물품을 추가
+                  /// 작업완료 물품 입력폼을 추가후 해당목록을 업데이트할떄 모든 문서에대한 트랜잭션을 구현
+                  /// 추후 직접 입력으로 변경
+
                   /// 작업완료대상의 품목정보 재구성 - 가공완료수량 리밋 수정
                   var parentProcess = ProcessItem.fromDatabase(this.toJson());
-                  parentProcess.amount = this.amount - ((usedAmount == null) ? 0 : usedAmount!.abs());
-                  
+
                   var result = await DialogItemInven.createOutputItem(context, process: parentProcess);
                   if(result == null) await WidgetT.showSnackBar(context, text: "Database Error");
                   else await WidgetT.showSnackBar(context, text: "저장됨");
 
                   if(setState != null) setState();
-                  /// 현재 작업은 완료로 변경
-                  /// 작업 완료 물품을 추가
-                  /// 작업완료 물품 입력폼을 추가후 해당목록을 업데이트할떄 모든 문서에대한 트랜잭션을 구현
-                  /// 추후 직접 입력으로 변경
                 },
               )
-                  : SizedBox(),
+                  : ButtonT.IconText(
+                icon: Icons.check_box,
+                text: "완료된    작업",
+                color: Colors.transparent,
+                onTap: () async {},
+              )
             ],
           ),
         ),

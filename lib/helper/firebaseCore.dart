@@ -74,7 +74,6 @@ class DatabaseM {
     }
   }
 
-
   static dynamic getReMetaCountCheck() async {
     var aaa = 0;
     CollectionReference coll = await FirebaseFirestore.instance.collection('meta/search/revenue-meta');
@@ -668,6 +667,34 @@ class DatabaseM {
     });
     return amount;
   }
+  static dynamic getAmountItemBalance(String id) async {
+    var amount = 0.0;
+    await FirebaseFirestore.instance.collection('meta/itemInven/${id}').limit(100).get().then((value) {
+      if(value.docs == null) return false;
+      value.docs.forEach((e) {
+        if(e.data() == null) return;
+        e.data().forEach((key, value) {
+          amount += value as double;
+        });
+      });
+    });
+    return amount;
+  }
+  static dynamic getAmountItemProcess(String id) async {
+    var amount = 0.0;
+    await FirebaseFirestore.instance.collection('balance/dateQ-process/${id}').limit(100).get().then((value) {
+      if(value.docs == null) return false;
+      value.docs.forEach((e) {
+        if(e.data() == null) return;
+        e.data().forEach((key, value) {
+          amount += value as double;
+        });
+      });
+    });
+    return amount;
+  }
+
+
   static dynamic getAmountAccountWithDate(String id, String startAt, String lastAt) async {
     var amount = 0;
     await FirebaseFirestore.instance.collection('balance/dateM-account/${id}').limit(100).get().then((value) {
@@ -1632,7 +1659,6 @@ class DatabaseM {
     return data;
   }
 
-
   static dynamic updateFactoryDWithFile(FactoryD data, { Map<String, Uint8List>? files, }) async {
     if(data.id == '') data.id = data.getID();
     CollectionReference coll = await FirebaseFirestore.instance.collection('factory-daily');
@@ -1998,6 +2024,86 @@ class DatabaseM {
 
     return itemProcessList;
   }
+  static dynamic getProcessItemGroupList({bool all=false}) async {
+    List<ProcessItem> itemProcessList = [];
+
+    var mainRoot = FirebaseFirestore.instance.collectionGroup('item-process');
+
+    if(all) {
+      await mainRoot.orderBy('date', descending: true).where('state', whereIn: [ '' ]).limit(50).get().then((value) {
+        if(value.docs == null) return;
+        print(value.docs.length);
+
+        value.docs.forEach((e) {
+          if(e.data() == null) return;
+          itemProcessList.add(ProcessItem.fromDatabase(e.data()));
+        });
+      });
+    } else {
+      await mainRoot.orderBy('date', descending: true).where('isOutput', isEqualTo: false)
+          .where('isDone', isEqualTo: false).where('state', whereIn: [ '' ]).limit(50).get().then((value) {
+        if(value.docs == null) return;
+        print(value.docs.length);
+
+        value.docs.forEach((e) {
+          if(e.data() == null) return;
+          itemProcessList.add(ProcessItem.fromDatabase(e.data()));
+        });
+      });
+    }
+
+    return itemProcessList;
+  }
+  static dynamic getProcessItemGroupByPrUid(String uid) async {
+    List<ProcessItem> itemProcessList = [];
+
+    var mainRoot = FirebaseFirestore.instance.collectionGroup('item-process');
+    await mainRoot.orderBy('date', descending: true).where('prUid', isEqualTo: uid)
+        .where('isOutput', isEqualTo: true)
+        .where('state', whereIn: [ '' ]).limit(50).get().then((value) {
+      if(value.docs == null) return;
+      print(value.docs.length);
+
+      value.docs.forEach((e) {
+        if(e.data() == null) return;
+        itemProcessList.add(ProcessItem.fromDatabase(e.data()));
+      });
+    });
+
+    return itemProcessList;
+  }
+  static dynamic getProcessItemGroupByCsUid(String uid, { bool isOutput=false }) async {
+    List<ProcessItem> itemProcessList = [];
+
+    var mainRoot = FirebaseFirestore.instance.collectionGroup('item-process');
+    await mainRoot.orderBy('date', descending: true)
+        .where('csUid', isEqualTo: uid)
+        .where('isOutput', isEqualTo: isOutput)
+        .where('state', whereIn: [ '' ]).limit(50).get().then((value) {
+      if(value.docs == null) return;
+      print(value.docs.length);
+
+      value.docs.forEach((e) {
+        if(e.data() == null) return;
+        itemProcessList.add(ProcessItem.fromDatabase(e.data()));
+      });
+    });
+
+    return itemProcessList;
+  }
+
+  static dynamic getProcessItemDoc(String rpUid, String id) async {
+    ProcessItem? data;
+
+    var mainRoot = FirebaseFirestore.instance.collection('purchase/$rpUid/item-process').doc(id);
+    await mainRoot.get().then((value) {
+      if(!value.exists) return null;
+      if(value.data() == null) return null;
+      data = ProcessItem.fromDatabase(value.data() as Map);
+    });
+    return data;
+  }
+
 
   static dynamic updateProductDWithFile(ProductD data, { Map<String, Uint8List>? files, }) async {
     if(data.id == '') data.id = data.getID();
@@ -2146,7 +2252,6 @@ class DatabaseM {
     }
   }
 
-
   static dynamic updateItemTS(ItemTS data, DateTime date) async {
     if(data.id == '') data.id = generateRandomString(8);
     var doc = StyleT.dateFormat(date);
@@ -2236,44 +2341,8 @@ class DatabaseM {
 
     return coll.doc('item').snapshots().listen((value) {
       print('item snapshots listen data changed');
-      if(value.data() == null) return;
-      var data = value.data() as Map;
-      var itemList = data['list'] as Map;
-      MetaT.itemGroup = data['group'] as Map;
-
-      SystemT.itemMaps.clear();
-      for(var a in itemList.values) {
-        if(a == null) continue;
-        var itemTmp = Item.fromDatabase(a as Map);
-        if(itemTmp.type == 'DEL')  { continue; }
-
-        SystemT.itemMaps[itemTmp.id] = itemTmp;
-        print(a);
-      }
-      print(SystemT.itemMaps);
-
-      SystemT.items = SystemT.itemMaps.values.toList();
-      print(SystemT.items.join());
       FunT.setStateMain();
     });
-  }
-
-  static dynamic getItemSV() async {
-    Map<String, ItemFD> inventoryData = {};
-    CollectionReference coll = await FirebaseFirestore.instance.collection('meta');
-    await coll.doc('inventory').get().then((value) {
-      print('get meta inventory items data');
-      if(value.data() == null) return false;
-      var data = value.data() as Map;
-      var itemList = data['item'] as Map;
-
-      for(var a in itemList.values) {
-        if(a == null) continue;
-        var itemTmp = ItemFD.fromDatabase(a as Map);
-        inventoryData[itemTmp.id] = itemTmp;
-      }
-    });
-    return inventoryData;
   }
 
   static String generateRandomString(int len) {

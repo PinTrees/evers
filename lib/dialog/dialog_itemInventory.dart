@@ -44,13 +44,13 @@ class DialogItemInven extends StatelessWidget {
     var dividHeight = 6.0;
 
     if(org == null) return;
-    ItemTS pu = org;
+    ItemTS itemTs = org;
 
-    Contract? ct = await DatabaseM.getContractDoc(pu.ctUid == '' ? 'ㅡ' : pu.ctUid);
-    Customer? cs = await DatabaseM.getCustomerDoc(pu.csUid == '' ? 'ㅡ' : pu.csUid);
+    Contract? ct = await DatabaseM.getContractDoc(itemTs.ctUid == '' ? 'ㅡ' : itemTs.ctUid);
+    Customer? cs = await DatabaseM.getCustomerDoc(itemTs.csUid == '' ? 'ㅡ' : itemTs.csUid);
 
     /// 해당 매입품목에 대한 전체 공정목록
-    List<ProcessItem> processList = await DatabaseM.getItemProcessPu(pu.rpUid == '' ? '-' : pu.rpUid);
+    List<ProcessItem> processList = await DatabaseM.getItemProcessPu(itemTs.rpUid == '' ? '-' : itemTs.rpUid);
 
     /// 출고된 공정목록
     List<ProcessItem> outputList = processList.where((e) => e.isOutput).toList();
@@ -87,22 +87,22 @@ class DialogItemInven extends StatelessWidget {
               FunT.setStateDT();
 
               List<Widget> widgetsPu = [];
-              widgetsPu.add( WidgetUI.titleRowNone(['매출일자', '품목', '단위', '수량', '단가', '메모', '저장위치', ],
+              widgetsPu.add( WidgetUI.titleRowNone(['매입일자', '품목', '단위', '수량', '단가', '메모', '저장위치', ],
                 [ 150, 200, 50, 100, 100, 999, 200, 150, 200, 0],lite: true, background: true ));
 
-              var item = SystemT.getItem(pu.itemUid) ?? Item.fromDatabase({});
+              var item = SystemT.getItem(itemTs.itemUid) ?? Item.fromDatabase({});
               var w = Column(
                 children: [
                   Container( height: 28,
                     child: Row(
                         children: [
-                          ExcelT.LitGrid(text: StyleT.dateInputFormatAtEpoch(pu.date.toString()), width: 150, center: true),
-                          ExcelT.LitGrid(text: SystemT.getItemName(pu.itemUid), width: 200, center: true),
+                          ExcelT.LitGrid(text: StyleT.dateInputFormatAtEpoch(itemTs.date.toString()), width: 150, center: true),
+                          ExcelT.LitGrid(text: SystemT.getItemName(itemTs.itemUid), width: 200, center: true),
                           ExcelT.LitGrid(text: item.unit, width: 50),
-                          ExcelT.LitGrid(text: StyleT.krwInt(pu.amount.toInt()), width: 100, center: true),
-                          ExcelT.LitGrid(text: StyleT.krwInt(pu.unitPrice), width: 100, center: true),
-                          ExcelT.LitGrid(text: pu.memo, width: 200, expand: true, center: true),
-                          ExcelT.LitGrid(text: pu.storageLC, width: 200, expand: true),
+                          ExcelT.LitGrid(text: StyleT.krwInt(itemTs.amount.toInt()), width: 100, center: true),
+                          ExcelT.LitGrid(text: StyleT.krwInt(itemTs.unitPrice), width: 100, center: true),
+                          ExcelT.LitGrid(text: itemTs.memo, width: 200, expand: true, center: true),
+                          ExcelT.LitGrid(text: itemTs.storageLC, width: 200, expand: true),
                         ]
                     ),
                   ),
@@ -117,11 +117,11 @@ class DialogItemInven extends StatelessWidget {
                                   runSpacing: dividHeight, spacing: dividHeight,
                                   children: [
                                     SizedBox(width: dividHeight, height: 36,),
-                                    for(int i = 0; i < pu.filesMap.length; i++)
+                                    for(int i = 0; i < itemTs.filesMap.length; i++)
                                       InkWell(
                                           onTap: () async {
-                                            var downloadUrl = pu.filesMap.values.elementAt(i);
-                                            var fileName = pu.filesMap.keys.elementAt(i);
+                                            var downloadUrl = itemTs.filesMap.values.elementAt(i);
+                                            var fileName = itemTs.filesMap.keys.elementAt(i);
                                             print(downloadUrl);
                                             var res = await http.get(Uri.parse(downloadUrl));
                                             var bodyBytes = res.bodyBytes;
@@ -134,7 +134,7 @@ class DialogItemInven extends StatelessWidget {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   WidgetT.iconMini(Icons.cloud_done, size: 28),
-                                                  WidgetT.title(pu.filesMap.keys.elementAt(i),),
+                                                  WidgetT.title(itemTs.filesMap.keys.elementAt(i),),
                                                   TextButton(
                                                       onPressed: () {
                                                         //pu.filesMap.remove(pu.filesMap.keys.elementAt(i));
@@ -167,20 +167,19 @@ class DialogItemInven extends StatelessWidget {
               processList.forEach((e) { usedCount += e.amount.abs(); });
 
               /// 기초 품목에 대한 가공가능목록 생성
-              var am = amountMap.containsKey(pu.id) ? amountMap[pu.id] : 0;
-              if(pu.amount - am!.abs() > 0) {
+              var am = amountMap.containsKey(itemTs.id) ? amountMap[itemTs.id] : 0;
+              if(itemTs.amount - am!.abs() > 0) {
                 outputWidgets.add(InkWell(
                   onTap: () async {
-                    var process = ProcessItem.fromDatabase({});
-                    process.id = pu.id; 
-                    process.amount = (pu.amount - usedCount);
-                    process.rpUid = pu.rpUid;
-                    process.itUid = pu.itemUid;
+                    var process = ProcessItem.fromItemTS(itemTs);
+                    process.id = itemTs.id;
+                    process.amount = (itemTs.amount - usedCount);
+                    process.itUid = itemTs.itemUid;
 
                     var result = await selectProcess(context, process: process);
 
                     if(result != null) {
-                      processList = await DatabaseM.getItemProcessPu(pu.rpUid);
+                      processList = await DatabaseM.getItemProcessPu(itemTs.rpUid);
                       outputList = processList.where((e) => e.isOutput).toList();
 
                       processList.forEach((e) {
@@ -207,10 +206,10 @@ class DialogItemInven extends StatelessWidget {
                     child: Row(
                       children: [
                         ExcelT.LitGrid(text: "-", width: 28),
-                        ExcelT.LitGrid(text: item.name, width: 200, center: true),
+                        ExcelT.LitGrid(text: item.name + '(원물)', width: 200, center: true),
                         ExcelT.LitGrid(text: '미가공', width: 100, center: true),
                         ExcelT.LitGrid(text: '완료', width: 100, center: true),
-                        ExcelT.LitGrid(text: StyleT.krwInt((pu.amount - usedCount).toInt()), width: 200, center: true),
+                        ExcelT.LitGrid(text: StyleT.krwInt((itemTs.amount - usedCount).toInt()), width: 200, center: true),
                       ],
                     ),
                   ),
@@ -225,15 +224,14 @@ class DialogItemInven extends StatelessWidget {
                   item: it,
                   onTap: () async {
                     /// 신규 품목 가공창 표시
-                    var process = ProcessItem.fromDatabase({});
+                    var process = ProcessItem.fromItemTS(itemTs);
                     process.amount = (e.amount - (amountMap.containsKey(e.id) ? amountMap[e.id]! : 0.0));
-                    process.rpUid = pu.rpUid;
                     process.itUid = e.itUid;
 
                     var result = await selectProcess(context, process: process);
 
                     if(result != null) {
-                      processList = await DatabaseM.getItemProcessPu(pu.rpUid);
+                      processList = await DatabaseM.getItemProcessPu(itemTs.rpUid);
                       outputList = processList.where((e) => e.isOutput).toList();
 
                       processList.forEach((e) {
@@ -281,31 +279,19 @@ class DialogItemInven extends StatelessWidget {
                     borderRadius: BorderRadius.circular(0)),
                 titlePadding: EdgeInsets.zero,
                 contentPadding: EdgeInsets.zero,
-                title: WidgetDT.dlTitle(context, title: '매입 개별 상세 정보', ),
+                title: WidgetDT.dlTitle(context, title: '품목 가공기록 개별 상세 정보', ),
                 content: SingleChildScrollView(
                   child: Container(
                     padding: EdgeInsets.all(18),
                     child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            WidgetT.title('거래처', size: 16),
-                            SizedBox(height: dividHeight,),
-                            Container(
-                                height: 36, width: 250, alignment: Alignment.center,
-                                decoration: StyleT.inkStyle(color: Colors.black.withOpacity(0.02), stroke: 2, strokeColor: Colors.grey.withOpacity(0.35)),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    WidgetT.title((cs != null) ? cs!.businessName : '', ),
-                                  ],
-                                )),
-                          ],
-                        ),
-                        SizedBox(height: dividHeight * 8,),
+                        TextT.Lit(text: "매입한 품목의 각 품목별 가공기록을 확인하는 화면입니다.",),
+                        SizedBox(height: dividHeight * 4,),
+                        TextT.Title(text: '거래처'),
+                        TextT.Lit(text: (cs != null) ? cs!.businessName : '',),
+                        SizedBox(height: dividHeight * 4,),
 
-                        WidgetT.title('품목매입정보', size: 16),
+                        TextT.Title(text:'품목매입정보',),
                         SizedBox(height: dividHeight,),
                         Column(children: widgetsPu, ),
                         SizedBox(height: dividHeight * 8,),
@@ -320,17 +306,8 @@ class DialogItemInven extends StatelessWidget {
                         Column(children: processingWidgets, ),
                         SizedBox(height: dividHeight * 8,),
 
-                        Row(
-                          children: [
-                            TextT.Title(text: '품목가공로그',),
-                            SizedBox(width: 6,),
-                            TextT.Lit(text: '해당 품목에 대한 모든 가공공정의 로그 목록입니다.', size: 10,)
-                          ],
-                        ),
-                        SizedBox(height: dividHeight,),
-
-
-                        SizedBox(height: dividHeight * 8,),
+                        TextT.Title(text: '품목가공로그',),
+                        TextT.Lit(text: '해당 품목에 대한 모든 가공공정의 로그 목록입니다.', size: 10,),
                       ],
                     ),
                   ),
@@ -369,10 +346,21 @@ class DialogItemInven extends StatelessWidget {
     var dividHeight = 6.0;
     if(process == null) return null;
 
+    Item? item = SystemT.getItem(process.itUid);
+    if(item == null) return null;
+
     ProcessItem inputProcess = ProcessItem.fromDatabase({});
     inputProcess.date = DateTime.now().microsecondsSinceEpoch;
     var usedAmount = 0.0;
+    var outputUsedAmount = 0.0;
     var startAmount = process.amount;
+
+    /// 해당 품목을 부모로하는 완료된 작업이 있는지 확인
+    List<ProcessItem> processedList = await DatabaseM.getProcessItemGroupByPrUid(process.id);
+    processedList.forEach((e) {
+      outputUsedAmount += e.usedAmount.abs();
+    });
+    process.amount -= outputUsedAmount.abs();
 
     ProcessItem? ret = await showDialog(
         context: context,
@@ -397,10 +385,21 @@ class DialogItemInven extends StatelessWidget {
                     padding: EdgeInsets.all(18),
                     child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        TextT.Title(text: '현재 가공품',),
+                        TextT.Lit(text: '${item.name} (${ MetaT.itemGroup[item.group] ?? '-' })',),
+                        SizedBox(height: dividHeight * 2,),
+                        TextT.Title(text: '현재 가공공정',),
+                        TextT.Lit(text: MetaT.processType[process.type],),
+                        SizedBox(height: dividHeight * 2,),
+
                         TextT.Title(text: '공정완료 수량 및 품목 입력',),
+                        TextT.Lit(text: '해당 가공공정을 일부 또는 전체를 종료하고 공정이 완료된 신규 품목을 선택하여 생산된 수량을 작성하고 재고에 반영합니다.',),
+                        TextT.Lit(text: '공정은 일부 완료가 가능합니다. 일부완료 시, 사용된 작업물 수량을 전체 투입수량의 비율에 맞게 조절하여 입력합니다.',),
+                        TextT.Lit(text: '\n완성된 품목 수량은 가공완료된 품목의 결과물 수량입니다.',),
+                        TextT.Lit(text: '가공완료품목은 가공완료된 품목의 최종가공형태입니다. 브라질넛 -> 세척브라질넛 (세척가공 후)',),
                         SizedBox(height: dividHeight,),
                         Column(children: [
-                          WidgetUI.titleRowNone([ '공정완료일', '완성된 품목 수량', '가공완료품목', '사용된 작업물 수량', '현재 남은 공정수량' ],
+                          WidgetUI.titleRowNone([ '공정완료일', '완성된 품목 수량', '가공완료품목', '사용된 작업물 수량', '현재 남은 작업물 수량' ],
                               [ 150, 100, 250, 100, 250 ], lite: true, background: true),
                           Row(
                             children: [
@@ -500,7 +499,6 @@ class DialogItemInven extends StatelessWidget {
                               return;
                             }
 
-
                             var alt = await DialogT.showAlertDl(context, text: '공정을 완료하시겠습니까?');
                             if(!alt) {  WidgetT.showSnackBar(context, text: '취소됨'); return; }
 
@@ -528,6 +526,49 @@ class DialogItemInven extends StatelessWidget {
                                 children: [
                                   WidgetT.iconMini(Icons.check_circle),
                                   Text('공정완료 저장', style: StyleT.titleStyle(),),
+                                  SizedBox(width: 6,),
+                                ],
+                              )
+                          )
+                      ),),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(child:TextButton(
+                          onPressed: () async {
+                            if(process.amount > 0.001) {
+                              WidgetT.showSnackBar(context, text: '남은 작업물 수량이 0보다 클경우 공정을 종료할 수 없습니다.');
+                              return;
+                            }
+
+                            var alt = await DialogT.showAlertDl(context, text: '공정을 종료하시겠습니까?');
+                            if(!alt) {  WidgetT.showSnackBar(context, text: '취소됨'); return; }
+
+                            WidgetT.loadingBottomSheet(context);
+                            setStateS(() {});
+
+                            var result = await process.updateOnlyIsDone();
+                            if(!result) WidgetT.showSnackBar(context, text: 'The request to write to the server for path "/purchase/:pid/item-process/:psid" failed.');
+                            else WidgetT.showSnackBar(context, text: '저장됨');
+
+
+                            Navigator.pop(context);
+                            Navigator.pop(context, inputProcess);
+                          },
+                          style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
+                          child: Container(
+                              color: Colors.red.withOpacity(0.5), height: 42,
+                              child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  WidgetT.iconMini(Icons.exit_to_app),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text('공정 종료', style: StyleT.titleStyle(),),
+                                      TextT.Lit(text: '해당 공정을 종료합니다. 공정이 완료된 작업에 대해 작업이 끝났음을 기록합니다.'),
+                                    ],
+                                  ),
                                   SizedBox(width: 6,),
                                 ],
                               )
@@ -583,6 +624,9 @@ class DialogItemInven extends StatelessWidget {
                         SizedBox(height: dividHeight * 2,),
 
                         TextT.Title(text: '공정 및 수량 입력',),
+                        TextT.Lit(text: '해당 원자재 품목에 대한 공정을 추가하고 작업목록에 추가합니다.',),
+                        TextT.Lit(text: '가공할 수량: 원자재에 대한 가공수량입니다.',),
+                        TextT.Lit(text: '가공가능 최대수량: 해당 거래처 또는 계약으로 매입한 원자재의 가공한계수량입니다. 작업이 추가될경우 사용한 만큼 최대치가 반영됩니다.',),
                         SizedBox(height: dividHeight,),
                         Column(children: [
                           WidgetUI.titleRowNone([ '가공일', '가공 공정', '가공할 수량', '가공가능 최대수량' ], [ 150, 250, 250, 250 ], lite: true, background: true),

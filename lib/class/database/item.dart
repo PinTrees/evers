@@ -60,8 +60,49 @@ class Item {
       'display': display,
     };
   }
+
+
+
+
+
+
+
+  dynamic getAmountBalance() async {
+    return await DatabaseM.getAmountItemBalance(id);
+  }
 }
 
+class ItemCount {
+  late Item item;
+  var amount = 0.0;
+  ItemCount.fromData(Item item, double amount) {
+    this.item = item;
+    this.amount = amount;
+  }
+
+  void incrementCount(double amount) {
+    this.amount += amount;
+  }
+
+
+  static Widget OnTableHeader() {
+    return WidgetUI.titleRowNone([ "순번", "품목명", "분류", '재고량' ],
+      [ 28, 999, 100, 100 ], background: true, lite: true);
+  }
+  Widget OnTableUI() {
+    return Container(
+      height: 28,
+      child: Row(
+        children: [
+          ExcelT.LitGrid(text: '-', width: 28, center: true),
+          ExcelT.LitGrid(text: item.name, width: 200, center: true, expand: true,),
+          ExcelT.LitGrid(text: MetaT.itemGroup[item.group] ?? '-', width: 100, center: true),
+          ExcelT.LitGrid(text: StyleT.krwInt(amount.toInt()) + item.unit, width: 100, center: true),
+        ],
+      ),
+    );
+  }
+}
 
 /// 품목 사용 및 생산 개수
 /// (***) 변경 필요
@@ -374,6 +415,16 @@ class ItemTS {
     return WidgetUI.titleRowNone([ '순번', '입출일', '구분', '품목', '단위', '수량', '단가', '합계', '', '' ],
         [ 32, 100, 100, 999, 50, 100, 100, 100, 100, 64 ]);
   }
+  static Widget OnBalanceTableHeader() {
+    return Column(
+      children: [
+        WidgetUI.titleRowNone([ '순번', '품목명', '분류', '재고수량', '작업중인 수량',  ],
+            [ 28, 200, 150, 100, 100, 100 ]),
+        WidgetT.dividHorizontal(size: 0.7),
+      ],
+    );
+  }
+
   Widget OnTableUI({int? index, Customer? cs, Function? onCs, Contract? ct, Item? item,
     Function? onTap,
   }) {

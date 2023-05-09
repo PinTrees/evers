@@ -1779,7 +1779,7 @@ class DialogT extends StatelessWidget {
                                   textInputAction: TextInputAction.search,
                                   keyboardType: TextInputType.text,
                                   onEditingComplete: () async {
-                                    items = await SystemT.searchItem(searchInput.text, SystemT.items.toList());
+                                    items = await SystemT.searchItem(searchInput.text, SystemT.itemMaps.values.toList());
                                     FunT.setStateDT();
                                   },
                                   onChanged: (text) {
@@ -1823,9 +1823,9 @@ class DialogT extends StatelessWidget {
                                         WidgetT.dividViertical(),
                                         WidgetT.excelGrid(text: '${itemT.name}', width: 250, label: '품명'),
                                         WidgetT.dividViertical(),
-                                        WidgetT.excelGrid(text: StyleT.krwInt(SystemT.getInventoryItemCount(itemT.id)) + itemT.unit, width: 120, label: '재고량',),
+                                        WidgetT.excelGrid(text: StyleT.krwInt(SystemT.getItemBalance(itemT.id)) + itemT.unit, width: 120, label: '재고량',),
                                         WidgetT.dividViertical(),
-                                        WidgetT.excelGrid(text: StyleT.krwInt(SystemT.getInventoryItemCount(itemT.id) * itemT.unitPrice) + '원' , width: 120, label: '금액',),
+                                        WidgetT.excelGrid(text: StyleT.krwInt(SystemT.getItemBalance(itemT.id) * itemT.unitPrice) + '원' , width: 120, label: '금액',),
                                         WidgetT.dividViertical(),
                                       ]
                                   ),

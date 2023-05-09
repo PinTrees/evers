@@ -3,14 +3,18 @@ import 'dart:ui';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/database/process.dart';
+import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/dialog/dialog_itemInventory.dart';
 import 'package:evers/dialog/dialog_itemts.dart';
+import 'package:evers/dialog/dialog_tag.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
 import 'package:evers/ui/ex.dart';
+import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -56,6 +60,7 @@ class View_Factory extends StatelessWidget {
   List<ProductD> product_list = [];
   List<ItemTS> itemTs_list = [];
   List<ItemTS> itemProductList = [];
+  List<ProcessItem> processList = [];
 
   bool sort = false;
   bool query = false;
@@ -119,6 +124,10 @@ class View_Factory extends StatelessWidget {
 
 
   var subMenu = '생산관리';
+
+
+  Map<String, double> usedAmount = {};
+
   /// Main Widget Build Function
   ///
   /// (***) 공장일보 및 생산일보 분리 필요
@@ -132,6 +141,15 @@ class View_Factory extends StatelessWidget {
       pur_query = '';
 
       itemProductList = await DatabaseM.getItemTranListProduct();
+      processList = await DatabaseM.getProcessItemGroupList();
+
+      for(var pr in processList) {
+        List<ProcessItem> outputList = await DatabaseM.getProcessItemGroupByPrUid(pr.id);
+        var amount = 0.0;
+        outputList.forEach((e) { amount += e.usedAmount.abs(); });
+        usedAmount[pr.id] = amount;
+      }
+      await SystemT.initItemBalance();
     }
 
     this.menu = menu;
@@ -503,7 +521,6 @@ class View_Factory extends StatelessWidget {
       List<ItemFD> itemSv = [];
       Map<String, dynamic> itemPu = {};
 
-      //List<FactoryD> data = sortMenu_FD ? factoryD : SystemT.streamFacD.values.toList();
       List<ProductD> data = sort ? product_list : product_list;
 
       for(var fd in data) {
@@ -676,12 +693,98 @@ class View_Factory extends StatelessWidget {
         ));
       }
     }
+    else if(menu == "품목입출현황") {
+      childrenW.add(Column(
+        children: [
+          Row(
+            children: [
+              WidgetT.title('품목 입출 목록', size: 16),
+              SizedBox(width: divideHeight * 2,),
+              InkWell(
+                  onTap: () async {
+                    WidgetT.showSnackBar(context, text: "개발중 입니다.");
+                  },
+                  child: Container(
+                    color: Colors.grey.withOpacity(0.35),
+                    child: Row(
+                      children: [
+                        WidgetT.iconMini(Icons.add_box, size: 24, boxSize: 28),
+                        WidgetT.text('신규 입출목록 추가', size: 12,),
+                        SizedBox(width: divideHeight,),
+                      ],
+                    ),
+                  )
+              )
+            ],
+          ),
+          Container(
+            child: WidgetUI.titleRowNone([ '순번', '입출일', '구분', '거래처 / 계약', '품목', '수량', '습도', '저장고', '검수자', '' ],
+                [ 32, 80, 50, 999, 999, 80, 80, 80, 80, 64 ]),
+          ),
+          WidgetT.dividHorizontal(size: 0.7),
+        ],
+      ));
+      if(itemTs_list.length < 1) {
+        itemTs_list = await DatabaseM.getItemTranList(
+          startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
+          lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
+        );
+      }
 
+      int i = 0;
+      var data = sort ? itemTs_list : itemTs_list;
+      for(var itemTs in data) {
+        i++;
+        Widget w = SizedBox();
+        var cs = await SystemT.getCS(itemTs.csUid) ?? Customer.fromDatabase({});
+        var ct = await SystemT.getCt(itemTs.ctUid) ?? Contract.fromDatabase({});
+
+        var item = SystemT.getItem(itemTs.itemUid);
+        w = itemTs.OnTableUI(index: i, cs: cs, ct: ct, item: item,
+            onTap: () async {
+              var result =  await DialogItemInven.showInfo(context, org: itemTs);
+              if(result != null) {
+                mainView(context, menu);
+              }
+            }
+        );
+
+        childrenW.add(w);
+        childrenW.add(WidgetT.dividHorizontal(size: 0.35),);
+      }
+
+      if(!sort) {
+        childrenW.add(InkWell(
+          onTap: () async {
+            WidgetT.loadingBottomSheet(context, text: '로딩중');
+
+            var list = await DatabaseM.getItemTranList(
+              startAt: (itemTs_list.length > 0) ? itemTs_list.last.id : null,
+              startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
+              lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
+            );
+            itemTs_list.addAll(list);
+
+            Navigator.pop(context);
+            await FunT.setStateMain();
+          },
+          child: Container(
+            height: 36,
+            child: Row(
+              children: [
+                WidgetT.iconMini(Icons.add_box, size: 36),
+                WidgetT.title('더보기'),
+              ],
+            ),
+          ),
+        ));
+      }
+    }
 
     if(menu == '품목관리') {
       childrenW.clear();
-      for(int i = 0; i < SystemT.items.length; i++) {
-        var itemTmp = SystemT.items[i];
+      for(int i = 0; i < SystemT.itemMaps.length; i++) {
+        var itemTmp = SystemT.itemMaps.values.elementAt(i);
         Widget w = SizedBox();
         w = InkWell(
           onTap: () async {
@@ -691,22 +794,14 @@ class View_Factory extends StatelessWidget {
             decoration: StyleT.inkStyleNone(color: Colors.transparent),
             child: Row(
                 children: [
-                  //WidgetT.excelGrid(label: '${itemTmp.id}', width: 80),
                   WidgetT.excelGrid(label: '${i}', width: 32),
-                  //WidgetT.dividViertical(),
                   WidgetT.excelGrid(textLite: true, text: MetaT.itemType[itemTmp.type], width: 100,),
                   WidgetT.excelGrid(textLite: true, text: MetaT.itemGroup[itemTmp.group], width: 100,),
-                  //WidgetT.dividViertical(),
                   WidgetT.excelGrid(text: '${itemTmp.name}', width: 200, ),
-                  //WidgetT.dividViertical(),
                   WidgetT.excelGrid(textLite: true, width: 100,  text: itemTmp.unit,),
-                  //WidgetT.dividViertical(),
                   WidgetT.excelGrid(textLite: true, text: StyleT.krwInt(itemTmp.unitPrice), width: 120,),
-                  //WidgetT.dividViertical(),
                   WidgetT.excelGrid(textLite: true, text: StyleT.krwInt(itemTmp.cost), width: 120, ),
-                  //WidgetT.dividViertical(),
                   Expanded(child: WidgetT.excelGrid(textLite: true, width: 250, text: itemTmp.memo,),),
-                  //WidgetT.dividViertical(),
                   Container( height: 32, width: 32,
                     child: WidgetT.iconMini(itemTmp.display ? Icons.check_box: Icons.check_box_outline_blank),),
                   TextButton(
@@ -718,7 +813,6 @@ class View_Factory extends StatelessWidget {
                       child: Container( height: 32, width: 32,
                         child: WidgetT.iconMini(Icons.create),)
                   ),
-                  //WidgetT.dividViertical(),
                   TextButton(
                       onPressed: () async {
                         if(await DialogT.showAlertDl(context, text: '"${itemTmp.name}" 품목을 데이터베이스에서 삭제하시겠습니까?')) {
@@ -740,202 +834,82 @@ class View_Factory extends StatelessWidget {
     }
 
     /// (***) 함수화 필요
-    ///
     /// @AT - M
     else if(menu == '생산관리') {
-      titleWidgetT = Column(
+      List<Widget> itemBalanceWidgets = [];
+      itemBalanceWidgets.add(ItemTS.OnBalanceTableHeader());
+      SystemT.itemMaps.forEach((k, v) {
+        itemBalanceWidgets.add(Container(
+          height: 28,
+          child: Row(
+            children: [
+              ExcelT.LitGrid(text: '-', width: 28),
+              ExcelT.LitGrid(text: v.name, width: 200, center: true),
+              ExcelT.LitGrid(text: MetaT.itemGroup[v.group] ?? '-', width: 150, center: true),
+              ExcelT.LitGrid(text: StyleT.krwInt(SystemT.getItemBalance(k)) + v.unit, width: 100, center: true),
+              ExcelT.LitGrid(text: '-' + v.unit, width: 100, center: true),
+            ],
+          ),
+        ));
+        itemBalanceWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+      });
+
+
+      List<Widget> processWidgets = [];
+      processWidgets.add(ProcessItem.onTableHeader());
+
+      if(processList.length > 0) {
+        Purchase? pu = await DatabaseM.getPurchaseDoc(processList.first.rpUid);
+        for(var e in processList) {
+          var cs = await SystemT.getCS(pu == null ? e.csUid : pu.csUid);
+          processWidgets.add(e.OnTableUI(context: context,
+            cs: cs,
+            item: SystemT.getItem(e.itUid),
+            usedAmount: usedAmount[e.id] ?? 0.0,
+            setState: () { mainView(context, menu, refresh: true); },
+          ));
+          processWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+        }
+      }
+
+      childrenW.add(Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: divideHeight * 3,),
           Row(
             children: [
-              InkWell(
-                onTap: () {
-                  subMenu = "생산관리";
-                  FunT.setStateMain();
-                },
-                child: WidgetT.titleT('생산관리', size: 18, bold: true, color: (subMenu != "생산관리") ? Colors.grey.withOpacity(0.5) : null),
-              ),
-              SizedBox(width: 36,),
-              InkWell(
-                onTap: () {
-                  subMenu = "품목입출기록";
-                  FunT.setStateMain();
-                },
-                child: WidgetT.titleT('품목입출기록', size: 18, bold: true, color: (subMenu != "품목입출기록") ? Colors.grey.withOpacity(0.5) : null),
+              TextT.Title(text:'가공공정 목록'),
+              SizedBox(width: divideHeight,),
+              ButtonT.IconText(
+                  icon: Icons.add_box,
+                  text: '추가',
+                  onTap: () async {
+                    var result = await DialogTag.createTag(context);
+                    if(result != null){
+                      await MetaT.init();
+                      mainView(context, menu, refresh: false);
+                    }
+                  }
               ),
             ],
           ),
-          SizedBox(height: divideHeight * 3,),
+          SizedBox(height: divideHeight,),
+          TextT.Lit(text: MetaT.processType.values.join(', ')),
+          SizedBox(height: divideHeight * 4,),
+
+          TextT.Title(text:'재고현황'),
+          SizedBox(height: divideHeight,),
+          Column( children: itemBalanceWidgets,),
+          SizedBox(height: divideHeight * 4,),
+
+          TextT.Title(text:'가공중인 품목',),
+          SizedBox(height: divideHeight,),
+          Column( children: processWidgets,),
+
+          WidgetT.dividHorizontal(size: 0.7),
         ],
-      );
-
-      if(subMenu == "생산관리") {
-
-        List<Widget> productItemWidgets = [];
-        productItemWidgets.add(ItemTS.onTableHeader());
-        itemProductList.forEach((e) {
-          productItemWidgets.add(e.OnTableUI());
-          productItemWidgets.add(WidgetT.dividHorizontal(size: 0.35));
-        });
-
-        childrenW.add(Column(
-          children: [
-            Row(
-              children: [
-                WidgetT.title('가공중인 품목', size: 16),
-                SizedBox(width: divideHeight * 2,),
-                InkWell(
-                    onTap: () async {
-                      //WidgetT.showSnackBar(context, text: "XXX");
-                      var result = await DialogItemTrans.createItemTS(context);
-                      if(result != null) {
-
-                      }
-                    },
-                    child: Container(
-                      color: Colors.grey.withOpacity(0.35),
-                      child: Row(
-                        children: [
-                          WidgetT.iconMini(Icons.add_box, size: 24, boxSize: 28),
-                          WidgetT.text('가공중인 품목 추가', size: 12,),
-                          SizedBox(width: divideHeight,),
-                        ],
-                      ),
-                    )
-                ),
-                SizedBox(width: divideHeight,),
-
-              ],
-            ),
-            for(var w in productItemWidgets) w,
-
-            WidgetT.dividHorizontal(size: 0.7),
-          ],
-        ));
-      }
-
-      if(subMenu == "품목입출기록") {
-        childrenW.add(Column(
-          children: [
-            Row(
-              children: [
-                WidgetT.title('품목 입출 목록', size: 16),
-                SizedBox(width: divideHeight * 2,),
-                InkWell(
-                    onTap: () async {
-                      WidgetT.showSnackBar(context, text: "개발중 입니다.");
-                    },
-                    child: Container(
-                      color: Colors.grey.withOpacity(0.35),
-                      child: Row(
-                        children: [
-                          WidgetT.iconMini(Icons.add_box, size: 24, boxSize: 28),
-                          WidgetT.text('신규 입출목록 추가', size: 12,),
-                          SizedBox(width: divideHeight,),
-                        ],
-                      ),
-                    )
-                )
-              ],
-            ),
-            Container(
-              child: WidgetUI.titleRowNone([ '순번', '입출일', '구분', '거래처 / 계약', '품목', '수량', '습도', '저장고', '검수자', '' ],
-                  [ 32, 80, 50, 999, 999, 80, 80, 80, 80, 64 ]),
-            ),
-            WidgetT.dividHorizontal(size: 0.7),
-          ],
-        ));
-        if(itemTs_list.length < 1) {
-          itemTs_list = await DatabaseM.getItemTranList(
-            startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-            lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
-          );
-        }
-
-        int i = 0;
-        var data = sort ? itemTs_list : itemTs_list;
-        for(var itemTs in data) {
-          i++;
-          Widget w = SizedBox();
-          var cs = await SystemT.getCS(itemTs.csUid) ?? Customer.fromDatabase({});
-          var ct = await SystemT.getCt(itemTs.ctUid) ?? Contract.fromDatabase({});
-
-          var item = SystemT.getItem(itemTs.itemUid);
-          w = itemTs.OnTableUI(index: i, cs: cs, ct: ct, item: item,
-            onTap: () async {
-              var result =  await DialogItemInven.showInfo(context, org: itemTs);
-              if(result != null) {
-                mainView(context, menu);
-              }
-            }
-          );
-
-          childrenW.add(w);
-          childrenW.add(WidgetT.dividHorizontal(size: 0.35),);
-        }
-
-        if(!sort) {
-          childrenW.add(InkWell(
-            onTap: () async {
-              WidgetT.loadingBottomSheet(context, text: '로딩중');
-
-              var list = await DatabaseM.getItemTranList(
-                startAt: (itemTs_list.length > 0) ? itemTs_list.last.id : null,
-                startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-                lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
-              );
-              itemTs_list.addAll(list);
-
-              Navigator.pop(context);
-              await FunT.setStateMain();
-            },
-            child: Container(
-              height: 36,
-              child: Row(
-                children: [
-                  WidgetT.iconMini(Icons.add_box, size: 36),
-                  WidgetT.title('더보기'),
-                ],
-              ),
-            ),
-          ));
-        }
-      }
+      ));
       childrenW.add(SizedBox(height: divideHeight,));
     }
-    /*if(menu == '재고현황') {
-      childrenW.clear();
-      for(int i = startAt; i < limitAt; i++) {
-        if(i >= SystemT.items.length) break;
-        var itemTmp = SystemT.items[i];
-        Widget w = SizedBox();
-        w = Container(
-          padding: EdgeInsets.only(bottom: divideHeight),
-          child: TextButton(
-              onPressed: null,
-              style: StyleT.buttonStyleOutline(round: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 1.4, elevation: 0, padding: 0),
-              child: Container( height: 32,
-                child: Row(
-                    children: [
-                      WidgetT.excelGrid(label: '${itemTmp.id}', width: 80),
-                      WidgetT.dividViertical(),
-                      WidgetT.excelGrid(text: MetaT.itemGroup[itemTmp.group], width: 150, label: '분류'),
-                      WidgetT.dividViertical(),
-                      WidgetT.excelGrid(text: '${itemTmp.name}', width: 250, label: '품명'),
-                      WidgetT.dividViertical(),
-                      WidgetT.excelGrid(text: StyleT.krwInt(SystemT.getInventoryItemCount(itemTmp.id)) + itemTmp.unit, width: 120, label: '재고량',),
-                      WidgetT.dividViertical(),
-                      WidgetT.excelGrid(text: StyleT.krwInt(SystemT.getInventoryItemCount(itemTmp.id) * itemTmp.unitPrice) + '원' , width: 120, label: '금액',),
-                      WidgetT.dividViertical(),
-                      WidgetT.excelGrid(width: 250,  label: '메모', text: itemTmp.memo,),
-                      WidgetT.dividViertical(),
-                    ]
-                ),
-              )),
-        );
-        childrenW.add(w);
-      }
-    }*/
 
     var main = Column(
       children: [

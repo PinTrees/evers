@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/contract.dart';
+import 'package:evers/class/database/process.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/class/revenue.dart';
+import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/pdfx.dart';
@@ -18,8 +20,10 @@ import 'package:url_launcher/url_launcher.dart';
 import '../class/Customer.dart';
 import 'package:http/http.dart' as http;
 
+import '../class/database/item.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
+import '../class/system/state.dart';
 import '../class/transaction.dart';
 import '../class/widget/excel.dart';
 import '../helper/aes.dart';
@@ -44,6 +48,8 @@ class DialogCS extends StatelessWidget {
   static Map<String, bool> editInput = {};
 
   static dynamic showCustomerDialog(BuildContext context, { Customer? org, bool isCreate=false }) async {
+    UIState.current = UIType.dialog_customer;
+
     WidgetT.loadingBottomSheet(context, text: '서버에서 데이터를 로드중입니다.');
 
     var dividHeight = 6.0;
@@ -77,6 +83,18 @@ class DialogCS extends StatelessWidget {
     if(!isCreate) cts = await DatabaseM.getCtWithCs(cs.id);
     List<TS> tslist = [];
     if(!isCreate) tslist = await DatabaseM.getTransactionCs(cs.id);
+
+    List<ProcessItem> processingList = await DatabaseM.getProcessItemGroupByCsUid(cs.id);
+    List<ProcessItem> outputList = await DatabaseM.getProcessItemGroupByCsUid(cs.id, isOutput: true);
+    Map<String, ItemCount> outputAmount = {};
+
+    for(var data in outputList) {
+      var item = SystemT.getItem(data.itUid);
+      if(item == null) continue;
+
+      if(outputAmount.containsKey(item.id)) outputAmount[item.id]!.incrementCount(data.amount);
+      else  outputAmount[item.id] = ItemCount.fromData(item, data.amount);
+    }
 
     Navigator.pop(context);
     // ignore: use_build_context_synchronously
@@ -132,6 +150,24 @@ class DialogCS extends StatelessWidget {
               );
 
 
+              List<Widget> outputWidgets = [];
+              for(var data in outputAmount.values) {
+                outputWidgets.add(data.OnTableUI(
+                ));
+                outputWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+              }
+
+              List<Widget> processingWidgets = [];
+              for(var prs in processingList) {
+                Item? item = SystemT.getItem(prs.itUid);
+                processingWidgets.add(prs.OnTableUI(
+                  context: context,
+                  cs: cs,
+                  item: item,
+                ));
+                processingWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+              }
+
 
               List<Widget> widgetsCt = [];
               widgetsCt.add(WidgetUI.titleRowNone([ '순번', '거래처', '계약명', '담당자', '연락처', '', ], [ 32, 250, 250, 150, 150, 999, ]));
@@ -168,7 +204,7 @@ class DialogCS extends StatelessWidget {
               widgets.add(Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  WidgetT.title('거래처 상세 정보', size: 14),
+                  TextT.Title(text: '거래처 상세 정보',),
                   SizedBox(height: dividHeight,),
                   Container( decoration: gridStyle,
                     child: ClipRRect(
@@ -493,9 +529,24 @@ class DialogCS extends StatelessWidget {
                             ],
                           )),),
                   ],),
+                  SizedBox(height: dividHeight * 8,),
 
-                  SizedBox(height: 48,),
-                  WidgetT.title('매입목록', size: StyleT.subTitleSize),
+
+                  TextT.Title(text: '생산관리 - 거래처 연결품목 재고관리',),
+                  SizedBox(height: dividHeight,),
+                  ItemCount.OnTableHeader(),
+                  Column(children: outputWidgets,),
+                  SizedBox(height: dividHeight * 8,),
+
+
+                  TextT.Title(text: '생산관리 - 공정관리',),
+                  SizedBox(height: dividHeight,),
+                  ProcessItem.onTableHeader(),
+                  Column(children: processingWidgets,),
+                  SizedBox(height: dividHeight * 8,),
+
+
+                  TextT.Title(text: '매입목록',),
                   SizedBox(height: dividHeight,),
                   Container(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: puW,)),
 
@@ -586,6 +637,7 @@ class DialogCS extends StatelessWidget {
           );
         });
 
+    UIState.current = UIType.undefined;
     if(aa == null) aa = false;
     return aa;
   }
