@@ -13,16 +13,32 @@ class ExcelT extends StatelessWidget {
   static Map<String, bool> isActive = {};
 
 
+  static var deco = BoxDecoration(
+    gradient: LinearGradient(
+        colors: [
+          const Color(0xFFA6886D).withOpacity(0.15),
+          const Color(0xFF1855a5).withOpacity(0.15),
+        ],
+        begin: const FractionalOffset(0.0, 0.0),
+        end: const FractionalOffset(1.0, 0.0),
+        stops: [0.0, 1.0],
+        tileMode: TileMode.clamp),
+  );
+
+
+
   static Widget Grid({ Alignment? alignment,
     String? text,
     Color? textColor,
     double? width, double? height, double? textSize,
+    BoxDecoration? decoration,
     bool expand = false,
   }) {
 
     var w = Container(
       width: width ?? double.maxFinite,
       height: height ?? 24,
+      decoration: decoration,
       padding: EdgeInsets.fromLTRB(6, 0, 0, 0),
       alignment: alignment ?? Alignment.centerLeft,
       child: Row(
@@ -52,6 +68,7 @@ class ExcelT extends StatelessWidget {
     double? width,
     double? height,
     double? textSize,
+    bool bold=false,
     bool center=false,
     bool multiLine=false,
     bool expand = false,
@@ -71,7 +88,7 @@ class ExcelT extends StatelessWidget {
           Text(
             text ?? '텍스트 추가',
             style: TextStyle(
-              fontWeight: FontWeight.normal,
+              fontWeight: bold ? FontWeight.w900 : FontWeight.normal,
               fontSize: textSize ?? 10,
               color: textColor ?? StyleT.textColor,
             ),
@@ -300,6 +317,81 @@ class ExcelT extends StatelessWidget {
     ],
     );
   }
+
+
+
+
+
+
+  /// 이 함수는 텍스트 위젯을 반환합니다.
+  ///
+  static Widget ExcelInput(BuildContext context, String key, {
+    int? index,
+    Function(int, dynamic)? onEdited,
+    Function? setState,
+    Alignment? alignment,
+    String? text,
+    String? lavel,
+    String? value,
+    Color? textColor,
+    double? widthLavel,
+    double? width,
+    double? height, double? textSize,
+    String? hint,
+    bool expand=false,
+    bool isMultiLine=false}) {
+
+
+    var w = Row(
+      children: [
+        ExcelT.Grid(width: widthLavel, text: lavel, alignment: Alignment.center,
+            decoration: deco, height: 32
+        ),
+        WidgetT.dividViertical(),
+        ExcelT.LitInput(context, key, width: width,
+          onEdited: onEdited,
+          setState: setState,
+          height: 32,
+          text: text, value: value,
+        ),
+      ],
+    );
+
+    return w;
+  }
+
+
+
+
+  /// 이 함수는 텍스트 위젯을 반환합니다.
+  ///
+  static Widget ExcelGrid({
+    int? index,
+    Alignment? alignment,
+    String? text,
+    String? lavel,
+    Color? textColor,
+    double? widthLavel,
+    double? width,
+    double? height, double? textSize,
+    String? hint,
+    bool expand=false,
+    bool isMultiLine=false}) {
+
+    var w = Row(
+      children: [
+        ExcelT.Grid(width: widthLavel, text: lavel, alignment: Alignment.center,
+          decoration: deco, height: 32
+        ),
+        WidgetT.dividViertical(),
+        ExcelT.Grid(width: width, text: text, alignment: Alignment.center,  height: 32),
+      ],
+    );
+
+    return w;
+  }
+
+
 
   Widget build(context) {
     return Container();

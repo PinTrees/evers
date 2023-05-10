@@ -1,0 +1,5 @@
+
+/// 윈도우창 요청 방법
+var parent = UIState.mdiController!.createWindow(context);
+var page = WindowTS(cs: cs, refresh: initAsync, parent: parent,);
+UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);

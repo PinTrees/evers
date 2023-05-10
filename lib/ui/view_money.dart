@@ -46,22 +46,22 @@ import 'dart:html' as html;
 
 class View_MO extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
-  var st_sc_vt = ScrollController();
-  var st_sc_hr = ScrollController();
+  var scrollVertController = ScrollController();
+  var scrollHoriController = ScrollController();
   var divideHeight = 6.0;
 
-  List<TS> ts_list = [];
-  List<TS> ts_sort_list = [];
+  List<TS> tsList = [];
+  List<TS> tsSortList = [];
 
   bool sort = false;
   var currentView = '매입';
 
-  var pur_sort_menu = [ '최신순',  ];
-  var pur_sort_menu_date = [ '최근 1주일', '최근 1개월', '최근 3개월' ];
+  var puSortMenu = [ '최신순',  ];
+  var puSortMenuDate = [ '최근 1주일', '최근 1개월', '최근 3개월' ];
   var crRpmenuRp = '', currentQuery = '';
 
-  DateTime rpStartAt = DateTime.now();
-  DateTime rpLastAt = DateTime.now();
+  DateTime sortStartAt = DateTime.now();
+  DateTime sortLastAt = DateTime.now();
 
   dynamic init() async {
   }
@@ -81,21 +81,21 @@ class View_MO extends StatelessWidget {
     if(menu == '금전출납현황') {
       await SystemT.searchTSMeta(
         searchInput.text,
-        startAt: rpStartAt.microsecondsSinceEpoch.toString().substring(0, 8),
-        lastAt: rpLastAt.microsecondsSinceEpoch.toString().substring(0, 8),
+        startAt: sortStartAt.microsecondsSinceEpoch.toString().substring(0, 8),
+        lastAt: sortLastAt.microsecondsSinceEpoch.toString().substring(0, 8),
       );
 
-      ts_sort_list = await Search.searchTS();
+      tsSortList = await Search.searchTS();
     }
 
     FunT.setStateMain();
   }
   void query_init() {
     sort = false;
-    ts_list.clear();
+    tsList.clear();
   }
   void clear() async {
-    ts_list.clear();
+    tsList.clear();
     await FunT.setStateMain();
   }
 
@@ -119,8 +119,8 @@ class View_MO extends StatelessWidget {
       clear();
       sort = false;
       currentQuery = '';
-      rpLastAt = DateTime.now();
-      rpStartAt = DateTime(rpLastAt.year, rpLastAt.month, rpLastAt.day - 180);
+      sortLastAt = DateTime.now();
+      sortStartAt = DateTime(sortLastAt.year, sortLastAt.month, sortLastAt.day - 180);
     }
 
     this.menu = menu;
@@ -174,22 +174,22 @@ class View_MO extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
               child: Row(
                 children: [
-                  for(var m in pur_sort_menu_date)
+                  for(var m in puSortMenuDate)
                     InkWell(
                       onTap: () async {
                         if(currentQuery == m) return;
                         currentQuery = m;
                         query_init();
 
-                        rpLastAt = DateTime.now();
-                        if(currentQuery == pur_sort_menu_date[0]) {
-                          rpStartAt = DateTime(rpLastAt.year, rpLastAt.month, rpLastAt.day - 7);
+                        sortLastAt = DateTime.now();
+                        if(currentQuery == puSortMenuDate[0]) {
+                          sortStartAt = DateTime(sortLastAt.year, sortLastAt.month, sortLastAt.day - 7);
                         }
-                        else if(currentQuery == pur_sort_menu_date[1]) {
-                          rpStartAt = DateTime(rpLastAt.year, rpLastAt.month - 1, rpLastAt.day);
+                        else if(currentQuery == puSortMenuDate[1]) {
+                          sortStartAt = DateTime(sortLastAt.year, sortLastAt.month - 1, sortLastAt.day);
                         }
-                        else if(currentQuery == pur_sort_menu_date[2]) {
-                          rpStartAt = DateTime(rpLastAt.year, rpLastAt.month - 3, rpLastAt.day);
+                        else if(currentQuery == puSortMenuDate[2]) {
+                          sortStartAt = DateTime(sortLastAt.year, sortLastAt.month - 3, sortLastAt.day);
                         }
 
                         FunT.setStateMain();
@@ -209,15 +209,15 @@ class View_MO extends StatelessWidget {
                     onTap: () async {
                       var selectedDate = await showDatePicker(
                         context: context,
-                        initialDate: rpStartAt, // 초깃값
+                        initialDate: sortStartAt, // 초깃값
                         firstDate: DateTime(2018), // 시작일
                         lastDate: DateTime(2030), // 마지막일
                       );
                       if(selectedDate != null) {
-                        if (selectedDate.microsecondsSinceEpoch < rpLastAt.microsecondsSinceEpoch) rpStartAt = selectedDate;
+                        if (selectedDate.microsecondsSinceEpoch < sortLastAt.microsecondsSinceEpoch) sortStartAt = selectedDate;
                         currentQuery = '';
 
-                        ts_sort_list.clear();
+                        tsSortList.clear();
                         clear();
                       }
                     },
@@ -226,7 +226,7 @@ class View_MO extends StatelessWidget {
                       padding: EdgeInsets.all(divideHeight),
                       alignment: Alignment.center,
                       decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                      child:WidgetT.text(StyleT.dateFormat(rpStartAt), size: 14, bold: true, color: StyleT.titleColor),
+                      child:WidgetT.text(StyleT.dateFormat(sortStartAt), size: 14, bold: true, color: StyleT.titleColor),
                     ),
                   ),
                   WidgetT.text('~',  size: 14, color: StyleT.textColor.withOpacity(0.5)),
@@ -234,15 +234,15 @@ class View_MO extends StatelessWidget {
                     onTap: () async {
                       var selectedDate = await showDatePicker(
                         context: context,
-                        initialDate: rpLastAt, // 초깃값
+                        initialDate: sortLastAt, // 초깃값
                         firstDate: DateTime(2018), // 시작일
                         lastDate: DateTime(2030), // 마지막일
                       );
                       if(selectedDate != null) {
-                        rpLastAt = selectedDate;
+                        sortLastAt = selectedDate;
                         currentQuery = '';
 
-                        ts_sort_list.clear();
+                        tsSortList.clear();
                         clear();
                       }
                     },
@@ -251,7 +251,7 @@ class View_MO extends StatelessWidget {
                       padding: EdgeInsets.all(divideHeight),
                       alignment: Alignment.center,
                       decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                      child:WidgetT.text(StyleT.dateFormat(rpLastAt), size: 14, bold: true, color: StyleT.titleColor),
+                      child:WidgetT.text(StyleT.dateFormat(sortLastAt), size: 14, bold: true, color: StyleT.titleColor),
                     ),
                   ),
 
@@ -273,14 +273,14 @@ class View_MO extends StatelessWidget {
           ],
         );
 
-        if(ts_list.length < 1) {
-          ts_list = await DatabaseM.getTransaction(
-            startDate: rpStartAt.microsecondsSinceEpoch,
-            lastDate: rpLastAt.microsecondsSinceEpoch,
+        if(tsList.length < 1) {
+          tsList = await DatabaseM.getTransaction(
+            startDate: sortStartAt.microsecondsSinceEpoch,
+            lastDate: sortLastAt.microsecondsSinceEpoch,
           );
         }
 
-        var datas = sort ? ts_sort_list : ts_list;
+        var datas = sort ? tsSortList : tsList;
         for(int i = 0; i < datas.length; i++) {
           var tmpTs = datas[i];
           var cs = await SystemT.getCS(tmpTs.csUid);
@@ -300,18 +300,18 @@ class View_MO extends StatelessWidget {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
             if(sort) {
-              ts_sort_list.addAll(await Search.searchTS());
+              tsSortList.addAll(await Search.searchTS());
               Navigator.pop(context);
               await FunT.setStateMain();
               return;
             }
 
             var list = await DatabaseM.getTransaction(
-              startAt: ts_list.last.id,
-              startDate: rpStartAt.microsecondsSinceEpoch,
-              lastDate: rpLastAt.microsecondsSinceEpoch,
+              startAt: tsList.last.id,
+              startDate: sortStartAt.microsecondsSinceEpoch,
+              lastDate: sortLastAt.microsecondsSinceEpoch,
             );
-            ts_list.addAll(list);
+            tsList.addAll(list);
 
             Navigator.pop(context);
             await FunT.setStateMain();
@@ -334,6 +334,17 @@ class View_MO extends StatelessWidget {
         }
         account.forEach((key, value) { balance += value; });
 
+
+        List<TS> tsDateList = [];
+        tsDateList = await DatabaseM.getTransactionWithDate(sortStartAt.microsecondsSinceEpoch, sortLastAt.microsecondsSinceEpoch);
+        var amountPu = 0;
+        var amountRe = 0;
+
+        tsDateList.forEach((e) {
+          if(e.type == 'RE') amountRe += e.amount;
+          else if(e.type == 'PU') amountPu += e.amount;
+        });
+
         bottomWidget = Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -353,13 +364,18 @@ class View_MO extends StatelessWidget {
                 child: Container( height: 48,
                   child: Row(
                       children: [
-                        WidgetT.excelGrid(text: '잔고', width: 250, label: ''),
-                        Expanded(child: WidgetT.excelGrid(text: StyleT.krwInt(balance), width: 999, label: '총 금액 ')),
-                        InkWell(
-                          onTap: () {
-                          },
-                          child: WidgetT.iconMini(Icons.open_in_new, size: 36),
-                        ),
+                        TextT.SubTitle(text: '총 금액'),
+                        SizedBox(width: 12,),
+                        TextT.Lit(text: StyleT.krwInt(balance), expand: true, alignment: Alignment.centerLeft, size: 12 ),
+                        TextT.SubTitle(text: '기간내 거래수'),
+                        SizedBox(width: 12,),
+                        TextT.Lit(text: '${ tsDateList.length } 건', expand: true, alignment: Alignment.centerLeft, size: 12),
+                        TextT.SubTitle(text: '기간내 지출 총액'),
+                        SizedBox(width: 12,),
+                        TextT.Lit(text: StyleT.krwInt(amountPu), expand: true, alignment: Alignment.centerLeft, size: 12),
+                        TextT.SubTitle(text: '기간내 수입 총액'),
+                        SizedBox(width: 12,),
+                        TextT.Lit(text: StyleT.krwInt(amountRe), expand: true, alignment: Alignment.centerLeft, size: 12),
                       ]
                   ),
                 )
@@ -367,6 +383,7 @@ class View_MO extends StatelessWidget {
           ],
         );
       }
+
       else if(currentMenu == '금전출납부') {
         titleMenu = titleW;
 
@@ -433,6 +450,7 @@ class View_MO extends StatelessWidget {
         // 프린트할 거래기록의 시작날짜 / 서버안정성을 위해 기초값 최근 한달로 설정
         SystemDate.selectDate['startDate'] ??= DateTime(DateTime.now().year, DateTime.now().month, 1);
 
+        /// 최적화 완료
         List<TS> tsList = await DatabaseM.getTransactionWithDate(SystemDate.selectDate['startDate']!.microsecondsSinceEpoch,
             SystemDate.selectWorkDate.microsecondsSinceEpoch);
         tsList.sort((a, b) => b.transactionAt.compareTo(a.transactionAt));

@@ -47,6 +47,7 @@ class ButtonT extends StatelessWidget {
     bool bold=false,
     Color? color,
     EdgeInsets? padding,
+    Widget? leaging,
     Color? textColor, }) {
     var w = InkWell(
       onTap: () async {
@@ -60,6 +61,7 @@ class ButtonT extends StatelessWidget {
             WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28),
             TextT.Lit(text: text ?? '텍스트 입력', size: 12, color: textColor, bold: bold),
             SizedBox(width: 6,),
+            if(leaging != null) leaging,
           ],
         ),
       ),

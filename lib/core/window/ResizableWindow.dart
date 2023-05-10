@@ -28,7 +28,7 @@ class ResizableWindow extends StatefulWidget {
     required this.startHeight,
     required this.startWidth,
     required this.x, required this.y,
-    required this.title
+    required this.title,
   }) : super(key: UniqueKey()) {
   }
 
@@ -175,7 +175,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
         child: Row(
           children: [
             SizedBox(width: 12,),
-            TextT.Lit(text: widget.title, color: StyleT.titleColor, size: 12, bold: true),
+            TextT.Lit(text: widget.title ?? '-', color: StyleT.titleColor, size: 12, bold: true),
             Expanded(child: SizedBox()),
             ButtonT.Icon(
               background: Colors.red.withOpacity(0.7),

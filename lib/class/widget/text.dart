@@ -57,6 +57,7 @@ class TextT extends StatelessWidget {
     double? size,
     Color? color,
     bool bold=false,
+    Alignment? alignment,
     bool expand=false,}) {
     var w = Text(
         text ?? '',
@@ -65,17 +66,18 @@ class TextT extends StatelessWidget {
 
     if(expand) {
       return Expanded(
-        child: Container( alignment: Alignment.center, child: w, ),
+        child: Container( alignment: alignment ?? Alignment.center, child: w, ),
       );
     }
 
     if(width == null) return w;
     else return Container(
       width: width,
-      alignment: Alignment.center,
+      alignment: alignment ?? Alignment.center,
       child: w,
     );
   }
+
 
   static Widget Title({
     BuildContext? context,
@@ -100,6 +102,35 @@ class TextT extends StatelessWidget {
       child: w,
     );
   }
+
+
+
+
+  static Widget SubTitle({
+    BuildContext? context,
+    String? text,
+    double? width,
+    bool expand=false}) {
+    var w = Text(
+      text ?? '',
+      style: TextStyle(color: StyleT.titleColor, fontSize: 14, fontWeight: FontWeight.w900),
+    );
+
+    if(expand) {
+      return Expanded(
+        child: Container( alignment: Alignment.center, child: w, ),
+      );
+    }
+
+    if(width == null) return w;
+    else return Container(
+      width: width,
+      alignment: Alignment.center,
+      child: w,
+    );
+  }
+
+
 
 
   static Widget TitleMain({

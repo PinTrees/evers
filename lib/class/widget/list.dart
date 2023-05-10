@@ -17,6 +17,7 @@ class ListBoxT extends StatelessWidget {
     CrossAxisAlignment? crossAxisAlignment,
     double? width,
     double? spacing,
+    Widget? spacingWidget,
     bool expand=false,
   }) {
     if(children == null) return SizedBox();
@@ -24,10 +25,13 @@ class ListBoxT extends StatelessWidget {
     List<Widget> widgets = [];
     if(spacing != null)
       children.forEach((e) { widgets.add(e); widgets.add(SizedBox(width: spacing,)); });
+    if(spacingWidget != null) {
+      children.forEach((e) { widgets.add(e); widgets.add(spacingWidget); });
+    }
     else widgets = children;
 
     Widget w = Row(
-      mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.center,
+      mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.start,
       crossAxisAlignment: crossAxisAlignment ?? CrossAxisAlignment.center,
       children: widgets,
     );

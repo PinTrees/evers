@@ -44,6 +44,7 @@ class _WindowTSEditorState extends State<WindowTSEditor> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    widget.parent.title = '수납 개별 상세정보 수정창';
 
     var jsonString = jsonEncode(widget.ts.toJson());
     var json = jsonDecode(jsonString);

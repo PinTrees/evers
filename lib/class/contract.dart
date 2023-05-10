@@ -171,7 +171,7 @@ class Contract {
     else return data['title'] ?? '제목입력';
   }
 
-  dynamic update() async {
+  dynamic updateInit() async {
     Contract? data = await DatabaseM.getContractDoc(id);
     if(data == null) return;
     fromJson(data.toJson());

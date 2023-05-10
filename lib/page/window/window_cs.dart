@@ -76,11 +76,12 @@ class _WindowCSState extends State<WindowCS> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    widget.parent.title = '${ widget.org_cs.businessName } 거래처 개별 상세정보창';
+
     initAsync();
   }
 
   void initAsync() async {
-    //WidgetT.loadingBottomSheet(context, text: 'data loading ...');
     await widget.org_cs.update();
 
     purs = await widget.org_cs.getPurchase();
@@ -203,12 +204,7 @@ class _WindowCSState extends State<WindowCS> {
     index = 1;
     contractList.forEach((ct) {
       var w = CompContract.tableUI(context, ct, index: index++,
-        onTap: () async {
-          /// 윈도우창 요청
-          var parent = UIState.mdiController!.createWindow(context);
-          var page = WindowTS(cs: cs, refresh: initAsync, parent: parent,);
-          UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
-        }
+        onTap: () async { }
       );
       widgetsCt.add(w);
       widgetsCt.add(WidgetT.dividHorizontal(size: 0.35));
@@ -566,6 +562,7 @@ class _WindowCSState extends State<WindowCS> {
                   TextT.Title(text: '매입목록',),
                   SizedBox(height: dividHeight,),
                   Container(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: puW,)),
+                  SizedBox(height: dividHeight * 4,),
 
                   TextT.Title(text: '수납목록',),
                   SizedBox(height: dividHeight,),

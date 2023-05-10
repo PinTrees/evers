@@ -54,6 +54,7 @@ class _WindowFactoryCreateState extends State<WindowFactoryCreate> {
   @override
   void initState() {
     // TODO: implement initState
+    widget.parent.title = '공장일보 개별 입력창';
     super.initState();
   }
 

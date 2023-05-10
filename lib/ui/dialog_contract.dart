@@ -63,7 +63,6 @@ class DialogCT extends StatelessWidget {
     var heightSized = 28.0;
     var titleSize = 16.0;
     Map<String, Uint8List> fileByteList = {};
-
     Map<String, Uint8List> ctFileByteList = {};
 
     var vatTypeNameList = [ '포함', '별도', ];
@@ -71,7 +70,7 @@ class DialogCT extends StatelessWidget {
     var jsonString = jsonEncode(original.toJson());
     var json = jsonDecode(jsonString);
     var ct = Contract.fromDatabase(json);
-    await ct.update();
+    await ct.updateInit();
 
     List<TS> tslist = [];
     List<TS> tslistCr = [];
@@ -139,7 +138,7 @@ class DialogCT extends StatelessWidget {
 
                     WidgetT.loadingBottomSheet(context, text:'로딩중');
                     if(data != null) {
-                      await ct.update();
+                      await ct.updateInit();
                     }
                     Navigator.pop(context);
                     FunT.setStateDT();
@@ -820,7 +819,7 @@ class DialogCT extends StatelessWidget {
                                   FunT.setStateD = setData;
                                   WidgetT.loadingBottomSheet(context, text:'로딩중');
                                   if(data != null) {
-                                    await ct.update();
+                                    await ct.updateInit();
                                   }
                                   Navigator.pop(context);
                                   FunT.setStateDT();

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/component/comp_contract.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/page/window/window_cs.dart';
@@ -103,7 +104,7 @@ class View_Contract extends StatelessWidget {
             onTap: () async {
               var parent = UIState.mdiController!.createWindow(context);
               var page = WindowCS( org_cs: cs, parent: parent, );
-              UIState.mdiController!.addWindow_CS(context, widget: page, resizableWindow: parent);
+              UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent, fixedHeight: true);
             },
             child: Container( height: 36 + divideHeight,
               decoration: StyleT.inkStyleNone(color: Colors.transparent),
@@ -202,46 +203,16 @@ class View_Contract extends StatelessWidget {
     else if(menu == '계약관리') {
       childrenW.clear();
 
+      int index = 1;
       if(ct_list.length < 1) ct_list = await DatabaseM.getContract();
 
       List<Widget> widgetsCt = [];
       var data = sort ? ct_sort_list : ct_list;
       for(int i = 0; i < data.length; i++) {
         var ct = data[i];
+        var cs = await SystemT.getCS(ct.csUid);
 
-        var cs = await SystemT.getCS(ct.csUid) ?? Customer.fromDatabase({});
-        Widget w = SizedBox();
-        w =  InkWell(
-            onTap: () async {
-              WidgetT.loadingBottomSheet(context, text:'로딩중');
-              await ct.update();
-              Navigator.pop(context);
-
-              if(ct.state == 'DEL') return;
-              await DialogCT.showInfoCt(context, ct);
-            },
-            child: Container( height: 36 + divideHeight,
-              child: Row(
-                  children: [
-                    WidgetT.excelGrid(label: '${i + 1}', width: 32),
-                    WidgetT.excelGrid(textLite: true, text: cs.businessName,  width: 250),
-                    WidgetT.excelGrid(textLite: false, text: '${ct.ctName}',  width: 250),
-                    WidgetT.excelGrid(textLite: true, text: '${ct.manager}', width: 150),
-                    Expanded(child: WidgetT.excelGrid(textLite: true, text: '${ct.managerPhoneNumber}',  width: 150)),
-                    InkWell(
-                        onTap: () async {
-                          if(await DialogT.showAlertDl(context, text: '"${ct.ctName}" 계약을 데이터베이스에서 삭제하시겠습니까?')) {
-                            await DatabaseM.deleteContract(ct);
-                          }
-                          FunT.setStateMain();
-                        },
-                        child: Container( height: 32, width: 32,
-                          child: WidgetT.iconMini(Icons.delete),)
-                    ),
-                  ]
-              ),
-            ));
-        widgetsCt.add(w);
+        widgetsCt.add(CompContract.tableUIMain(context, ct, cs, index: index++));
         widgetsCt.add(WidgetT.dividHorizontal(size: 0.35));
       }
       childrenW.add(Column(children: widgetsCt,));
@@ -311,10 +282,8 @@ class View_Contract extends StatelessWidget {
                         child: WidgetUI.titleRowNone([ '순번', '업체명', '대표자', '업체번호', '연락처',  ],
                             [ 32, 250, 150, 150, 150, 120, 200, 250, 0, 0,  ]),
                       ),
-                    if(menu == '계약관리')
-                      Container( padding: EdgeInsets.fromLTRB(divideHeight * 4, divideHeight, divideHeight * 4, divideHeight),
-                        child: WidgetUI.titleRowNone([ '순번', '거래처', '계약명', '담당자', '연락처', '', ], [ 32, 250, 250, 150, 150, 999, ]),
-                      ),
+                    if(menu == '계약관리') CompContract.tableHeaderMain(),
+
                     WidgetT.dividHorizontal(size: 0.7),
                     Expanded(
                       child: Row(

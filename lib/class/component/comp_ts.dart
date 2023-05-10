@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
 import '../../helper/style.dart';
+import '../../page/window/window_cs.dart';
+import '../../page/window/window_ct.dart';
 import '../../ui/cs.dart';
 import '../../ui/ux.dart';
 import '../Customer.dart';
@@ -22,6 +24,7 @@ class CompTS {
     return WidgetUI.titleRowNone([ '순번', '거래번호', '거래일자', '거래처', '적요', '수입', '지출', '계좌', '메모', '', ],
         [ 32, 80, 80, 150, 999, 80, 80, 100, 999, 32 * 2, ], background: true, lite: true);
   }
+
 
   static dynamic tableUI(BuildContext context, TS ts, {
     Contract? ct,
@@ -73,7 +76,7 @@ class CompTS {
                     var cs = await DatabaseM.getCustomerDoc(ts.csUid);
                     var parent = UIState.mdiController!.createWindow(context, ph: 720);
                     var page = WindowTSEditor(ts: ts, cs: cs, refresh: refresh, parent: parent,);
-                    UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent, title: '수납 개별 수정창');
+                    UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
                   }
               ),
               ButtonT.Icon(
@@ -133,7 +136,11 @@ class CompTS {
                     if(cs == null) { return; }
                     if(cs.businessName == '') { return; }
 
-                    await DialogCS.showCustomerDialog(context, org: cs);
+                    /// 예상값 고정 사용으로 변경됨   /*await DialogCS.showCustomerDialog(context, org: cs);*/
+                    var parent = UIState.mdiController!.createWindow(context);
+                    var page = WindowCS(org_cs: cs, parent: parent,);
+                    UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent, fixedHeight: true);
+
                     if(setState != null) await setState();
                   }
               ),
@@ -296,6 +303,7 @@ class CompTS {
     );
     return w;
   }
+
 
   static dynamic tableUIEditor( BuildContext? context, TS ts, {
     int? index,
