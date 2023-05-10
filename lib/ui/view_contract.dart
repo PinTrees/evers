@@ -101,8 +101,9 @@ class View_Contract extends StatelessWidget {
         Widget w = SizedBox();
         w = InkWell(
             onTap: () async {
-              UIState.mdiController!.addWindow_CS(context, widget: WindowCS(org_cs: cs,));
-              //await DialogCS.showCustomerDialog(context, org: cs);
+              var parent = UIState.mdiController!.createWindow(context);
+              var page = WindowCS( org_cs: cs, parent: parent, );
+              UIState.mdiController!.addWindow_CS(context, widget: page, resizableWindow: parent);
             },
             child: Container( height: 36 + divideHeight,
               decoration: StyleT.inkStyleNone(color: Colors.transparent),

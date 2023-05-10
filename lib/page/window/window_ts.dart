@@ -19,14 +19,16 @@ import '../../class/system.dart';
 import '../../class/transaction.dart';
 import '../../class/widget/button.dart';
 import '../../class/widget/text.dart';
+import '../../core/window/ResizableWindow.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
-import '../../ui/dl.dart';
-import '../../ui/ux.dart';
 
 class WindowTS extends StatefulWidget {
   Customer cs;
-  WindowTS({ required this.cs }) : super(key: UniqueKey()) { }
+  ResizableWindow parent;
+  Function refresh;
+
+  WindowTS({ required this.cs, required this.refresh, required this.parent }) : super(key: UniqueKey()) { }
 
   @override
   _WindowTSState createState() => _WindowTSState();
@@ -133,7 +135,9 @@ class _WindowTSState extends State<WindowTS> {
                     }
 
                     WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
-                    Navigator.pop(context);
+
+                    await widget.refresh();
+                    widget.parent.onCloseButtonClicked!();
                   },
                   style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
                   child: Container(

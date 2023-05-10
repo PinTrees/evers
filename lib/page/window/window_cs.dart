@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/ui/dialog_item.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
@@ -25,6 +26,7 @@ import '../../class/system/state.dart';
 import '../../class/transaction.dart';
 import '../../class/widget/button.dart';
 import '../../class/widget/text.dart';
+import '../../core/window/ResizableWindow.dart';
 import '../../helper/aes.dart';
 import '../../helper/dialog.dart';
 import '../../helper/firebaseCore.dart';
@@ -36,11 +38,12 @@ import '../../ui/dialog_revenue.dart';
 import '../../ui/dl.dart';
 import '../../ui/ip.dart';
 import '../../ui/ux.dart';
-import 'dialog_ts.dart';
 
 class WindowCS extends StatefulWidget {
   Customer org_cs;
-  WindowCS({ required this.org_cs }) : super(key: UniqueKey()) { }
+  ResizableWindow parent;
+
+  WindowCS({ required this.org_cs, required this.parent }) : super(key: UniqueKey()) { }
 
   @override
   _WindowCSState createState() => _WindowCSState();
@@ -75,7 +78,6 @@ class _WindowCSState extends State<WindowCS> {
 
   void initAsync() async {
     //WidgetT.loadingBottomSheet(context, text: 'data loading ...');
-
     await widget.org_cs.update();
 
     purs = await widget.org_cs.getPurchase();
@@ -631,7 +633,10 @@ class _WindowCSState extends State<WindowCS> {
               Expanded(
                 child:InkWell(
                     onTap: () async {
-                      UIState.mdiController!.addWindow_TS(widget: WindowTS(cs: cs,));
+                      /// 수납등록 윈도우창 표시
+                      var parent = UIState.mdiController!.createWindow(context);
+                      var page = WindowTS(cs: cs, refresh: initAsync, parent: parent,);
+                      UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
                     },
                     child: Container(
                         color: StyleT.accentOver.withOpacity(0.5), height: 42,
@@ -662,9 +667,8 @@ class _WindowCSState extends State<WindowCS> {
                       }
 
                       await DatabaseM.updateCustomer(cs, files: fileByteList,);
-                      //original = cs;
                       WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
-                      Navigator.pop(context);
+                      widget.parent.onCloseButtonClicked!();
                     },
                     style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
                     child: Container(
@@ -687,6 +691,6 @@ class _WindowCSState extends State<WindowCS> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(child: mainBuild());
+    return mainBuild();
   }
 }

@@ -43,8 +43,9 @@ class _ResizableWindowState extends State<ResizableWindow> {
   /// 창 헤더 사이즈
   var _headerSize = 28.0;
   /// 창 테두리 라운드 가중치
-  var _borderRadius = 10.0;
-
+  var _borderRadius = 8.0;
+  var _strok = 1.4;
+  var _strokColor = Colors.grey;
 
   @override
   void initState() {
@@ -68,74 +69,84 @@ class _ResizableWindowState extends State<ResizableWindow> {
             BoxShadow(
               color: Color(0x54000000),
               spreadRadius: 4,
-              blurRadius: 5,
+              blurRadius: 24,
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius:  BorderRadius.all(Radius.circular(_borderRadius)),
-          child:   Stack(
-            children: [
-              Column(
-                children: [_getHeader(), _getBody()],
-              ),
-              /// 우측 화면 조절 제스쳐
-              Positioned(
-                  right: 0,   top: 0,  bottom: 0,
-                  child: GestureDetector(
-                    onHorizontalDragUpdate: _onHorizontalDragRight,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.resizeLeftRight,
-                      opaque: true,
-                      child: Container(
-                        width: resizeableGap,
-                      ),
+          borderRadius: BorderRadius.all(Radius.circular(_borderRadius)),
+          child: Container(
+            color: _strokColor,
+            padding: EdgeInsets.all(_strok),
+            child: ClipRRect(
+              borderRadius: BorderRadius.all(Radius.circular(_borderRadius - _strok)),
+              child: Container(
+                color: Colors.white,
+                child: Stack(
+                  children: [
+                    Column(
+                      children: [_getHeader(), _getBody()],
                     ),
-                  )
-              ),
-              /// 좌측 화면 조절 제스쳐
-              Positioned(
-                  left: 0,top: 0, bottom: 0,
-                  child: GestureDetector(
-                    onHorizontalDragUpdate: _onHorizontalDragLeft,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.resizeLeftRight,
-                      opaque: true,
-                      child: Container(
-                        width: resizeableGap,
-                      ),
+                    /// 우측 화면 조절 제스쳐
+                    Positioned(
+                        right: 0,   top: 0,  bottom: 0,
+                        child: GestureDetector(
+                          onHorizontalDragUpdate: _onHorizontalDragRight,
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.resizeLeftRight,
+                            opaque: true,
+                            child: Container(
+                              width: resizeableGap,
+                            ),
+                          ),
+                        )
                     ),
-                  )
-              ),
-              /// 상단 화면 조절 제스쳐
-              Positioned(
-                  left: 0,  right: 0, top: 0,
-                  child: GestureDetector(
-                    onHorizontalDragUpdate: _onHorizontalDragTop,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.resizeUpDown,
-                      opaque: true,
-                      child: Container(
-                        height: resizeableGap,
-                      ),
+                    /// 좌측 화면 조절 제스쳐
+                    Positioned(
+                        left: 0,top: 0, bottom: 0,
+                        child: GestureDetector(
+                          onHorizontalDragUpdate: _onHorizontalDragLeft,
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.resizeLeftRight,
+                            opaque: true,
+                            child: Container(
+                              width: resizeableGap,
+                            ),
+                          ),
+                        )
                     ),
-                  )
-              ),
-              /// 하단 화면 조절 제스쳐
-              Positioned(
-                  left: 0,  right: 0, bottom: 0,
-                  child: GestureDetector(
-                    onHorizontalDragUpdate: _onHorizontalDragBottom,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.resizeUpDown,
-                      opaque: true,
-                      child: Container(
-                        height: resizeableGap,
-                      ),
+                    /// 상단 화면 조절 제스쳐
+                    Positioned(
+                        left: 0,  right: 0, top: 0,
+                        child: GestureDetector(
+                          onHorizontalDragUpdate: _onHorizontalDragTop,
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.resizeUpDown,
+                            opaque: true,
+                            child: Container(
+                              height: resizeableGap,
+                            ),
+                          ),
+                        )
                     ),
-                  )
+                    /// 하단 화면 조절 제스쳐
+                    Positioned(
+                        left: 0,  right: 0, bottom: 0,
+                        child: GestureDetector(
+                          onHorizontalDragUpdate: _onHorizontalDragBottom,
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.resizeUpDown,
+                            opaque: true,
+                            child: Container(
+                              height: resizeableGap,
+                            ),
+                          ),
+                        )
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -150,11 +161,21 @@ class _ResizableWindowState extends State<ResizableWindow> {
       child: Container(
         width: widget.currentWidth,
         height: _headerSize,
-        color: Colors.lightBlueAccent,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+              colors: [
+                const Color(0xFF1855a5).withOpacity(0.5),
+                const Color(0xFF009fdf).withOpacity(0.7),
+                const Color(0xFF1855a5).withOpacity(0.5),
+              ],
+              begin: const FractionalOffset(0.0, 0.0),
+              end: const FractionalOffset(1.0, 0.0),
+              tileMode: TileMode.clamp),
+        ),
         child: Row(
           children: [
-            SizedBox(width: 6,),
-            TextT.Lit(text: widget.title, ),
+            SizedBox(width: 12,),
+            TextT.Lit(text: widget.title, color: StyleT.titleColor, size: 12, bold: true),
             Expanded(child: SizedBox()),
             ButtonT.Icon(
               background: Colors.red.withOpacity(0.7),
@@ -174,7 +195,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
       width: widget.currentWidth,
       height: widget.fixedHeight ? widget.currentHeight! - _headerSize : null,
       color: Colors.white,
-      child: widget.widget,
+      child: Material(color: Colors.transparent, child: widget.widget),
     );
   }
 

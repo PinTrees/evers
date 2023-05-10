@@ -9,7 +9,6 @@ import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/pdfx.dart';
 import 'package:evers/helper/style.dart';
-import 'package:evers/page/window/dialog_ts.dart';
 import 'package:evers/ui/dialog_pu.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
@@ -646,7 +645,6 @@ class DialogCS extends StatelessWidget {
                       Expanded(
                         child:InkWell(
                             onTap: () async {
-                              UIState.mdiController!.addWindow_TS(widget: WindowTS(cs: cs,));
                               var result = await DialogTS.showCreateTSOnlyCS(context, cs);
                               if(result != null) {
                                 tslist = await DatabaseM.getTransactionCs(cs.id);
