@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'MdiController.dart';
 
 class MdiManager extends StatefulWidget {
-
   final MdiController mdiController;
 
   const MdiManager({super.key,  required this.mdiController});

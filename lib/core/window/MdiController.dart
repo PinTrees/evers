@@ -14,14 +14,22 @@ class MdiController{
 
   List<ResizableWindow> get windows => _windows;
 
-  /*void addWindow({ Widget? widget }) {
-    _createNewWindowedApp(widget: widget);
-  }*/
   void addWindow_TS({ Widget? widget, String? title }) {
     _createNewWindowedApp(widget: widget, w: 1280.0, h: 512.0, title: "수납 개별 정보창");
   }
+  void addWindow_CS(BuildContext context, { Widget? widget, String? title }) {
+    var h = MediaQuery.of(context).size.height;
+    var w = MediaQuery.of(context).size.width;
 
-  void _createNewWindowedApp({ Widget? widget, String? title, double? w, double? h }){
+    _createNewWindowedApp(
+      widget: widget,
+      w: w - w * 0.15, h: h - h * 0.15,
+      title: "거래처 개별 정보창",
+      fixedHeight: true,
+    );
+  }
+
+  void _createNewWindowedApp({ Widget? widget, String? title, double? w, double? h, bool fixedHeight=false,}){
     var rng = new Random();
 
     ResizableWindow resizableWindow = ResizableWindow(
@@ -30,6 +38,7 @@ class MdiController{
       title: title ?? '-',
     );
     resizableWindow.widget = widget;
+    resizableWindow.fixedHeight = fixedHeight;
 
    resizableWindow.onWindowDragged = (dx,dy){
       resizableWindow.x += dx;

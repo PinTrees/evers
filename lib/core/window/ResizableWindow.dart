@@ -16,6 +16,8 @@ class ResizableWindow extends StatefulWidget {
   double x;
   double y;
 
+  bool fixedHeight=false;
+
   String title;
   Function(double, double)? onWindowDragged;
   VoidCallback? onCloseButtonClicked;
@@ -43,7 +45,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
   /// 창 테두리 라운드 가중치
   var _borderRadius = 10.0;
 
-  
+
   @override
   void initState() {
     // TODO: implement initState
@@ -170,7 +172,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
   _getBody() {
     return Container(
       width: widget.currentWidth,
-      //height: widget.currentHeight! - _headerSize,
+      height: widget.fixedHeight ? widget.currentHeight! - _headerSize : null,
       color: Colors.white,
       child: widget.widget,
     );

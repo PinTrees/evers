@@ -5,6 +5,7 @@ import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -20,6 +21,7 @@ import '../class/purchase.dart';
 import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
+import '../class/system/state.dart';
 import '../class/transaction.dart';
 import '../class/widget/button.dart';
 import '../helper/dialog.dart';
@@ -86,6 +88,7 @@ class View_Contract extends StatelessWidget {
     }
 
     List<Widget> childrenW = [];
+
     if(menu == '고객관리') {
       childrenW.clear();
 
@@ -98,7 +101,8 @@ class View_Contract extends StatelessWidget {
         Widget w = SizedBox();
         w = InkWell(
             onTap: () async {
-              await DialogCS.showCustomerDialog(context, org: cs);
+              UIState.mdiController!.addWindow_CS(context, widget: WindowCS(org_cs: cs,));
+              //await DialogCS.showCustomerDialog(context, org: cs);
             },
             child: Container( height: 36 + divideHeight,
               decoration: StyleT.inkStyleNone(color: Colors.transparent),
@@ -146,14 +150,12 @@ class View_Contract extends StatelessWidget {
                         ],
                       ),
                     ),
-                    InkWell(
+                    ButtonT.IconText(
+                      icon: Icons.open_in_new_sharp,
+                      text: '기존창',
                       onTap: () async {
+                        await DialogCS.showCustomerDialog(context, org: cs);
                       },
-                      child: Row(
-                        children: [
-                          WidgetT.iconMini(Icons.open_in_new_sharp, size: 32),
-                        ],
-                      ),
                     ),
                     InkWell(
                         onTap: () async {
