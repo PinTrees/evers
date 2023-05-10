@@ -187,6 +187,7 @@ class Customer {
       }
     });
 
+    data.sort((a, b) => b.id.compareTo(a.id));
     return data;
   }
 

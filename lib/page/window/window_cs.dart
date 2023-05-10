@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/component/comp_contract.dart';
+import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/widget/list.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/page/window/window_ts.dart';
@@ -94,7 +97,7 @@ class _WindowCSState extends State<WindowCS> {
     }
 
     contractList = await DatabaseM.getCtWithCs(cs.id);
-    tsList = await DatabaseM.getTransactionCs(cs.id);
+    tsList = await cs.getTransaction();
 
     processingList = await DatabaseM.getProcessItemGroupByCsUid(cs.id);
     outputList = await DatabaseM.getProcessItemGroupByCsUid(cs.id, isOutput: true);
@@ -119,9 +122,12 @@ class _WindowCSState extends State<WindowCS> {
   Widget main = SizedBox();
 
   Widget mainBuild() {
+    int index = 1;
+    int startIndex = 0;
+
     List<Widget> puW = [];
     puW.add(Purchase.OnTabelHeader());
-    int startIndex = puIndex * pageLimit;
+    startIndex = puIndex * pageLimit;
     for(int i = startIndex; i < startIndex + pageLimit; i++) {
       if(i >= purs.length) break;
 
@@ -134,29 +140,46 @@ class _WindowCSState extends State<WindowCS> {
       puW.add(w);
       puW.add(WidgetT.dividHorizontal(size: 0.35));
     }
-
     puW.add(SizedBox(height: dividHeight,));
-    puW.add(Row(
-          children: [
-            for(int i = 0; i < (purs.length / pageLimit).ceil(); i++)
-              Container(
-                padding: EdgeInsets.only(left: dividHeight),
-                child: InkWell(
-                  onTap: () {
-                    puIndex = i;
-                    FunT.setStateDT();
-                  },
-                  child: Container(
-                    width: 32, height: 32,
-                    alignment: Alignment.center,
-                    color: Colors.grey.withOpacity(0.15),
-                    child: WidgetT.title('${i + 1}'),
-                  ),
-                ),
-              )
-          ],
-        ));
+    puW.add(ListBoxT.Rows(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6,
+      children: [
+        for(int i = 0; i < (purs.length / pageLimit).ceil(); i++)
+          ButtonT.Text(
+              size: 28,
+              text: (i + 1).toString(),
+              onTap: () {
+                setState(() {  puIndex = i; });
+              }
+          )
+      ],
+    ));
 
+    List<Widget> tsWidgets = [];
+    startIndex = tsIndex * pageLimit; index = 1;
+    for(int i = startIndex; i < startIndex + pageLimit; i++) {
+      if(i >= tsList.length) break;
+
+      var ts = tsList.elementAt(i);
+      tsWidgets.add(CompTS.tableUI(context, ts, index: index++, refresh: () { initAsync(); }));
+      tsWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+    }
+    tsWidgets.add(SizedBox(height: dividHeight,));
+    tsWidgets.add(ListBoxT.Rows(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6,
+      children: [
+        for(int i = 0; i < (tsList.length / pageLimit).ceil(); i++)
+          ButtonT.Text(
+              size: 28,
+              text: (i + 1).toString(),
+              onTap: () {
+                setState(() {  tsIndex = i; });
+              }
+          )
+      ],
+    ));
 
     List<Widget> outputWidgets = [];
     for(var data in outputAmount.values) {
@@ -176,36 +199,20 @@ class _WindowCSState extends State<WindowCS> {
       processingWidgets.add(WidgetT.dividHorizontal(size: 0.35));
     }
 
-
     List<Widget> widgetsCt = [];
-    widgetsCt.add(WidgetUI.titleRowNone([ '순번', '거래처', '계약명', '담당자', '연락처', '', ], [ 32, 250, 250, 150, 150, 999, ]));
-    for(int i = 0; i < contractList.length; i++) {
-      if(i == 0)  widgetsCt.add(WidgetT.dividHorizontal(size: 0.7));
-
-      var ct = contractList[i];
-      var csName = ct.csName; //SystemT.getCS(ct.csUid) ?? Customer.fromDatabase({});
-      Widget w = SizedBox();
-      w = InkWell(
-          onTap: () async {
-            await DialogCT.showInfoCt(context, ct);
-          },
-          child: Container( height: 28,
-            decoration: StyleT.inkStyleNone(color: Colors.transparent),
-            child: Row(
-                children: [
-                  WidgetT.excelGrid(label: '${i + 1}', width: 32),
-                  //WidgetT.dividViertical(),
-                  //WidgetT.text('${ct.id}', size: 10, width: 120),
-                  WidgetT.excelGrid(text: ct.csName, width: 250),
-                  WidgetT.excelGrid(text: '${ct.ctName}',  width: 250),
-                  WidgetT.excelGrid(text: '${ct.manager}',  width: 150),
-                  WidgetT.excelGrid(text: '${ct.managerPhoneNumber}', width: 150),
-                ]
-            ),
-          ));
+    index = 1;
+    contractList.forEach((ct) {
+      var w = CompContract.tableUI(context, ct, index: index++,
+        onTap: () async {
+          /// 윈도우창 요청
+          var parent = UIState.mdiController!.createWindow(context);
+          var page = WindowTS(cs: cs, refresh: initAsync, parent: parent,);
+          UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
+        }
+      );
       widgetsCt.add(w);
       widgetsCt.add(WidgetT.dividHorizontal(size: 0.35));
-    }
+    });
 
     var gridStyle = StyleT.inkStyle(round: 8, color: Colors.black.withOpacity(0.03), stroke: 0.7, strokeColor: StyleT.titleColor.withOpacity(0.35));
 
@@ -474,7 +481,7 @@ class _WindowCSState extends State<WindowCS> {
                                                                 TextButton(
                                                                     onPressed: () {
                                                                       WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
-                                                                      FunT.setStateDT();
+                                                                      setState(() {});
                                                                     },
                                                                     style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
                                                                     child: Container( height: 28, width: 28,
@@ -503,7 +510,7 @@ class _WindowCSState extends State<WindowCS> {
                                                                 TextButton(
                                                                     onPressed: () {
                                                                       fileByteList.remove(fileByteList.keys.elementAt(i));
-                                                                      FunT.setStateDT();
+                                                                      setState(() {});
                                                                     },
                                                                     style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
                                                                     child: Container( height: 28, width: 28,
@@ -528,11 +535,8 @@ class _WindowCSState extends State<WindowCS> {
                       FilePickerResult? result = await FilePicker.platform.pickFiles();
                       if( result != null && result.files.isNotEmpty ){
                         String fileName = result.files.first.name;
-                        print(fileName);
-                        Uint8List fileBytes = result.files.first.bytes!;
-                        fileByteList[fileName] = fileBytes;
-                        print(fileByteList[fileName]!.length);
-                        FunT.setStateDT();
+                        fileByteList[fileName] = result.files.first.bytes!;
+                        setState(() {});
                       }
                     },
                       style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7),
@@ -547,13 +551,11 @@ class _WindowCSState extends State<WindowCS> {
                   ],),
                   SizedBox(height: dividHeight * 8,),
 
-
                   TextT.Title(text: '생산관리 - 거래처 연결품목 재고관리',),
                   SizedBox(height: dividHeight,),
                   ItemCount.OnTableHeader(),
                   Column(children: outputWidgets,),
                   SizedBox(height: dividHeight * 8,),
-
 
                   TextT.Title(text: '생산관리 - 공정관리',),
                   SizedBox(height: dividHeight,),
@@ -561,16 +563,20 @@ class _WindowCSState extends State<WindowCS> {
                   Column(children: processingWidgets,),
                   SizedBox(height: dividHeight * 8,),
 
-
                   TextT.Title(text: '매입목록',),
                   SizedBox(height: dividHeight,),
                   Container(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: puW,)),
 
-
+                  TextT.Title(text: '수납목록',),
+                  SizedBox(height: dividHeight,),
+                  CompTS.tableHeader(),
+                  Column(children: tsWidgets,),
                   SizedBox(height: dividHeight * 4,),
+
                   WidgetT.title('계약목록', size: 14),
                   SizedBox(height: dividHeight,),
-                  Container( decoration: gridStyle, child: ClipRRect( borderRadius: BorderRadius.circular(8), child: Column(children: widgetsCt,))),
+                  CompContract.tableHeader(),
+                  Column(children: widgetsCt,),
                 ],)
             ),
           ),

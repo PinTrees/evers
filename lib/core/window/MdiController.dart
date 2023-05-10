@@ -35,6 +35,11 @@ class MdiController{
 
     var rng = new Random();
 
+    if(pw != null)
+      if(pw > w) pw = w - w * 0.12;
+    if(ph != null)
+      if(ph > h) pw = h - h * 0.12;
+
     ResizableWindow resizableWindow = ResizableWindow(
       startWidth: pw ?? w - w * 0.15, startHeight: ph ?? h - h * 0.15,
       x: rng.nextDouble() * 250, y: rng.nextDouble() * 250,

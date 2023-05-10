@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
@@ -283,13 +284,12 @@ class View_MO extends StatelessWidget {
         for(int i = 0; i < datas.length; i++) {
           var tmpTs = datas[i];
           var cs = await SystemT.getCS(tmpTs.csUid);
-          Widget w = tmpTs.OnTableUIMain(
-            context: context, index: i + 1,
+          Widget w = CompTS.tableUIMain( tmpTs,
+            context: context, index: i + 1, cs: cs,
             setState: () { mainView(context, menu); },
             onTap: () async {
               await DialogTS.showInfoTs(context, org: tmpTs);
             },
-            cs: cs,
           );
           childrenW.add(w);
           childrenW.add(WidgetT.dividHorizontal(size: 0.35));

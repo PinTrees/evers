@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_item.dart';
@@ -16,6 +15,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import '../../class/Customer.dart';
+import '../../class/component/comp_ts.dart';
 import '../../class/system.dart';
 import '../../class/transaction.dart';
 import '../../class/widget/button.dart';
@@ -24,48 +24,46 @@ import '../../core/window/ResizableWindow.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
 
-class WindowTS extends StatefulWidget {
+class WindowTSEditor extends StatefulWidget {
+  TS ts;
   Customer cs;
   ResizableWindow parent;
   Function refresh;
 
-  WindowTS({ required this.cs, required this.refresh, required this.parent }) : super(key: UniqueKey()) { }
+  WindowTSEditor({ required this.ts, required this.cs, required this.refresh, required this.parent }) : super(key: UniqueKey()) { }
 
   @override
-  _WindowTSState createState() => _WindowTSState();
+  _WindowTSEditorState createState() => _WindowTSEditorState();
 }
 
-class _WindowTSState extends State<WindowTS> {
+class _WindowTSEditorState extends State<WindowTSEditor> {
   var dividHeight = 6.0;
-  List<TS> tslistCr = [];
+  late TS ts;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
+    var jsonString = jsonEncode(widget.ts.toJson());
+    var json = jsonDecode(jsonString);
+    ts = TS.fromDatabase(json);
   }
 
   Widget main = SizedBox();
 
   Widget mainBuild() {
     List<Widget> tsCW = [];
-    for(int i = 0; i < tslistCr.length; i++) {
-      var tmpTs = tslistCr[i];
-      if(tmpTs.type == 'DEL') {
-        tslistCr.removeAt(i--);
-        continue;
-      }
 
-      var w = CompTS.tableUIInput(
-        context, tmpTs,
-        cs: widget.cs, index: i + 1,
-        setState: () { setState(() {}); },
-      );
-      tsCW.add(w);
-      tsCW.add(WidgetT.dividHorizontal(size: 0.35));
-    }
+    var w = CompTS.tableUIEditor(
+      context, ts,
+      cs: widget.cs, index: 1,
+      onClose: widget.parent.onCloseButtonClicked,
+      setState: () { setState(() {}); },
+      refresh: widget.refresh,
+    );
+    tsCW.add(w);
+    tsCW.add(WidgetT.dividHorizontal(size: 0.35));
 
     return main = Container(
       width: 1280,
@@ -86,29 +84,6 @@ class _WindowTSState extends State<WindowTS> {
                 SizedBox(height: dividHeight,),
                 TS.OnTableHeader(),
                 for(var w in tsCW) w,
-
-                SizedBox(height: dividHeight,),
-                Row(
-                  children: [
-                    ButtonT.IconText(
-                        icon: Icons.add_box,
-                        text: '지급추가',
-                        onTap: () {
-                          tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
-                          setState(() {});
-                        }
-                    ),
-                    SizedBox(width: 6,),
-                    ButtonT.IconText(
-                        icon: Icons.add_box,
-                        text: '수입추가',
-                        onTap: () {
-                          tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'RE' }));
-                          setState(() {});
-                        }
-                    ),
-                  ],
-                ),
                 SizedBox(height: dividHeight,),
               ],
             ),
@@ -118,22 +93,13 @@ class _WindowTSState extends State<WindowTS> {
             children: [
               Expanded(child:TextButton(
                   onPressed: () async {
-                    if(tslistCr.length < 1) { WidgetT.showSnackBar(context, text: '최소 1개 이상의 거래기록을 입력 후 시도해주세요.'); return; }
-                    for(var t in tslistCr) {
-                      if(t.amount < 1) { WidgetT.showSnackBar(context, text: '하나 이상의 거래데이터의 금액이 비정상 적입니다. ( 0원 )'); return; }
-                      if(t.transactionAt == 0) {WidgetT.showSnackBar(context, text: '날짜를 정확히 입력해 주세요.'); return; }
-                    }
-
                     var alert = await DialogT.showAlertDl(context, title: '수납현황' ?? 'NULL');
                     if(alert == false) {
                       WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
                       return;
                     }
 
-                    for(var ts in tslistCr) {
-                      ts.csUid = widget.cs.id;
-                      await ts.update();
-                    }
+                    await ts.update();
 
                     WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
 

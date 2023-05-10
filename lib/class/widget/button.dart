@@ -19,6 +19,7 @@ class ButtonT extends StatelessWidget {
 
   static Widget Icon({IconData? icon, Function? onTap,
     Widget? leaging,
+    Color? color,
     Color? background
   }) {
     if(leaging != null) {
@@ -33,7 +34,7 @@ class ButtonT extends StatelessWidget {
         color: background,
         child: Row(
           children: [
-            WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28),
+            WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28, color: color),
           ],
         ),
       ),
@@ -52,7 +53,7 @@ class ButtonT extends StatelessWidget {
         if(onTap != null) return await onTap();
       },
       child: Container(
-        color: color ?? Colors.grey.withOpacity(0.35),
+        color: color ?? Colors.grey.withOpacity(0.25),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -68,6 +69,32 @@ class ButtonT extends StatelessWidget {
 
     return w;
   }
+
+
+  static Widget Text({ String? text, Function? onTap,
+    double? size,
+    double? height,
+    bool bold=false,
+    Color? color,
+    EdgeInsets? padding,
+    Color? textColor, }) {
+    var w = InkWell(
+      onTap: () async {
+        if(onTap != null) return await onTap();
+      },
+      child: Container(
+        color: color ?? Colors.grey.withOpacity(0.25),
+        alignment: Alignment.center,
+        width: size ?? null, height: size ?? height ?? 28,
+        child: TextT.Lit(text: text ?? '텍스트 입력', size: 12, color: textColor, bold: bold),
+      ),
+    );
+
+    if(padding != null) return Container( padding: padding,  child: w, );
+
+    return w;
+  }
+
 
   static Widget InfoMenu(String text, IconData icon, {
     Function? onTap,

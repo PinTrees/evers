@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 import '../class/Customer.dart';
+import '../class/component/comp_ts.dart';
 import '../class/contract.dart';
 import '../class/purchase.dart';
 import '../class/schedule.dart';
@@ -596,9 +597,9 @@ class DialogTS extends StatelessWidget {
                   continue;
                 }
 
-                var w = tmpTs.OnTableUIInput(
-                  index: i + 1,
-                  context: context, cs: cs,
+                var w = CompTS.tableUIInput(
+                  context, tmpTs,
+                  cs: cs, index: i + 1,
                   setState: () { setStateS(() {}); },
                 );
                 tsCW.add(w);
