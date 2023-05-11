@@ -287,9 +287,7 @@ class View_MO extends StatelessWidget {
           Widget w = CompTS.tableUIMain( tmpTs,
             context: context, index: i + 1, cs: cs,
             setState: () { mainView(context, menu); },
-            onTap: () async {
-              await DialogTS.showInfoTs(context, org: tmpTs);
-            },
+            refresh: () { mainView(context, menu, refresh: true); }
           );
           childrenW.add(w);
           childrenW.add(WidgetT.dividHorizontal(size: 0.35));

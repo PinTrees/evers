@@ -10,6 +10,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../dialog/dialog_itemInventory.dart';
 import '../../helper/aes.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
@@ -35,8 +36,8 @@ import '../widget/text.dart';
 
 class CompPU {
   static dynamic tableHeader() {
-    return WidgetUI.titleRowNone([ '', '매출일자', '품목', '단위', '수량', '단가', '공급가액',  'VAT', '합계', '메모', '', ],
-        [ 28, 150, 200 + 28 * 2, 50, 50, 80 + 28, 80, 80, 80, 200, 0], lite: true, background: true );
+    return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
+        [ 28, 80, 999, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
   }
 
   static dynamic tableHeaderMain() {
@@ -491,7 +492,7 @@ class CompPU {
   }
 
 
-  static dynamic tableUI( BuildContext? context, TS ts, {
+  static dynamic tableUI(BuildContext context, Purchase pu, {
     int? index,
     Customer? cs,
     Function? onTap,
@@ -499,130 +500,97 @@ class CompPU {
     Function? refresh,
     Function? onClose,
   }) {
-    if(context == null) return Container();
-    if(setState == null) return Container();
+    var item = SystemT.getItem(pu.item);
 
-    var w = Container( height: 28,
-      child: Row(
-          children: [
-            ExcelT.LitGrid(text: '${ index ?? '-'}', width: 28, center: true),
-            ExcelT.LitInput(context, '$index::ts.editor.거래일자', width: 150, index: index,
-              onEdited: (i, data) {
-                var date = DateTime.tryParse(data.toString().replaceAll('/','')) ?? DateTime.now();
-                ts.transactionAt = date.microsecondsSinceEpoch;
-              },
-              setState: setState,
-              text: StyleT.dateInputFormatAtEpoch(ts.transactionAt.toString()),
-            ),
-            ExcelT.LitGrid(text: (ts.type != 'PU') ? '수입' : '지출', width: 100, center: true),
-            SizedBox(
-              height: 28, width: 28,
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton2(
-                  focusColor: Colors.transparent,
-                  focusNode: FocusNode(),
-                  autofocus: false,
-                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                  items: ['수입', '지출'].map((item) => DropdownMenuItem<dynamic>(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: StyleT.titleStyle(),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )).toList(),
-                  onChanged: (value) async {
-                    if(value == '수입') ts.type = 'RE';
-                    else if(value == '지출') ts.type = 'PU';
-                    else ts.type = 'ETC';
-                    setState();
+    var w = Column(
+      children: [
+        Container(
+          height: 28,
+          child: Row(
+              children: [
+                ExcelT.LitGrid(center: true, text: index == null ? "" : '${index}', width: 28),
+                ExcelT.LitGrid(center: true, text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()), width: 80),
+                ExcelT.LitGrid(center: true, text: item == null ? pu.item : item.name == "" ? pu.item : item.name, width: 200, expand: true),
+                ExcelT.LitGrid(center: true, text: item == null ? '-' : item.unit == "" ? '-' : item.unit, width: 50),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.count),),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.unitPrice),),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.supplyPrice),),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.vat),),
+                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.totalPrice),),
+                ExcelT.LitGrid(center: true, width: 200, text: pu.memo, expand: true),
+
+                /// 수정
+                ButtonT.Icon(
+                  icon: Icons.create,
+                  onTap: () async {
+                    var parent = UIState.mdiController!.createWindow(context);
+                    var page = WindowPUEditor(pu: pu, refresh: refresh ?? () {}, parent: parent,);
+                    UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
+                    if(setState != null) setState();
                   },
-                  itemHeight: 24,
-                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                  dropdownWidth: 100 + 28,
-                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                  dropdownDecoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1.7,
-                      color: Colors.grey.withOpacity(0.5),
-                    ),
-                    borderRadius: BorderRadius.circular(0),
-                    color: Colors.white.withOpacity(0.95),
-                  ),
-                  dropdownElevation: 0,
-                  offset: const Offset(-128 + 28, 0),
                 ),
-              ),
-            ),
-            ExcelT.LitInput(context, '$index::ts.editor.적요', width: 250, index: index,
-              onEdited: (i, data) { ts.summary = data; }, text: ts.summary,
-              setState: setState,
-            ),
-            ExcelT.LitGrid(text: (SystemT.accounts[ts.account] != null) ? SystemT.accounts[ts.account]!.name : 'NULL', width: 180, center: true),
-            SizedBox(
-              height: 28, width: 28,
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton2(
-                  focusColor: Colors.transparent,
-                  focusNode: FocusNode(),
-                  autofocus: false,
-                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                  items: SystemT.accounts.keys.map((item) => DropdownMenuItem<dynamic>(
-                    value: item,
-                    child: Text(
-                      (SystemT.accounts[item] != null) ? SystemT.accounts[item]!.name : 'NULL',
-                      style: StyleT.titleStyle(),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )).toList(),
-                  onChanged: (value) async {
-                    ts.account = value;
-                    setState();
+                pu.isItemTs ? ButtonT.IconText(
+                  icon: Icons.account_tree,
+                  text: '품목확인',
+                  color: Colors.transparent,
+                  onTap: () async {
+                    var itemTs = await DatabaseM.getItemTrans(pu.id);
+                    if(itemTs == null) return;
+
+                    var result = await DialogItemInven.showInfo(context, org: itemTs);
+                    if(result == null) {}
+                    else {}
+
+                    if(setState != null) setState();
                   },
-                  itemHeight: 24,
-                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                  dropdownWidth: 180 + 28,
-                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                  dropdownDecoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1.7,
-                      color: Colors.grey.withOpacity(0.5),
-                    ),
-                    borderRadius: BorderRadius.circular(0),
-                    color: Colors.white.withOpacity(0.95),
-                  ),
-                  dropdownElevation: 0,
-                  offset: const Offset(-208 + 28, 0),
-                ),
-              ),
+                )
+                    : SizedBox(),
+              ]
+          ),
+        ),
+        if(pu.filesMap.isNotEmpty)
+          Container(
+            height: 32,
+            padding: EdgeInsets.only(left: 6, bottom: 6),
+            child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                      child: Container(
+                        child: Wrap(
+                          runSpacing: 6 * 2, spacing: 6 * 2,
+                          children: [
+                            for(int i = 0; i < pu.filesMap.length; i++)
+                              InkWell(
+                                  onTap: () async {
+                                    var downloadUrl = pu.filesMap.values.elementAt(i);
+                                    var fileName = pu.filesMap.keys.elementAt(i);
+
+                                    var ens = ENAES.fUrlAES(downloadUrl);
+
+                                    var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+                                    print(url);
+                                    await launchUrl( Uri.parse(url),
+                                      webOnlyWindowName: true ? '_blank' : '_self',
+                                    );
+                                  },
+                                  child: Container(
+                                      color: Colors.grey.withOpacity(0.15),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          WidgetT.iconMini(Icons.cloud_done, size: 24),
+                                          WidgetT.text(pu.filesMap.keys.elementAt(i), size: 10),
+                                          SizedBox(width: 6,)
+                                        ],
+                                      ))
+                              ),
+                          ],
+                        ),)),
+                ]
             ),
-            ExcelT.LitInput(context, '$index::ts.editor.금액', width: 120, index: index,
-              onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
-              setState: setState,
-              text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
-            ExcelT.LitInput(context, '$index::ts.editor.메모', width: 250, index: index,
-              setState: setState, expand: true,
-              onEdited: (i, data) { ts.memo = data;}, text: ts.memo,  ),
-
-            ButtonT.Icon(
-              icon: Icons.delete_forever,
-              color: Colors.redAccent,
-              onTap: () async {
-                if(refresh == null) { WidgetT.showSnackBar(context, text: 'refresh function is nat nullable'); return; }
-
-                /// 현재 TS에 대한 데이터베이서 제거 요청
-                var alt = await DialogT.showAlertDl(context, text: '해당 수납정보를 삭제하시겠습니까?');
-                if(!alt) { WidgetT.showSnackBar(context, text: '취소됨'); return; }
-                else WidgetT.showSnackBar(context, text: '삭제됨');
-
-                await ts.delete();
-
-                await refresh();
-                if(onClose != null) onClose();
-              },
-            ),
-          ]
-      ),
+          ),
+      ],
     );
     return w;
   }

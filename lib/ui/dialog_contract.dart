@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/contract.dart';
 import 'package:evers/class/database/ledger.dart';
 import 'package:evers/class/purchase.dart';
@@ -100,19 +101,16 @@ class DialogCT extends StatelessWidget {
 
               /// 매입 UI
               List<Widget> purWidgets = [];
-              purWidgets.add(Purchase.OnTabelHeader());
+              purWidgets.add(CompPU.tableHeader());
               for(int i = 0; i < purList.length; i++) {
                 var pu = purList[i];
-                var item = SystemT.getItem(pu.item) ?? Item.fromDatabase({});
                 pu.init();
                 allPay += pu.totalPrice;
 
-                var w = pu.OnTableUI(
-                  context,
+                var w = CompPU.tableUI(
+                  context, pu,
                   index: i + 1,
                   setState: setData,
-                  itemName: item.name,
-                  itemUnit: item.unit,
                 );
                 purWidgets.add(w);
                 purWidgets.add(WidgetT.dividHorizontal(size: 0.35));

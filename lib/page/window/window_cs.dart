@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_contract.dart';
+import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/helper/function.dart';
@@ -127,7 +128,7 @@ class _WindowCSState extends State<WindowCS> {
     int startIndex = 0;
 
     List<Widget> puW = [];
-    puW.add(Purchase.OnTabelHeader());
+    puW.add(CompPU.tableHeader());
     startIndex = puIndex * pageLimit;
     for(int i = startIndex; i < startIndex + pageLimit; i++) {
       if(i >= purs.length) break;
@@ -135,10 +136,8 @@ class _WindowCSState extends State<WindowCS> {
       var pu = purs[i];
       var item = SystemT.getItem(pu.item);
 
-      var w = pu.OnTableUI(context,
-          setState: () { setState(() {}); }, index: i + 1,
-          itemName: item != null ? item.name : '', itemUnit: item!=null? item.unit : '');
-      puW.add(w);
+      puW.add(CompPU.tableUI(context, pu,
+        setState: () { setState(() {}); }, index: i + 1,));
       puW.add(WidgetT.dividHorizontal(size: 0.35));
     }
     puW.add(SizedBox(height: dividHeight,));

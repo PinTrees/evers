@@ -26,7 +26,7 @@ import '../../helper/interfaceUI.dart';
 
 class WindowTSEditor extends StatefulWidget {
   TS ts;
-  Customer cs;
+  Customer? cs;
   ResizableWindow parent;
   Function refresh;
 
@@ -78,7 +78,7 @@ class _WindowTSEditorState extends State<WindowTSEditor> {
               children: [
                 SizedBox(height: dividHeight,),
                 TextT.Title(text: '거래처 정보'),
-                TextT.Lit(text: widget.cs.businessName ),
+                TextT.Lit(text: widget.cs == null ? 'ㅡ' : widget.cs!.businessName ),
                 SizedBox(height: dividHeight * 4,),
 
                 TextT.Title(text: '수납추가 목록',),

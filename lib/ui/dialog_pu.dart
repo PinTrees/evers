@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/text.dart';
@@ -1377,12 +1378,10 @@ class DialogPU extends StatelessWidget {
                 pu.vatType = currentVatType;
                 pu.init();
 
-                w = pu.OnTableUI(context,
+                w = CompPU.tableUIEditor(context, pu,
                   setState: () { setStateS(() {}); },
                   index: i + 1,
-                  itemData: item,
-                  files: fileMap,
-                  isInput: true,
+                  fileByteList: fileMap,
                 );
 
                 widgetsPu.add(w);
@@ -1412,7 +1411,7 @@ class DialogPU extends StatelessWidget {
 
                         TextT.Title(text: '매입 추가 목록',),
                         SizedBox(height: dividHeight,),
-                        Purchase.OnTabelHeader(),
+                        CompPU.tableHeader(),
                         Container( child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: widgetsPu, ),),
                         SizedBox(height: dividHeight,),
                         Row(

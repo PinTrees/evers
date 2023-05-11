@@ -114,11 +114,17 @@ class CompTS {
     Customer? cs,
     Function? onTap,
     Function? setState,
+    Function? refresh,
   }) {
     var w = InkWell(
       onTap: () async {
-        if(onTap != null) await onTap();
-        if(setState != null) await setState();
+        if(context == null) { return; }
+        if(refresh == null) { WidgetT.showSnackBar(context, text: 'refresh state is not nullable'); return; }
+
+        var cs = await DatabaseM.getCustomerDoc(ts.csUid);
+        var parent = UIState.mdiController!.createWindow(context, ph: 720);
+        var page = WindowTSEditor(ts: ts, cs: cs, refresh: refresh, parent: parent,);
+        UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent,);
       },
       child: Container(
         height: 36 + 6,

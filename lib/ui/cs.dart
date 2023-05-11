@@ -21,6 +21,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../class/Customer.dart';
 import 'package:http/http.dart' as http;
 
+import '../class/component/comp_pu.dart';
 import '../class/database/item.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
@@ -118,7 +119,7 @@ class DialogCS extends StatelessWidget {
               List<Widget> widgets = [];
 
               List<Widget> puW = [];
-              puW.add(Purchase.OnTabelHeader());
+              puW.add(CompPU.tableHeader());
               int startIndex = puIndex * pageLimit;
               for(int i = startIndex; i < startIndex + pageLimit; i++) {
                 if(i >= purs.length) break;
@@ -126,9 +127,10 @@ class DialogCS extends StatelessWidget {
                 var pu = purs[i];
                 var item = SystemT.getItem(pu.item);
 
-                var w = pu.OnTableUI(context,
-                    setState: () { setStateS(() {}); }, index: i + 1,
-                  itemName: item != null ? item.name : '', itemUnit: item!=null? item.unit : '');
+                var w = CompPU.tableUI(context, pu,
+                    setState: () { setStateS(() {}); },
+                  index: i + 1,
+                );
                 puW.add(w);
                 puW.add(WidgetT.dividHorizontal(size: 0.35));
               }
@@ -1287,7 +1289,7 @@ class DialogCS extends StatelessWidget {
                 var itemName = (item == null) ? pu.item : item.name;
                 var itemUnit = (item == null) ? '' : item.unit;
 
-                puW.add(pu.OnTableUI(context, index: i + 1, itemUnit: itemUnit, itemName: itemName));
+                puW.add(CompPU.tableUI(context, pu, index: i + 1,));
                 puW.add(WidgetT.dividHorizontal(size: 0.35));
               }
               puW.add(SizedBox(height: dividHeight,));
