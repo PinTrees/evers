@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/helper/function.dart';
@@ -41,29 +42,29 @@ import 'ux.dart';
 
 class View_REPU extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
-  var st_sc_vt = ScrollController();
-  var st_sc_hr = ScrollController();
+  var scrollVertController = ScrollController();
+  var scrollHorController = ScrollController();
   var divideHeight = 6.0;
 
   var sizePrice = 80.0;
   var sizeDate = 80.0;
 
-  List<Purchase> pur_list = [];
-  List<Revenue> rev_list = [];
+  List<Purchase> puList = [];
+  List<Revenue> revList = [];
 
-  List<Purchase> pur_sort_list = [];
-  List<Revenue> rev__sort_list = [];
+  List<Purchase> puSortList = [];
+  List<Revenue> reSortList = [];
 
-  List<TS> ts_list = [];
-  List<TS> ts_sort_list = [];
+  List<TS> tsList = [];
+  List<TS> tsSortList = [];
 
   /// 검색
   bool sort = false;
 
   var currentView = '매입';
 
-  var pur_sort_menu = [ '최신순',  ];
-  var pur_sort_menu_date = [ '최근 1주일', '최근 1개월', '최근 3개월' ];
+  var puSortMenu = [ '최신순',  ];
+  var purSortMenuDate = [ '최근 1주일', '최근 1개월', '최근 3개월' ];
   var crRpmenuRp = '', pur_query = '';
   DateTime rpStartAt = DateTime.now();
   DateTime rpLastAt = DateTime.now();
@@ -76,9 +77,9 @@ class View_REPU extends StatelessWidget {
     if(search == '') {
       sort = false;
       pur_query = '';
-      pur_list.clear();
-      rev_list.clear();
-      ts_list.clear();
+      puList.clear();
+      revList.clear();
+      tsList.clear();
 
       FunT.setStateMain();
       return;
@@ -88,12 +89,12 @@ class View_REPU extends StatelessWidget {
     if(menu == '매입매출관리') {
       if (currentView == '매입') {
         crRpmenuRp = ''; pur_query = '';
-        pur_sort_list = await SystemT.searchPuMeta(search,);
+        puSortList = await SystemT.searchPuMeta(search,);
       }
       else if (currentView == '매출') {
         crRpmenuRp = ''; pur_query = '';
-        rev__sort_list = await SystemT.searchReMeta(search,);
-        print(rev__sort_list.length);
+        reSortList = await SystemT.searchReMeta(search,);
+        print(reSortList.length);
       }
     }
     else if(menu == '수납관리') {
@@ -101,21 +102,21 @@ class View_REPU extends StatelessWidget {
         startAt: rpStartAt.microsecondsSinceEpoch.toString().substring(0, 8),
         lastAt: rpLastAt.microsecondsSinceEpoch.toString().substring(0, 8),
       );
-      ts_sort_list = await Search.searchTS();
+      tsSortList = await Search.searchTS();
     }
 
     FunT.setStateMain();
   }
   void query_init() {
     sort = false;
-    pur_list.clear();
-    rev_list.clear();
-    ts_list.clear();
+    puList.clear();
+    revList.clear();
+    tsList.clear();
   }
   void clear() async {
-    ts_list.clear();
-    rev_list.clear();
-    pur_list.clear();
+    tsList.clear();
+    revList.clear();
+    puList.clear();
     await FunT.setStateMain();
   }
 
@@ -129,9 +130,9 @@ class View_REPU extends StatelessWidget {
       sort = false; searchInput.text = '';
     }
     if(refresh) {
-      pur_list.clear();
-      rev_list.clear();
-      ts_list.clear();
+      puList.clear();
+      revList.clear();
+      tsList.clear();
       sort = false;
       pur_query = '';
 
@@ -174,7 +175,7 @@ class View_REPU extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
             child: Row(
               children: [
-                for(var m in pur_sort_menu_date)
+                for(var m in purSortMenuDate)
                   InkWell(
                     onTap: () async {
                       if(pur_query == m) return;
@@ -183,13 +184,13 @@ class View_REPU extends StatelessWidget {
                       query_init();
 
                       rpLastAt = DateTime.now();
-                      if(pur_query == pur_sort_menu_date[0]) {
+                      if(pur_query == purSortMenuDate[0]) {
                         rpStartAt = DateTime.now().add(const Duration(days: -7));
                       }
-                      else if(pur_query == pur_sort_menu_date[1]) {
+                      else if(pur_query == purSortMenuDate[1]) {
                         rpStartAt = DateTime.now().add(const Duration(days: -30));
                       }
-                      else if(pur_query == pur_sort_menu_date[2]) {
+                      else if(pur_query == purSortMenuDate[2]) {
                         rpStartAt = DateTime.now().add(const Duration(days: -90));
                       }
 
@@ -271,8 +272,8 @@ class View_REPU extends StatelessWidget {
                 InkWell(
                   onTap: () async {
                     pur_query = '';
-                    pur_list.clear();
-                    rev_list.clear();
+                    puList.clear();
+                    revList.clear();
                     FunT.setStateMain();
                   },
                   child: Container( height: 32, 
@@ -352,87 +353,18 @@ class View_REPU extends StatelessWidget {
       );
 
       if(currentView == '매입') {
-        if(pur_list.length < 1) pur_list = await DatabaseM.getPurchase(
+        if(puList.length < 1) puList = await DatabaseM.getPurchase(
           startDate: rpStartAt.microsecondsSinceEpoch,
           lastDate: rpLastAt.microsecondsSinceEpoch,
         );
 
-
-        var data = sort ? pur_sort_list : pur_list;
+        var data = sort ? puSortList : puList;
         for(int i = 0; i < data.length; i++) {
           Purchase pu = data[i];
-
-          Widget w = SizedBox();
-          var cs = await SystemT.getCS(pu.csUid) ?? Customer.fromDatabase({});
-
-          var item = SystemT.getItem(pu.item);
-          var itemName = (item == null) ? pu.item : item!.name;
-
-          w = InkWell(
-            onTap: () async {
-              await DialogCS.showPurInCs(context, cs);
-            },
-            child: Container(
-              height: 36 + divideHeight,
-              decoration: StyleT.inkStyleNone(color: Colors.transparent),
-              child: Row(
-                  children: [
-                    WidgetT.excelGrid(textSize: 8, label: '${i + 1}', width: 32),
-                    WidgetT.excelGrid(textSize: 8, textLite: true, text: pu.id, width: sizeDate, ),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(pu.purchaseAt.toString()), width: sizeDate, ),
-                    WidgetT.excelGrid(textSize: 10,textLite: false,text: '매입', width: 50, textColor: Colors.redAccent.withOpacity(0.5) ),
-
-                    Expanded(
-                      child: Container(
-                        width: 150, alignment: Alignment.center,
-                        child: (cs.businessName != '') ? RichText(
-                          text: TextSpan(children: [
-                            TextSpan(
-                                text: cs.businessName,
-                                recognizer: TapGestureRecognizer()..onTapDown = (details) {
-                                  DialogCS.showCustomerDialog(context, org: cs);
-                                },
-                                style: TextStyle(color: Colors.blue, fontSize: 10, decoration: TextDecoration.underline, fontWeight: FontWeight.w900)),
-                          ]),
-                        ) : Text('ㅡ', style: TextStyle(fontSize: 10, color: StyleT.textColor),),
-                      ),
-                    ),
-                    Expanded(child: WidgetT.excelGrid(textLite: false, width: 999, text: itemName, textSize: 10)),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, text:item?.unit, width: 50),
-                    WidgetT.excelGrid(textSize: 10, textLite: true,width: 50,  text: StyleT.krw(pu.count.toString()),),
-                    WidgetT.excelGrid(textSize: 10, textLite: true,width: sizePrice,  text: StyleT.krw(pu.unitPrice.toString()),),
-                    WidgetT.excelGrid(textSize: 10, textLite: true,width: sizePrice,  text: StyleT.krw(pu.supplyPrice.toString()),),
-                    WidgetT.excelGrid(textSize: 10, textLite: true,width: sizePrice,  text: StyleT.krw(pu.vat.toString()), ),
-                    WidgetT.excelGrid(textSize: 10, textLite: true,width: sizePrice, text: StyleT.krw(pu.totalPrice.toString()),),
-                    if(pu.filesMap.length > 0)
-                      WidgetT.iconMini(Icons.file_copy_rounded, size: 32),
-                    if(pu.filesMap.length == 0)
-                      SizedBox(height: 28,width: 28,),
-                    InkWell(
-                      onTap: () async {
-                        var result = await DialogPU.showInfoPu(context, org: pu);
-                        if(result != null) {
-                          FunT.setStateMain();
-                        }
-                      },
-                      child: WidgetT.iconMini(Icons.create, size: 32),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
-                        if(aa) {
-                          await DatabaseM.deletePu(pu);
-                          WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
-                        }
-                      },
-                      child: WidgetT.iconMini(Icons.delete, size: 32),
-                    ),
-                  ]
-              ),
-            ),
-          );
-
-          childrenW.add(w);
+          var cs = await SystemT.getCS(pu.csUid);
+          childrenW.add(CompPU.tableUIMain(context, pu, index: i + 1,
+            cs: cs, refresh: () { mainView(context, menu); },
+          ));
           childrenW.add(WidgetT.dividHorizontal(size: 0.35),);
         }
 
@@ -442,11 +374,11 @@ class View_REPU extends StatelessWidget {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
             var list = await DatabaseM.getPurchase(
-              startAt: pur_list.last.id,
+              startAt: puList.last.id,
               startDate: rpStartAt.microsecondsSinceEpoch,
               lastDate: rpLastAt.microsecondsSinceEpoch,
             );
-            pur_list.addAll(list);
+            puList.addAll(list);
 
             Navigator.pop(context);
             await FunT.setStateMain();
@@ -463,12 +395,12 @@ class View_REPU extends StatelessWidget {
         ));
       }
       else if(currentView == '매출') {
-        if(rev_list.length < 1) rev_list = await DatabaseM.getRevenue(
+        if(revList.length < 1) revList = await DatabaseM.getRevenue(
           startDate: rpStartAt.microsecondsSinceEpoch,
           lastDate: rpLastAt.microsecondsSinceEpoch,
         );
 
-        var data = sort ? rev__sort_list : rev_list;
+        var data = sort ? reSortList : revList;
         for(int i = 0; i < data.length; i++) {
           var rev = data[i];
 
@@ -550,11 +482,11 @@ class View_REPU extends StatelessWidget {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
             var list = await DatabaseM.getRevenue(
-              startAt: rev_list.last.id,
+              startAt: revList.last.id,
               startDate: rpStartAt.microsecondsSinceEpoch,
               lastDate: rpLastAt.microsecondsSinceEpoch,
             );
-            rev_list.addAll(list);
+            revList.addAll(list);
 
             Navigator.pop(context);
             await FunT.setStateMain();
@@ -570,16 +502,8 @@ class View_REPU extends StatelessWidget {
           ),
         ));
       }
-
-/*      bottomWidget = Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ButtonT.IconText(text: '일반 매입 추가'),
-          ButtonT.IconText(text: '재고 매입 추가'),
-          ButtonT.IconText(text: '일반 매출 추가'),
-        ],
-      );*/
     }
+
     else if(menu == '수납관리') {
       childrenW.clear();
       titleMenu = Column(
@@ -595,7 +519,7 @@ class View_REPU extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
             child: Row(
               children: [
-                for(var m in pur_sort_menu_date)
+                for(var m in purSortMenuDate)
                   InkWell(
                     onTap: () async {
                       if(pur_query == m) return;
@@ -604,13 +528,13 @@ class View_REPU extends StatelessWidget {
                       query_init();
 
                       rpLastAt = DateTime.now();
-                      if(pur_query == pur_sort_menu_date[0]) {
+                      if(pur_query == purSortMenuDate[0]) {
                         rpStartAt = DateTime.now().add(const Duration(days: -7));
                       }
-                      else if(pur_query == pur_sort_menu_date[1]) {
+                      else if(pur_query == purSortMenuDate[1]) {
                         rpStartAt = DateTime.now().add(const Duration(days: -30));
                       }
-                      else if(pur_query == pur_sort_menu_date[2]) {
+                      else if(pur_query == purSortMenuDate[2]) {
                         rpStartAt = DateTime.now().add(const Duration(days: -90));
                       }
 
@@ -680,9 +604,9 @@ class View_REPU extends StatelessWidget {
                 InkWell(
                   onTap: () async {
                     pur_query = '';
-                    pur_list.clear();
-                    rev_list.clear();
-                    ts_list.clear();
+                    puList.clear();
+                    revList.clear();
+                    tsList.clear();
                     FunT.setStateMain();
                   },
                   child: Container( height: 32,
@@ -697,14 +621,14 @@ class View_REPU extends StatelessWidget {
         ],
       );
 
-      if(ts_list.length < 1) {
-        ts_list = await DatabaseM.getTransaction(
+      if(tsList.length < 1) {
+        tsList = await DatabaseM.getTransaction(
           startDate: rpStartAt.microsecondsSinceEpoch,
           lastDate: rpLastAt.microsecondsSinceEpoch,
         );
       }
 
-      var datas = sort ? ts_sort_list : ts_list;
+      var datas = sort ? tsSortList : tsList;
       for(int i = 0; i < datas.length; i++) {
         var tmpTs = datas[i];
         var cs = await SystemT.getCS(tmpTs.csUid);
@@ -728,11 +652,11 @@ class View_REPU extends StatelessWidget {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
             var list = await DatabaseM.getTransaction(
-                startAt: ts_list.last.id,
+                startAt: tsList.last.id,
                 startDate: rpStartAt.microsecondsSinceEpoch,
                 lastDate: rpLastAt.microsecondsSinceEpoch,
             );
-            ts_list.addAll(list);
+            tsList.addAll(list);
 
             Navigator.pop(context);
             await FunT.setStateMain();
@@ -767,12 +691,7 @@ class View_REPU extends StatelessWidget {
                     }, controller: searchInput ),
                     titleMenu,
                     //searchMenuW,
-                    if(menu == '매입매출관리')
-                      Container( padding: EdgeInsets.fromLTRB(divideHeight * 1, 0, divideHeight * 1, divideHeight),
-                        child: WidgetUI.titleRowNone([ '순번', '거래번호', '거래일', '구분', '거래처 및 계약', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '' ],
-                            [ 32, sizeDate, sizeDate, 50, 999, 999, 50, 50,
-                              sizePrice, sizePrice, sizePrice, sizePrice, 64 + 32, 32 ]),
-                      ),
+                    if(menu == '매입매출관리') CompPU.tableHeaderMain(),
                     if(menu == '수납관리') TS.OnTableHeaderMain(),
                     WidgetT.dividHorizontal(size: 0.7),
                     Expanded(
