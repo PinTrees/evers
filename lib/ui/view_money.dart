@@ -337,11 +337,23 @@ class View_MO extends StatelessWidget {
         tsDateList = await DatabaseM.getTransactionWithDate(sortStartAt.microsecondsSinceEpoch, sortLastAt.microsecondsSinceEpoch);
         var amountPu = 0;
         var amountRe = 0;
+        var searchTsCount = sort ? Search.tsList.length : tsDateList.length;
 
-        tsDateList.forEach((e) {
-          if(e.type == 'RE') amountRe += e.amount;
-          else if(e.type == 'PU') amountPu += e.amount;
-        });
+        if(sort) {
+          Search.tsList.forEach((e) {
+            if(e == null) return;
+            if(e.id == '') return;
+            var val = tsDateList.firstWhere((ts) => ts.id == e.id);
+            if(val != null) {
+              if(val.type == 'RE') amountRe += val.amount;
+              else if(val.type == 'PU') amountPu += val.amount;
+            }
+          });
+        } else
+          tsDateList.forEach((e) {
+            if(e.type == 'RE') amountRe += e.amount;
+            else if(e.type == 'PU') amountPu += e.amount;
+          });
 
         bottomWidget = Column(
           mainAxisSize: MainAxisSize.min,
@@ -365,13 +377,13 @@ class View_MO extends StatelessWidget {
                         TextT.SubTitle(text: '총 금액'),
                         SizedBox(width: 12,),
                         TextT.Lit(text: StyleT.krwInt(balance), expand: true, alignment: Alignment.centerLeft, size: 12 ),
-                        TextT.SubTitle(text: '기간내 거래수'),
+                        TextT.SubTitle(text: sort ? '검색된 거래수' : '기간내 거래수'),
                         SizedBox(width: 12,),
-                        TextT.Lit(text: '${ tsDateList.length } 건', expand: true, alignment: Alignment.centerLeft, size: 12),
-                        TextT.SubTitle(text: '기간내 지출 총액'),
+                        TextT.Lit(text: '${ searchTsCount } 건', expand: true, alignment: Alignment.centerLeft, size: 12),
+                        TextT.SubTitle(text: sort ? '검색된 지출 총액' : '기간내 지출 총액'),
                         SizedBox(width: 12,),
                         TextT.Lit(text: StyleT.krwInt(amountPu), expand: true, alignment: Alignment.centerLeft, size: 12),
-                        TextT.SubTitle(text: '기간내 수입 총액'),
+                        TextT.SubTitle(text: sort ? '검색된 수입 총액' : '기간내 수입 총액'),
                         SizedBox(width: 12,),
                         TextT.Lit(text: StyleT.krwInt(amountRe), expand: true, alignment: Alignment.centerLeft, size: 12),
                       ]

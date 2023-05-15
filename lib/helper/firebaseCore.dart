@@ -667,6 +667,7 @@ class DatabaseM {
     });
     return amount;
   }
+
   static dynamic getAmountItemBalance(String id) async {
     var amount = 0.0;
     await FirebaseFirestore.instance.collection('meta/itemInven/${id}').limit(100).get().then((value) {
