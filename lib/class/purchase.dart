@@ -427,8 +427,6 @@ class Purchase {
     );
   }
 
-
-
   dynamic setUpdate() {
     var db = FirebaseFirestore.instance;
     final docRef = db.collection("purchase").doc(id);

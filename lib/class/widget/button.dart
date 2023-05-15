@@ -43,6 +43,9 @@ class ButtonT extends StatelessWidget {
 
     return w;
   }
+
+
+  /// 이 함수는 아이콘과 텍스트가 있는 고정형 위젯입니다.
   static Widget IconText({ String? text, IconData? icon, Function? onTap,
     bool bold=false,
     Color? color,
@@ -73,6 +76,7 @@ class ButtonT extends StatelessWidget {
   }
 
 
+  /// 이 함수는 간단한 텍스트 추가 버튼입니다.
   static Widget Text({ String? text, Function? onTap,
     double? size,
     double? height,
@@ -98,6 +102,7 @@ class ButtonT extends StatelessWidget {
   }
 
 
+  /// 이 함수는 메인메뉴 사이드 탐색버튼 템플릿입니다.
   static Widget InfoMenu(String text, IconData icon, {
     Function? onTap,
     Function? setState,
@@ -119,6 +124,37 @@ class ButtonT extends StatelessWidget {
         ));
   }
 
+
+  /// 이 함수는 다이얼로그 액션버튼 템플릿입니다.
+  static Widget Action(String text, {
+    IconData? icon,
+    double? width,
+    Color? backgroundColor,
+    Function? onTap,
+    Function? setState,
+    bool expend=false,
+  }) {
+    var w = InkWell(
+        onTap: () async {
+          if(onTap != null) await onTap();
+        },
+        child: Container(
+            width: width,
+            color: backgroundColor ?? Colors.blue.withOpacity(0.5),
+            height: 42,
+            child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                WidgetT.iconMini(icon ?? Icons.add_box),
+                TextT.SubTitle(text: text),
+                SizedBox(width: 6,),
+              ],
+            )
+        )
+    );
+
+    if(expend) return Expanded(child: w);
+    else return w;
+  }
   Widget build(context) {
     return Container();
   }

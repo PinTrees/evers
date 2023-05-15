@@ -10,7 +10,9 @@ import 'package:intl/intl.dart';
 import 'package:async/async.dart';
 import '../transaction.dart';
 
-///
+
+/// 검색 시스템 최상위 관리 클래스입니다.
+/// 
 class Search {
   static List<SortKey> tsList = [];
   static int tsListIndex = 0;
@@ -42,4 +44,7 @@ class Search {
 
     return search;
   }
+
+
+
 }

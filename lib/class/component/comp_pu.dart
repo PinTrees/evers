@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/class/widget/list.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
@@ -29,15 +30,14 @@ import '../system/state.dart';
 import '../transaction.dart';
 import '../widget/button.dart';
 import '../widget/text.dart';
-
-
+import 'package:http/http.dart' as http;
 
 
 
 class CompPU {
   static dynamic tableHeader() {
-    return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
-        [ 28, 80, 999, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
+    return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', "",  '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
+        [ 28, 80, 999, 28 * 2, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
   }
 
   static dynamic tableHeaderMain() {
@@ -368,125 +368,238 @@ class CompPU {
   }
 
 
-  static dynamic tableUIInput( BuildContext? context, TS ts, {
+  /// 매입건에 대한 수정UI 컴포넌트입니다.
+  ///
+  /// required params
+  ///   BuildContext? context
+  ///   Purchase pu
+  ///   Function setState
+  ///   Map<String, Uint8List>? fileByteList
+  static dynamic tableUIInput( BuildContext? context, Purchase pu, {
     int? index,
     Customer? cs,
     Function? onTap,
     Function? setState,
+    Map<String, Uint8List>? fileByteList
   }) {
     if(context == null) return Container();
     if(setState == null) return Container();
+    if(fileByteList == null) fileByteList = {};
 
-    var w = Container( height: 28,
-      child: Row(
+    var item = SystemT.getItem(pu.item);
+
+    var w = Column(
+      children: [
+        Container(
+          height: 28,
+          child: Row(
+              children: [
+                ExcelT.LitGrid(text: "${index ?? "-"}", width: 28, center: true),
+                ExcelT.LitInput(context, "${index}::pu.매출일자", width: 100, index: index,
+                  setState: setState,
+                  onEdited: (i, data) { pu.purchaseAt = StyleT.dateEpoch(data); },
+                  text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()),
+                ),
+                ExcelT.LitInput(context, "${index}::pu.품목", width: 200, expand: true, index: index,
+                  setState: setState,
+                  onEdited: (i, data) {
+                      var item = SystemT.getItem(pu.item);
+                      if (item == null) { pu.item = data; return; }
+                      if (item.name == data) return;
+                      pu.item = data;
+                    },
+                    text: SystemT.getItemName(pu.item),
+                ),
+
+
+                ButtonT.Icon(
+                icon: Icons.add_box,
+                onTap: () async {
+                  Item? item = await DialogT.selectItem(context);
+                  if(setState != null) await setState();
+                  if(item != null) {
+                    pu.item = item.id;
+                    pu.unitPrice = item.unitPrice;
+                  }
+                  if(setState != null) await setState();
+                },
+              ),
+                /// 최적화 필요
+                SizedBox(
+                  height: 28, width: 28,
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton2(
+                      focusColor: Colors.transparent,
+                      focusNode: FocusNode(),
+                      autofocus: false,
+                      customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
+                      items: SystemT.itemMaps.keys.map((item) => DropdownMenuItem<dynamic>(
+                        value: item,
+                        child: Text(
+                          SystemT.getItemName(item),
+                          style: StyleT.titleStyle(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )).toList(),
+                      onChanged: (value) async {
+                        var item = SystemT.getItem(value);
+                        if(item != null) {
+                          pu.item = item.id;
+                          pu.unitPrice = item.unitPrice;
+                        }
+                        if(setState != null) await setState();
+                      },
+                      itemHeight: 24,
+                      itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                      dropdownWidth: 256.7,
+                      dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                      dropdownDecoration: BoxDecoration(
+                        border: Border.all(
+                          width: 1.7,
+                          color: Colors.grey.withOpacity(0.5),
+                        ),
+                        borderRadius: BorderRadius.circular(0),
+                        color: Colors.white.withOpacity(0.95),
+                      ),
+                      dropdownElevation: 0,
+                      offset: const Offset(-256 + 28, 0),
+                    ),
+                  ),
+                ),
+
+                ExcelT.LitGrid(text: item == null ? '-' : item.unit, width:  50, center: true),
+                ExcelT.LitInput(context, "${index}::pu.수량", width: 80,index: index,
+                  setState: setState,
+                    onEdited: (i, data) { pu.count = int.tryParse(data) ?? 0;  },
+                    text: StyleT.krw(pu.count.toString()), value: pu.count.toString()
+                ),
+                ExcelT.LitInput(context, "${index}::pu.단가", width: 80, index: index,
+                    setState: setState,
+                    onEdited: (i, data) { pu.unitPrice = int.tryParse(data) ?? 0;  },
+                  text: StyleT.krwInt(pu.unitPrice), value: pu.unitPrice.toString(),
+                ),
+                ButtonT.Icon(
+                  icon: Icons.link,
+                  onTap: () async {
+                    if(item != null) pu.unitPrice = item.unitPrice;
+                    if(setState != null) await setState();
+                  }
+                ),
+
+                ExcelT.LitInput(context, "${index}::pu.supplyPrice", width: 80, index: index,
+                  setState: setState,
+                  onEdited: (i, data) {
+                    pu.supplyPrice = int.tryParse(data) ?? 0;
+                    pu.fixedSup = true;
+                  }, text: StyleT.krwInt(pu.supplyPrice), value: pu.supplyPrice.toString(),
+                ),
+                ExcelT.LitInput(context, "${index}::pu.vat", width: 80, index: index,
+                  setState: setState,
+                  onEdited: (i, data) {
+                    pu.vat = int.tryParse(data) ?? 0;
+                    pu.fixedVat = true;
+                  }, text: StyleT.krwInt(pu.vat), value: pu.vat.toString(),
+                ),
+                ExcelT.LitGrid(text: StyleT.krw(pu.totalPrice.toString()), width: 80, center: true),
+                ExcelT.LitInput(context, "${index}::pu.메모", width: 200, expand: true, index: index,
+                  setState: setState,
+                  onEdited: (i, data) { pu.memo  = data ?? ''; },
+                  text: pu.memo,
+                ),
+              ]
+          ),
+        ),
+        if(fileByteList.length > 0)
+          Container( height: 28,
+            child: Row(
+                children: [
+                  WidgetT.excelGrid( width: 150, label: '거래명세서 첨부파일', ),
+                  Expanded(child: Container( padding: EdgeInsets.all(0),  child: Wrap(
+                    runSpacing: 6 * 2, spacing: 6 * 2,
+                    children: [
+                      for(int i = 0; i < pu.filesMap.length; i++)
+                        ButtonT.IconText(
+                            icon : Icons.file_copy_rounded,
+                            text: pu.filesMap.keys.elementAt(i),
+                            leaging: ButtonT.Icon(
+                                icon: Icons.cancel,
+                                onTap: () {
+                                  WidgetT.showSnackBar(context, text: "개발중");
+                                  setState();
+                                }
+                            ),
+                            onTap: () async {
+                              var downloadUrl = pu.filesMap.values.elementAt(i);
+                              var fileName = pu.filesMap.keys.elementAt(i);
+                              PdfManager.OpenPdf(downloadUrl, fileName);
+                            }
+                        ),
+                      for(int i = 0; i < fileByteList.length; i++)
+                        ButtonT.IconText(
+                          icon : Icons.file_copy_rounded,
+                          text: fileByteList.keys.elementAt(i),
+                          leaging: ButtonT.Icon(
+                            icon: Icons.cancel,
+                            onTap: () {
+                              fileByteList!.remove(fileByteList.keys.elementAt(i ?? 0));
+                              setState();
+                            }
+                          ),
+                          onTap: () {
+                            PDFX.showPDFtoDialog(context, data: fileByteList!.values.elementAt(i), name: fileByteList!.keys.elementAt(i));
+                          }
+                        ),
+                    ],
+                  ),)),
+                ]
+            ),
+          ),
+        Container(height: 28,child: ListBoxT.Rows(
+          spacing: 6,
           children: [
-            ExcelT.LitGrid(text: '${ index ?? '-'}', width: 28, center: true),
-            ExcelT.LitInput(context, '$index::ts거래일자', width: 150, index: index,
-              onEdited: (i, data) {
-                var date = DateTime.tryParse(data.toString().replaceAll('/','')) ?? DateTime.now();
-                ts.transactionAt = date.microsecondsSinceEpoch;
-              },
-              setState: setState,
-              text: StyleT.dateInputFormatAtEpoch(ts.transactionAt.toString()),
-            ),
-            ExcelT.LitGrid(text: (ts.type != 'PU') ? '수입' : '지출', width: 100, center: true),
-            SizedBox(
-              height: 28, width: 28,
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton2(
-                  focusColor: Colors.transparent,
-                  focusNode: FocusNode(),
-                  autofocus: false,
-                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                  items: ['수입', '지출'].map((item) => DropdownMenuItem<dynamic>(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: StyleT.titleStyle(),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )).toList(),
-                  onChanged: (value) async {
-                    if(value == '수입') ts.type = 'RE';
-                    else if(value == '지출') ts.type = 'PU';
-                    else ts.type = 'ETC';
-                    setState();
-                  },
-                  itemHeight: 24,
-                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                  dropdownWidth: 100 + 28,
-                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                  dropdownDecoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1.7,
-                      color: Colors.grey.withOpacity(0.5),
-                    ),
-                    borderRadius: BorderRadius.circular(0),
-                    color: Colors.white.withOpacity(0.95),
-                  ),
-                  dropdownElevation: 0,
-                  offset: const Offset(-128 + 28, 0),
-                ),
-              ),
-            ),
-            ExcelT.LitInput(context, '$index::ts적요', width: 250, index: index,
-              onEdited: (i, data) { ts.summary = data; }, text: ts.summary,
-              setState: setState,
-            ),
-            ExcelT.LitGrid(text: (SystemT.accounts[ts.account] != null) ? SystemT.accounts[ts.account]!.name : 'NULL', width: 180, center: true),
-            SizedBox(
-              height: 28, width: 28,
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton2(
-                  focusColor: Colors.transparent,
-                  focusNode: FocusNode(),
-                  autofocus: false,
-                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                  items: SystemT.accounts.keys.map((item) => DropdownMenuItem<dynamic>(
-                    value: item,
-                    child: Text(
-                      (SystemT.accounts[item] != null) ? SystemT.accounts[item]!.name : 'NULL',
-                      style: StyleT.titleStyle(),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )).toList(),
-                  onChanged: (value) async {
-                    ts.account = value;
-                    setState();
-                  },
-                  itemHeight: 24,
-                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                  dropdownWidth: 180 + 28,
-                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                  dropdownDecoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1.7,
-                      color: Colors.grey.withOpacity(0.5),
-                    ),
-                    borderRadius: BorderRadius.circular(0),
-                    color: Colors.white.withOpacity(0.95),
-                  ),
-                  dropdownElevation: 0,
-                  offset: const Offset(-208 + 28, 0),
-                ),
-              ),
-            ),
-            ExcelT.LitInput(context, '$index::ts금액', width: 120, index: index,
-              onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
-              setState: setState,
-              text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
-            ExcelT.LitInput(context, '$index::ts메모', width: 250, index: index,
-              setState: setState, expand: true,
-              onEdited: (i, data) { ts.memo = data;}, text: ts.memo,  ),
-            ButtonT.Icon(
-              icon: Icons.cancel,
-              onTap: () async {
-                ts.type = 'DEL';
-                setState();
-              },
-            ),
-          ]
-      ),
+          ButtonT.IconText(
+            icon: Icons.auto_mode,
+            text: "금액 자동계산",
+            onTap: () async {
+              pu.fixedVat = false;
+              pu.fixedSup = false;
+              if(setState != null) await setState();
+            },
+          ),
+          ButtonT.IconText(
+            icon: Icons.file_copy_rounded,
+            text: "파일 추가",
+            onTap: () async {
+              FilePickerResult? result;
+              try {
+                result = await FilePicker.platform.pickFiles();
+              } catch (e) {
+                WidgetT.showSnackBar(context, text: '파일선택 오류');
+                print(e);
+              }
+
+              if(setState != null) await setState();
+              if(result != null){
+                WidgetT.showSnackBar(context, text: '파일선택');
+                if(result.files.isNotEmpty) {
+                  String fileName = result.files.first.name;
+                  fileByteList![fileName] = result.files.first.bytes!;
+                }
+              }
+
+              if(setState != null) await setState();
+            },
+          ),
+          ButtonT.IconText(
+            icon: Icons.cancel,
+            text: "품목제거",
+            onTap: () async {
+              pu.state = "DEL";
+              if(setState != null) await setState();
+            },
+          ),
+        ], ),)
+      ],
     );
     return w;
   }
