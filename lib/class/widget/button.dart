@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/widget/text.dart';
@@ -80,23 +81,28 @@ class ButtonT extends StatelessWidget {
   static Widget Text({ String? text, Function? onTap,
     double? size,
     double? height,
+    double? width,
     bool bold=false,
+    bool expand=false,
     Color? color,
     EdgeInsets? padding,
     Color? textColor, }) {
-    var w = InkWell(
+
+    Widget w = InkWell(
       onTap: () async {
         if(onTap != null) return await onTap();
       },
       child: Container(
         color: color ?? Colors.grey.withOpacity(0.25),
         alignment: Alignment.center,
-        width: size ?? null, height: size ?? height ?? 28,
+        width: size ?? width, height: size ?? height ?? 28,
         child: TextT.Lit(text: text ?? '텍스트 입력', size: 12, color: textColor, bold: bold),
       ),
     );
 
-    if(padding != null) return Container( padding: padding,  child: w, );
+
+    if(expand) w = Expanded(child: w);
+    if(padding != null) w = Container( padding: padding,  child: w, );
 
     return w;
   }

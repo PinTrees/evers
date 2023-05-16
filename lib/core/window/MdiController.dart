@@ -3,6 +3,7 @@ import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_factory.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
+import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,7 @@ class MdiController{
     if(widget is WindowPUCreateWithCS) resizableWindow.title = '거래처 매입 입력창';
     if(widget is WindowPUCreate) resizableWindow.title = '매입 입력창';
     if(widget is WindowPUEditor) resizableWindow.title = '매입 개별 상세정보창';
+    if(widget is WindowReCreate) resizableWindow.title = '매출 정보 생성창';
   }
 
   ResizableWindow createWindow(BuildContext context, { double? pw, double? ph, }) {

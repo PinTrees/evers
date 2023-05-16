@@ -16,6 +16,8 @@ class WidgetUI extends StatelessWidget {
   static Map<String, TextEditingController> textInputs = {};
   static Map<String, bool> isActive = {};
 
+  /// 널 안전 지원으로 변경 필요
+  /// 인덱스 오버 예외처리 필요
   static Widget titleRowNone(List<String> title, List<double> width, {  List<Widget>? leaging,
     bool background=false,
     bool lite=false,

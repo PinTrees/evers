@@ -12,26 +12,29 @@ import '../../ui/dialog_contract.dart';
 import '../../ui/ux.dart';
 import '../Customer.dart';
 import '../contract.dart';
+import '../database/item.dart';
+import '../system.dart';
 import '../system/state.dart';
 
-class CompContract {
+class CompItem {
   static dynamic tableHeader() {
      return WidgetUI.titleRowNone([ '순번', '거래처', '계약명', '담당자', '연락처', '', ],
        [ 32, 250, 250, 150, 150, 999, ], background: true, lite: true);
   }
-
-  /// 이 함수는 계약 검색창의 계약목록 테이블 상단위젯을 반환합니다.
-  static dynamic tableHeaderSearch() {
-    return WidgetUI.titleRowNone([ '순번', '거래처 / 계약명', '담당자', '연락처', '',],
-        [ 32, 999, 100, 100, 100 ], background: true, lite: true);
-  }
-
   static dynamic tableHeaderMain() {
     return Container( padding: EdgeInsets.fromLTRB(6, 0, 6, 6),
       child: WidgetUI.titleRowNone([ '순번', '거래처', '계약명', '담당자', '연락처', '', ],
           [ 32, 250, 250, 150, 150, 999, ]),
     );
   }
+
+
+  /// 이 함수는 검색창의 품목 테이불 상단 위젯을 반환합니다.
+  static dynamic tableHeaderSearch() {
+    return WidgetUI.titleRowNone([ '순번', "품목명", '타입', '분류', '단위', '단가', "원가", ""],
+        [ 32, 999, 100, 50, 50, 80, 80, 80], background: true, lite: true);
+  }
+
 
   static dynamic tableUI(BuildContext context, Contract ct, {
     int? index,
@@ -58,25 +61,30 @@ class CompContract {
 
 
   /// 이 함수는 계약목록의 테이블 위젯을 반환합니다.
-  static dynamic tableUISearch(BuildContext context, Contract ct, {
+  static dynamic tableUISearch(BuildContext context, Item item, {
     int? index,
     Function? onTap,
   }) {
-    var w = Container(
-      height: 28,
+    if(item == null) return SizedBox();
+    if(item.id == '') return SizedBox();
+
+    var w = Container( height: 28,
       decoration: StyleT.inkStyleNone(color: Colors.transparent),
       child: Row(
           children: [
-            ExcelT.LitGrid(text: '${index ?? '-'}', width: 32, center: true),
-            ExcelT.LitGrid(text: ct.csName + ' / ' +  ct.ctName, width: 250, center: true, expand: true),
-            ExcelT.LitGrid(text: ct.manager, width: 100, center: true),
-            ExcelT.LitGrid(text: ct.managerPhoneNumber, width: 100, center: true),
+            ExcelT.LitGrid(text: "${index ?? '-'}", width: 32, center: true),
+            ExcelT.Grid(text: item.name, width: 200, expand: true),
+            ExcelT.LitGrid(text: MetaT.itemType[item.group], width: 100, center: true),
+            ExcelT.LitGrid(text: MetaT.itemType[item.type] ?? '-', width: 50, center: true),
+            ExcelT.LitGrid(text: item.unit, width: 50, center: true),
+            ExcelT.LitGrid(text: StyleT.krwInt(item.unitPrice), width: 80, center: true),
+            ExcelT.LitGrid(text: StyleT.krwInt(item.cost), width: 80, center: true),
             ButtonT.IconText(
               icon: Icons.check_box, text: "선택",
               onTap: () async {
                 if(onTap != null) await onTap();
               }
-            ),
+            )
           ]
       ),
     );

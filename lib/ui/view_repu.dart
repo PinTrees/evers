@@ -9,6 +9,7 @@ import 'package:evers/class/widget/button.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/page/window/window_pu_create.dart';
+import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
 import 'package:evers/ui/ex.dart';
@@ -306,8 +307,7 @@ class View_REPU extends StatelessWidget {
               ButtonT.InfoSubMenu(
                 '일반 매출 추가', Icons.add_box, width: 128,
                 onTap: () async {
-                  var result = await DialogRE.showCreateRe(context);
-                  FunT.setStateMain();
+                  UIState.OpenNewWindow(context, WindowReCreate(refresh: FunT.setStateMain,));
                 },
               ),
             ],
