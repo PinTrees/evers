@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/system.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/helper/firebaseCore.dart';
+import 'package:evers/helper/pdfx.dart';
 import 'package:evers/ui/ux.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
@@ -305,11 +306,7 @@ class Ledger {
             color: Colors.transparent,
             onTap: () async {
               var downloadUrl = fileUrl;
-              var ens = ENAES.fUrlAES(downloadUrl);
-              var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/출고원장.pdf';
-              await launchUrl( Uri.parse(url),
-                  webOnlyWindowName: true ? '_blank' : '_self',
-              );
+              PdfManager.OpenPdf(downloadUrl, "출고원장.pdf");
             }
           )
         ],

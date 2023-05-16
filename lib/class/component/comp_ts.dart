@@ -142,11 +142,7 @@ class CompTS {
                     if(cs == null) { return; }
                     if(cs.businessName == '') { return; }
 
-                    /// 예상값 고정 사용으로 변경됨   /*await DialogCS.showCustomerDialog(context, org: cs);*/
-                    var parent = UIState.mdiController!.createWindow(context);
-                    var page = WindowCS(org_cs: cs, parent: parent,);
-                    UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent, fixedHeight: true);
-
+                    UIState.OpenNewWindow(context, WindowCS(org_cs: cs));
                     if(setState != null) await setState();
                   }
               ),

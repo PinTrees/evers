@@ -8,6 +8,7 @@ import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
 import 'package:evers/ui/ex.dart';
@@ -26,12 +27,14 @@ import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/system/search.dart';
+import '../class/system/state.dart';
 import '../class/transaction.dart';
 import '../class/widget/text.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
 import '../helper/pdfx.dart';
+import '../page/window/window_ct.dart';
 import 'cs.dart';
 import 'dialog_contract.dart';
 import 'dialog_pu.dart';
@@ -287,66 +290,26 @@ class View_REPU extends StatelessWidget {
           ),
           Row(
             children: [
-              InkWell(
-                  onTap: () async {
-                    var result = await DialogPU.showCreateNormalPu(context);
-                    if(result != null) {
-                      FunT.setStateMain();
-                    }
-                  },
-                  child: Container(
-                    margin: EdgeInsets.all(3),
-                    height: 36, width: 128,
-                    decoration: StyleT.inkStyleNone(round: 8, color: Colors.black.withOpacity(0.05)),
-                    child: Row(
-                      children: [
-                        WidgetT.iconNormal(Icons.add_box,  size: 36),
-                        SizedBox(width: divideHeight * 2,),
-                        WidgetT.text('일반 매입 추가', size: 12),
-                        //WidgetT.iconNormal(Icons.open_in_new,  size: 36),
-                      ],
-                    ),
-                  )),
-              InkWell(
-                  onTap: () async {
-                    var result = await DialogPU.showCreateItemPu(context);
-                    if(result != null) {
-                      FunT.setStateMain();
-                    }
-                  },
-                  child: Container(
-                    margin: EdgeInsets.all(3),
-                    height: 36, width: 128,
-                    decoration: StyleT.inkStyleNone(round: 8, color: Colors.black.withOpacity(0.05)),
-                    child: Row(
-                      children: [
-                        WidgetT.iconNormal(Icons.add_box,  size: 36),
-                        SizedBox(width: divideHeight * 2,),
-                        WidgetT.text('품목 매입 추가', size: 12),
-                        //WidgetT.iconNormal(Icons.open_in_new,  size: 36),
-                      ],
-                    ),
-                  )),
-              InkWell(
-                  onTap: () async {
-                    var result = await DialogRE.showCreateRe(context);
-                    if(result != null) {
-                      FunT.setStateMain();
-                    }
-                  },
-                  child: Container(
-                    margin: EdgeInsets.all(3),
-                    height: 36, width: 128,
-                    decoration: StyleT.inkStyleNone(round: 8, color: Colors.black.withOpacity(0.05)),
-                    child: Row(
-                      children: [
-                        WidgetT.iconNormal(Icons.add_box,  size: 36),
-                        SizedBox(width: divideHeight * 2,),
-                        WidgetT.text('일반 매출 추가', size: 12),
-                        //WidgetT.iconNormal(Icons.open_in_new,  size: 36),
-                      ],
-                    ),
-                  )),
+              ButtonT.InfoSubMenu(
+                "일반 매입 추가", Icons.add_box, width: 128,
+                onTap: () async {
+                  UIState.OpenNewWindow(context, WindowPUCreate(refresh: FunT.setStateMain,));
+                },
+              ),
+              ButtonT.InfoSubMenu(
+                "품목 매입 추가", Icons.add_box, width: 128,
+                onTap: () async {
+                  var result = await DialogPU.showCreateItemPu(context);
+                  FunT.setStateMain();
+                },
+              ),
+              ButtonT.InfoSubMenu(
+                '일반 매출 추가', Icons.add_box, width: 128,
+                onTap: () async {
+                  var result = await DialogRE.showCreateRe(context);
+                  FunT.setStateMain();
+                },
+              ),
             ],
           )
         ],
@@ -413,8 +376,8 @@ class View_REPU extends StatelessWidget {
 
           w = InkWell(
             onTap: () async {
-              await DialogCT.showInfoCt(context, ct);
-            },
+                UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
+             },
             child: Container(
               height: 36 + divideHeight,
               decoration: StyleT.inkStyleNone(color: Colors.transparent),
@@ -425,17 +388,12 @@ class View_REPU extends StatelessWidget {
                     WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(rev.revenueAt.toString()), width: sizeDate,),
                     WidgetT.excelGrid(textSize: 10, textLite: false, text: '매출', width: 50, textColor: Colors.blueAccent.withOpacity(0.5)),
 
-                    /** 하이퍼링크 텍스트 위젯 함수화 변경. 추후 다른 코드 변경바람 */
-                    Expanded(
-                      child: TextT.OnTap(
-                        context: context,
-                        text: '${ cs.businessName } / ${ ct.ctName }',
-                        width: 150,
+                    TextT.OnTap(
+                      width: 150,
+                      text: '${ cs.businessName } / ${ ct.ctName }',
                         onTap: () async {
-                          var result = await DialogCT.showInfoCt(context, ct);
-                          return result;
+                          UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
                         }
-                      ),
                     ),
                     Expanded(child: WidgetT.excelGrid(textSize: 10, width: 999,  text: itemName,)),
                     WidgetT.excelGrid(textLite: true,  text:item?.unit, width: 50),

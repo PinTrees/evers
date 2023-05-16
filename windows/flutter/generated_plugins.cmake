@@ -4,16 +4,13 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
-  desktop_lifecycle
-  desktop_multi_window
+  firebase_core
   flutter_acrylic
   geolocator_windows
   local_notifier
   printing
   quick_notify
-  system_tray
   url_launcher_windows
-  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

@@ -5,7 +5,9 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_contract.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
+import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/page/window/window_pu_create.dart';
@@ -44,11 +46,9 @@ import '../../ui/dl.dart';
 import '../../ui/ip.dart';
 import '../../ui/ux.dart';
 
-class WindowCS extends StatefulWidget {
+class WindowCS extends WindowBaseMDI {
   Customer org_cs;
-  ResizableWindow parent;
-
-  WindowCS({ required this.org_cs, required this.parent }) : super(key: UniqueKey()) { }
+  WindowCS({ required this.org_cs,  }) { }
 
   @override
   _WindowCSState createState() => _WindowCSState();
@@ -212,6 +212,23 @@ class _WindowCSState extends State<WindowCS> {
       widgetsCt.add(w);
       widgetsCt.add(WidgetT.dividHorizontal(size: 0.35));
     });
+
+
+    List<Widget> inputOutputWidgets = [];
+    var purchaseAmount = 0;
+    var purTsAmount = 0;
+
+    var revenueAmount = 0;
+    var revTsAmount = 0;
+
+    purs.forEach((e) { purchaseAmount += e.totalPrice; });
+    tsList.forEach((e) { if(e.type == 'RE') revTsAmount += e.amount;
+      else purTsAmount += e.amount; });
+
+    inputOutputWidgets.add(ExcelT.ExcelGrid(lavel: "총 매입금", text: StyleT.krwInt(purchaseAmount), width: 150, widthLavel: 150));
+    inputOutputWidgets.add(ExcelT.ExcelGrid(lavel: "총 지출금", text: StyleT.krwInt(purTsAmount), width: 150, widthLavel: 150));
+    inputOutputWidgets.add(ExcelT.ExcelGrid(lavel: "총 매출액", text: StyleT.krwInt(0), width: 150, widthLavel: 150));
+    inputOutputWidgets.add(ExcelT.ExcelGrid(lavel: "총 수입금", text: StyleT.krwInt(revTsAmount), width: 150, widthLavel: 150));
 
     var gridStyle = StyleT.inkStyle(round: 8, color: Colors.black.withOpacity(0.03), stroke: 0.7, strokeColor: StyleT.titleColor.withOpacity(0.35));
 
@@ -462,14 +479,8 @@ class _WindowCSState extends State<WindowCS> {
                                                           onTap: () async {
                                                             var downloadUrl = cs.filesMap.values.elementAt(i);
                                                             var fileName = cs.filesMap.keys.elementAt(i);
-                                                            var ens = ENAES.fUrlAES(downloadUrl);
-
-                                                            var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                                            print(url);
-                                                            await launchUrl( Uri.parse(url),
-                                                              webOnlyWindowName: true ? '_blank' : '_self',
-                                                            );
-                                                          },
+                                                            PdfManager.OpenPdf(downloadUrl, fileName);
+                                                           },
                                                           child: Container(
                                                               decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
                                                               child: Row(
@@ -577,6 +588,11 @@ class _WindowCSState extends State<WindowCS> {
                     SizedBox(height: dividHeight,),
                     CompContract.tableHeader(),
                     Column(children: widgetsCt,),
+                    SizedBox(height: dividHeight * 4,),
+
+                    WidgetT.title("미수, 미지급 현황", size: 14),
+                    SizedBox(height: dividHeight,),
+                    Column(children: inputOutputWidgets,),
                   ],)
             ),
           ),
@@ -607,13 +623,7 @@ class _WindowCSState extends State<WindowCS> {
               icon: Icons.input, backgroundColor: Colors.red.withOpacity(0.5),
               onTap: () async {
                 /// 수납등록 윈도우창 표시
-                var parent = UIState.mdiController!.createWindow(context);
-                var page = WindowPUCreate(cs : cs, refresh: initAsync, parent: parent,);
-                UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
-                // var result = await DialogPU.showCreateNormalPuWithCS(context, cs);
-                // if(result != null) {
-                //   purs = await DatabaseM.getPur_withCS(cs.id);
-                // };
+                UIState.OpenNewWindow(context, WindowPUCreateWithCS(cs : widget.org_cs, refresh: initAsync,));
               },
             ),
             ButtonT.Action("신규 품목 매입 등록",

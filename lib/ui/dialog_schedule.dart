@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_ct.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,6 +19,7 @@ import '../class/contract.dart';
 import '../class/purchase.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
+import '../class/system/state.dart';
 import '../class/transaction.dart';
 import '../helper/aes.dart';
 import '../helper/dialog.dart';
@@ -185,13 +187,7 @@ class DialogSHC extends StatelessWidget {
                                                     onTap: () async {
                                                       var downloadUrl = schedule.filesMap.values.elementAt(i);
                                                       var fileName = schedule.filesMap.keys.elementAt(i);
-                                                      var ens = ENAES.fUrlAES(downloadUrl);
-
-                                                      var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                                      print(url);
-                                                      await launchUrl( Uri.parse(url),
-                                                        webOnlyWindowName: true ? '_blank' : '_self',
-                                                      );
+                                                      PdfManager.OpenPdf(downloadUrl, fileName);
                                                     },
                                                     child: Container(
                                                         decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
@@ -360,8 +356,7 @@ class DialogSHC extends StatelessWidget {
                           WidgetT.showSnackBar(context, text: '연결된 정보가 없습니다.');
                           return;
                         }
-
-                        await DialogCT.showInfoCt(context, ct);
+                        UIState.OpenNewWindow(context, WindowCT(org_ct: ct!,));
                       },
                       style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0, color: (StyleT.scheduleColor[e.type] == null) ? Colors.red : StyleT.scheduleColor[e.type]!.withOpacity(0.35), strock: 1),
                       child: Container(padding: EdgeInsets.all(0), child: Row(
@@ -588,13 +583,7 @@ class DialogSHC extends StatelessWidget {
                                                     onTap: () async {
                                                       var downloadUrl = sch.filesMap.values.elementAt(i);
                                                       var fileName = sch.filesMap.keys.elementAt(i);
-                                                      var ens = ENAES.fUrlAES(downloadUrl);
-
-                                                      var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                                      print(url);
-                                                      await launchUrl( Uri.parse(url),
-                                                        webOnlyWindowName: true ? '_blank' : '_self',
-                                                      );
+                                                      PdfManager.OpenPdf(downloadUrl, fileName);
                                                     },
                                                     child: Container(
                                                         decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),

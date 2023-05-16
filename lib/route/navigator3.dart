@@ -1,4 +1,3 @@
-import 'package:auto_route/annotations.dart';
 import 'package:evers/MainPage.dart';
 import 'package:evers/NonePage.dart';
 import 'package:evers/login/LoginPage.dart';
@@ -42,13 +41,13 @@ final GoRouter router = GoRouter(
               return SizedBox();
             },
             routes: [
-            GoRoute(
+              GoRoute(
                 path: 'o',
                 builder: (BuildContext context, GoRouterState state) {
                   return LogInPage();
                 },
-            ),
-          ]
+              ),
+            ]
         ),
         GoRoute(
             path: 'work',
@@ -73,30 +72,40 @@ final GoRouter router = GoRouter(
         GoRoute(
           path: 'pdfview/:id/:id2',
           builder: (BuildContext context, GoRouterState state) {
-            return PdfViewPage(url: state.params['id'], fileName: state.params['id2'],);
+            return  Container(width: 500, height: 500, color: Colors.red,);
+            /// PdfViewPage(url: state.pathParameters['id'], fileName: state.pathParameters['id2'],);
           },
+            routes: [
+              GoRoute(
+                path: 'e',
+                builder: (BuildContext context, GoRouterState state) {
+                  return PdfViewPage(url: state.pathParameters['id'], fileName: state.pathParameters['id2'],);
+                },
+              ),
+            ]
         ),
         GoRoute(
           path: 'customer/:id',
           builder: (BuildContext context, GoRouterState state) {
-            return CustomerPage(csUid: state.params['id']);
+            return CustomerPage(csUid: state.pathParameters['id']);
           },
         ),
         GoRoute(
           path: 'shopping/:id',
           builder: (BuildContext context, GoRouterState state) {
-            var a = state.params['id'];
+            var a = state.pathParameters['id'];
             return ShoingItemPage();
           },
         ),
         GoRoute(path: 'printform/releaserevenue/:id',
           builder: (BuildContext context, GoRouterState state) {
-            return PFormReleaseRevenuePage(csUid: state.params['id']);
+            return PFormReleaseRevenuePage(csUid: state.pathParameters['id']);
           },
+
         ),
         GoRoute(path: 'documents/:path',
           builder: (BuildContext context, GoRouterState state) {
-            return DocumentPage(path: state.params['path']);
+            return DocumentPage(path: state.pathParameters['path']);
           },
         )
       ],

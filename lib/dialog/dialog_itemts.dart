@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/system/state.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_ct.dart';
 import 'package:evers/ui/dialog_item.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
@@ -1181,8 +1183,7 @@ class DialogItemTrans extends StatelessWidget {
                                           context: context,
                                           text: (ct == null) ? 'ㅡ' : ct!.ctName,
                                           onTap: () async {
-                                            var result = await DialogCT.showInfoCt(context, ct!);
-                                            if(result != null) return;
+                                            UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
                                           }
                                       ),
                                     ],

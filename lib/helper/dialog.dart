@@ -1,19 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cell_calendar/cell_calendar.dart';
 import 'package:cross_file/cross_file.dart';
-import 'package:desktop_drop/desktop_drop.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:dropdown_search/dropdown_search.dart';
+import 'package:evers/class/component/comp_cs.dart';
 import 'package:evers/class/system.dart';
+import 'package:evers/class/system/search.dart';
+import 'package:evers/class/widget/button.dart';
+import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/pdfx.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/login/auth_service.dart';
+import 'package:evers/ui/dialog_item.dart';
 import 'package:evers/ui/ux.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -1585,51 +1588,69 @@ class DialogT extends StatelessWidget {
     if(aa == null) aa = false;
     return aa;
   }
+
+
+
+
+  /// 이 함수는 거래처 선택창을 렌더링합니다.
+  /// 거래처 검색창을 표시하려면 반드시 이 함수를 호출해야 합니다.
   static dynamic selectCS(BuildContext context) async {
     var searchInput = TextEditingController();
-    List<Customer> customerSearch = [];
-    Customer? aa = await showDialog(
+    List<Customer> customerList = [];
+    Customer? result = await showDialog(
         context: context,
-        barrierColor: Colors.black.withOpacity(0.0),
+        barrierColor: Colors.black.withOpacity(0.15),
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return  StatefulBuilder(
+          return StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateS) {
-              FunT.setStateD = () { setStateS(() {}); };
+
+              List<Widget> searchCsWidgets = [];
+              int index = 0;
+              for(var cs in customerList) {
+                searchCsWidgets.add(CompCS.tableUISearch(context, cs,
+                    index: index++,
+                    onTap: () {
+                      Navigator.pop(context, cs);
+                    }
+                ));
+                searchCsWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+              }
+
               return AlertDialog(
                 backgroundColor: StyleT.white.withOpacity(1),
                 elevation: 36,
                 shape: RoundedRectangleBorder(
-                    side: BorderSide(color: Colors.grey.shade700, width: 1.4),
-                    borderRadius: BorderRadius.circular(0)),
+                    side: BorderSide(color: Colors.grey.withOpacity(0.7), width: 1.4),
+                    borderRadius: BorderRadius.circular(10)),
                 titlePadding: EdgeInsets.zero,
+                actionsPadding: EdgeInsets.zero,
                 contentPadding: EdgeInsets.zero,
-                title: Column(
-                  children: [
-                    Container(padding: EdgeInsets.all(8), child: Text('거래처 선택창', style: StyleT.titleStyle(bold: true))),
-                    WidgetT.dividHorizontal(color: Colors.grey.withOpacity(0.5)),
-                  ],
-                ),
+
+                title: WidgetDT.dlTitle(context, title: "거래처 검색창"),
                 content: SingleChildScrollView(
                   child: Container(
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.all(18), width: 600,
                     child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Expanded(
-                              child: Container( height: 36, width: 500,
+                              child: Container(
+                                height: 36,
                                 child: TextFormField(
+                                  autofocus: true,
                                   maxLines: 1,
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   textInputAction: TextInputAction.search,
                                   keyboardType: TextInputType.text,
                                   onEditingComplete: () async {
-                                    customerSearch = await SystemT.searchCSMeta(searchInput.text,);
-                                    FunT.setStateDT();
+                                    await SystemT.searchCSMeta(searchInput.text,);
+                                    customerList = await Search.searchCS();
+                                    setStateS(() {});
                                   },
                                   onChanged: (text) {
-                                    FunT.setStateDT();
+                                    setStateS(() {});
                                   },
                                   decoration: InputDecoration(
                                     enabledBorder: OutlineInputBorder(
@@ -1648,92 +1669,37 @@ class DialogT extends StatelessWidget {
                                   ),
                                   controller: searchInput,
                                 ),
-                              ),),
+                              ),
+                            ),
+                            ButtonT.Icon(
+                                icon: Icons.search,
+                                onTap: () async {
+                                  if(searchInput.text == '') { WidgetT.showSnackBar(context, text: "검색어를 입력해 주세요."); return; }
+                                  await SystemT.searchCSMeta(searchInput.text,);
+                                  customerList = await Search.searchCS();
+                                  setStateS(() {});
+                                }
+                            )
                           ],
                         ),
-                        SizedBox(height: 18,),
-                        for(var cs in customerSearch)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context, cs);
-                                },
-                                style: StyleT.buttonStyleOutline(round: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 1.4, elevation: 0, padding: 0),
-                                child: Container( height: 32,
-                                  child: Row(
-                                      children: [
-                                        WidgetT.text('${cs.id}', size: 10, width: 120),
-                                        WidgetT.dividViertical(),
-                                        WidgetT.title('${cs.businessName}', size: 12, width: 200),
-                                        WidgetT.dividViertical(),
-                                        WidgetT.title('${cs.representative}', size: 12, width: 150),
-                                        WidgetT.dividViertical(),
-                                        WidgetT.title('${cs.companyPhoneNumber}', size: 12, width: 100),
-                                        WidgetT.dividViertical(),
-                                        WidgetT.title('${cs.phoneNumber}', size: 12, width: 100),
-                                      ]
-                                  ),
-                                )),
-                          ),
+                        SizedBox(height: 6 * 4,),
+
+                        TextT.Title(text: "검색 목록"),
+                        SizedBox(height: 6,),
+                        CompCS.tableHeaderSearch(),
+                        Column(children: searchCsWidgets,),
                       ],
                     ),
                   ),
                 ),
-                actionsPadding: EdgeInsets.zero,
-                actions: <Widget>[
-                  WidgetT.dividHorizontal(color: Colors.grey.withOpacity(0.5)),
-                  Column(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(12),
-                        child:
-                        Row(
-                          children: [
-                            Container( height: 28,
-                              child: TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  style: StyleT.buttonStyleOutline(padding: 0, round: 0, strock: 1.4, elevation: 8,
-                                      color: Colors.redAccent.withOpacity(0.5)),
-                                  child: Row( mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      WidgetT.iconMini(Icons.cancel),
-                                      Text('닫기', style: StyleT.titleStyle(),),
-                                      SizedBox(width: 12,),
-                                    ],
-                                  )
-                              ),
-                            ),
-                            SizedBox(width:  8,),
-                            /* Container( height: 28,
-                              child: TextButton(
-                                  onPressed: () async {
-                                  },
-                                  style: StyleT.buttonStyleOutline(padding: 0, round: 0, strock: 1.4, elevation: 8,
-                                      color: StyleT.accentColor.withOpacity(0.5)),
-                                  child: Row( mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      WidgetT.iconMini(Icons.save),
-                                      Text('계약추가', style: StyleT.titleStyle(),),
-                                      SizedBox(width: 12,),
-                                    ],
-                                  )
-                              ),
-                            ),*/
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
+                actions: [
                 ],
               );
             },
           );
         });
 
-    return aa;
+    return result;
   }
 
 

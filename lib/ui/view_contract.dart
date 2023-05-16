@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_contract.dart';
+import 'package:evers/class/component/comp_cs.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/page/window/window_cs.dart';
@@ -22,6 +23,7 @@ import '../class/purchase.dart';
 import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
+import '../class/system/search.dart';
 import '../class/system/state.dart';
 import '../class/transaction.dart';
 import '../class/widget/button.dart';
@@ -36,6 +38,7 @@ import 'package:http/http.dart' as http;
 
 import 'ux.dart';
 
+/// 고객및 계약 시스템
 class View_Contract extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var st_sc_vt = ScrollController();
@@ -62,10 +65,10 @@ class View_Contract extends StatelessWidget {
       FunT.setStateMain();
       return;
     }
-
     sort = true;
     if(menu == '고객관리') {
-      cs_sort_list = await SystemT.searchCSMeta(searchInput.text,);
+      await SystemT.searchCSMeta(searchInput.text,);
+      cs_sort_list = await Search.searchCS();
     }
     else if(menu == '계약관리') {
       ct_sort_list = await SystemT.searchCTMeta(searchInput.text,);
@@ -100,78 +103,11 @@ class View_Contract extends StatelessWidget {
       for(int i = 0; i < data.length; i++) {
         var cs = data[i];
         Widget w = SizedBox();
-        w = InkWell(
-            onTap: () async {
-              var parent = UIState.mdiController!.createWindow(context);
-              var page = WindowCS( org_cs: cs, parent: parent, );
-              UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent, fixedHeight: true);
-            },
-            child: Container( height: 36 + divideHeight,
-              decoration: StyleT.inkStyleNone(color: Colors.transparent),
-              child: Row(
-                  children: [
-                    WidgetT.excelGrid(label: '${i + 1}', width: 32),
-                    WidgetT.excelGrid(textLite: false, text: '${cs.businessName}', width: 250),
-                    WidgetT.excelGrid(textLite: true,text: '${cs.representative}',  width: 150),
-                    WidgetT.excelGrid(textLite: true,text:'${cs.companyPhoneNumber}',  width: 150),
-                    WidgetT.excelGrid(textLite: true,text:'${cs.phoneNumber}', width: 150),
-                    Expanded(child: SizedBox()),
-                    InkWell(
-                      onTap: () async {
-                        await DialogCS.showPurInCs(context, cs);
-                      },
-                      child: Row(
-                        children: [
-                          WidgetT.iconMini(Icons.input, size: 32),
-                          WidgetT.text('매입'),
-                          SizedBox(width: divideHeight * 2,)
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        await DialogCS.showRevInCs(context, cs);
-                      },
-                      child: Row(
-                        children: [
-                          WidgetT.iconMini(Icons.output, size: 32),
-                          WidgetT.text('매출'),
-                          SizedBox(width: divideHeight * 2,)
-                        ],
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        await DialogCS.showPUrRevTs(context, cs);
-                      },
-                      child: Row(
-                        children: [
-                          WidgetT.iconMini(Icons.all_inbox, size: 32),
-                          WidgetT.text('전체'),
-                          SizedBox(width: divideHeight * 2,)
-                        ],
-                      ),
-                    ),
-                    ButtonT.IconText(
-                      icon: Icons.open_in_new_sharp,
-                      text: '기존창',
-                      onTap: () async {
-                        await DialogCS.showCustomerDialog(context, org: cs);
-                      },
-                    ),
-                    InkWell(
-                        onTap: () async {
-                          if(await DialogT.showAlertDl(context, text: '"${cs.businessName}" 거래처를 데이터베이스에서 삭제하시겠습니까?')) {
-                            await DatabaseM.deleteCustomer(cs);
-                          }
-                          FunT.setStateMain();
-                        },
-                        child: Container( height: 32, width: 32,
-                          child: WidgetT.iconMini(Icons.delete),)
-                    ),
-                  ]
-              ),
-            ));
+
+        w = CompCS.tableUIMain(context, cs,
+          refresh: FunT.setStateMain,
+          index: i + 1,
+        );
         widgetsCs.add(w);
         widgetsCs.add(WidgetT.dividHorizontal(size: 0.35));
       }
@@ -277,11 +213,7 @@ class View_Contract extends StatelessWidget {
                           await search(text);
                           Navigator.pop(context);
                         }, controller: searchInput ),
-                    if(menu == '고객관리')
-                      Container( padding: EdgeInsets.fromLTRB(divideHeight * 4, divideHeight, divideHeight * 4, divideHeight),
-                        child: WidgetUI.titleRowNone([ '순번', '업체명', '대표자', '업체번호', '연락처',  ],
-                            [ 32, 250, 150, 150, 150, 120, 200, 250, 0, 0,  ]),
-                      ),
+                    if(menu == '고객관리') CompCS.tableHeaderMain(),
                     if(menu == '계약관리') CompContract.tableHeaderMain(),
 
                     WidgetT.dividHorizontal(size: 0.7),

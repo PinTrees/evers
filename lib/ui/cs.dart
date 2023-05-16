@@ -9,6 +9,7 @@ import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/pdfx.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_ct.dart';
 import 'package:evers/ui/dialog_pu.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
@@ -190,7 +191,7 @@ class DialogCS extends StatelessWidget {
                 Widget w = SizedBox();
                 w = InkWell(
                     onTap: () async {
-                      await DialogCT.showInfoCt(context, ct);
+                      UIState.OpenNewWindow(context, WindowCT(org_ct: ct));
                     },
                     child: Container( height: 28,
                       decoration: StyleT.inkStyleNone(color: Colors.transparent),
@@ -451,13 +452,7 @@ class DialogCS extends StatelessWidget {
                                                         onTap: () async {
                                                           var downloadUrl = cs.filesMap.values.elementAt(i);
                                                           var fileName = cs.filesMap.keys.elementAt(i);
-                                                          var ens = ENAES.fUrlAES(downloadUrl);
-
-                                                          var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                                          print(url);
-                                                          await launchUrl( Uri.parse(url),
-                                                            webOnlyWindowName: true ? '_blank' : '_self',
-                                                          );
+                                                          PdfManager.OpenPdf(downloadUrl, fileName);
                                                         },
                                                         child: Container(
                                                             decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
@@ -913,7 +908,7 @@ class DialogCS extends StatelessWidget {
                 Widget w = SizedBox();
                 w = InkWell(
                     onTap: () async {
-                      await DialogCT.showInfoCt(context, ct);
+                      UIState.OpenNewWindow(context, WindowCT(org_ct: ct));
                     },
                     child: Container( height: 28,
                       decoration: StyleT.inkStyleNone(color: Colors.transparent),

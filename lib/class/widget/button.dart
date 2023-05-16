@@ -125,6 +125,32 @@ class ButtonT extends StatelessWidget {
   }
 
 
+
+  static Widget InfoSubMenu(String text, IconData icon, {
+    double? width,
+    Function? onTap,
+    Function? setState,
+  }) {
+    return InkWell(
+        onTap: () async {
+          if(onTap != null) await onTap();
+        },
+        child: Container(
+          margin: EdgeInsets.all(3),
+          height: 36, width: width,
+          decoration: StyleT.inkStyleNone(round: 8, color: Colors.black.withOpacity(0.05)),
+          child: Row(
+            children: [
+              WidgetT.iconNormal(icon,  size: 36),
+              SizedBox(width: 6 * 2,),
+              WidgetT.text(text, size: 12),
+            ],
+          ),
+        ));
+  }
+
+
+
   /// 이 함수는 다이얼로그 액션버튼 템플릿입니다.
   static Widget Action(String text, {
     IconData? icon,

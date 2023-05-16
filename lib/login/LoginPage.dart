@@ -9,10 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
-import 'package:local_notifier/local_notifier.dart';
-import 'package:quick_notify/quick_notify.dart';
-import 'package:system_tray/system_tray.dart';
-import 'package:window_manager/window_manager.dart';
 
 import '../helper/interfaceUI.dart';
 import '../helper/style.dart';

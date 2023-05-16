@@ -33,9 +33,7 @@ class CompContract {
   }) {
     var w = InkWell(
         onTap: () async {
-          var parent = UIState.mdiController!.createWindow(context);
-          var page = WindowCT(org_ct: ct, parent: parent,);
-          UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent, fixedHeight: true);
+          UIState.OpenNewWindow(context, WindowCT(org_ct: ct,));
         },
         child: Container( height: 28,
           decoration: StyleT.inkStyleNone(color: Colors.transparent),
@@ -61,10 +59,7 @@ class CompContract {
     var w = InkWell(
         onTap: () async {
           /// 윈도우로 변경
-          var parent = UIState.mdiController!.createWindow(context);
-          var page = WindowCT(org_ct: ct, parent: parent,);
-          UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent, fixedHeight: true);
-          // await DialogCT.showInfoCt(context, ct);
+          await UIState.OpenNewWindow(context, WindowCT(org_ct: ct,));
         },
         child: Container( height: 36 + 6,
           child: Row(
@@ -74,10 +69,7 @@ class CompContract {
                   text: cs.businessName,
                   width: 250,
                   onTap: () async {
-                    var parent = UIState.mdiController!.createWindow(context);
-                    var page = WindowCS(org_cs: cs, parent: parent,);
-                    UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent, fixedHeight: true);
-
+                    UIState.OpenNewWindow(context, WindowCS(org_cs: cs,));
                     if(setState != null) setState();
                   }
                 ),

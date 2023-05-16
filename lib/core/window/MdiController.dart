@@ -30,7 +30,8 @@ class MdiController{
     if(widget is WindowTS) resizableWindow.title = '수납 개별 상세정보창';
     if(widget is WindowFactoryCreate) resizableWindow.title = '공장일보 생성창';
     if(widget is WindowCT) resizableWindow.title = '계약 개별 상세정보창';
-    if(widget is WindowPUCreate) resizableWindow.title = '거래처 매입 입력창';
+    if(widget is WindowPUCreateWithCS) resizableWindow.title = '거래처 매입 입력창';
+    if(widget is WindowPUCreate) resizableWindow.title = '매입 입력창';
     if(widget is WindowPUEditor) resizableWindow.title = '매입 개별 상세정보창';
   }
 

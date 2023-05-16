@@ -35,6 +35,7 @@ import '../../class/widget/button.dart';
 import '../../class/widget/excel.dart';
 import '../../class/widget/text.dart';
 import '../../core/window/ResizableWindow.dart';
+import '../../core/window/window_base.dart';
 import '../../helper/aes.dart';
 import '../../helper/dialog.dart';
 import '../../helper/firebaseCore.dart';
@@ -48,11 +49,10 @@ import '../../ui/dl.dart';
 import '../../ui/ip.dart';
 import '../../ui/ux.dart';
 
-class WindowCT extends StatefulWidget {
+class WindowCT extends WindowBaseMDI {
   Contract org_ct;
-  ResizableWindow parent;
 
-  WindowCT({ required this.org_ct, required this.parent }) : super(key: UniqueKey()) { }
+  WindowCT({ required this.org_ct, }) {}
 
   @override
   _WindowCTState createState() => _WindowCTState();
@@ -351,10 +351,7 @@ class _WindowCTState extends State<WindowCT> {
                               onTap: () async {
                                 var downloadUrl = ct.contractFiles.values.elementAt(i);
                                 var fileName = ct.contractFiles.keys.elementAt(i);
-                                var ens = ENAES.fUrlAES(downloadUrl);
-
-                                var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                await launchUrl( Uri.parse(url),     webOnlyWindowName: true ? '_blank' : '_self', );
+                                PdfManager.OpenPdf(downloadUrl, fileName);
                               },
                               leaging: TextButton(
                                   onPressed: () {
@@ -403,9 +400,7 @@ class _WindowCTState extends State<WindowCT> {
                                 onTap: () async {
                                   var downloadUrl = ct.filesMap.values.elementAt(i);
                                   var fileName = ct.getFileName(ct.filesMap.keys.elementAt(i));
-                                  var ens = ENAES.fUrlAES(downloadUrl);
-                                  var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                  await launchUrl( Uri.parse(url),     webOnlyWindowName: true ? '_blank' : '_self', );
+                                  PdfManager.OpenPdf(downloadUrl, fileName);
                                   },
                                 leaging: TextButton(
                                     onPressed: () {

@@ -8,6 +8,7 @@ import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_ct.dart';
 import 'package:evers/ui/cs.dart';
 import 'package:evers/ui/dialog_contract.dart';
 import 'package:evers/ui/ux.dart';
@@ -23,6 +24,7 @@ import '../class/Customer.dart';
 import '../class/contract.dart';
 import '../class/purchase.dart';
 import '../class/system.dart';
+import '../class/system/state.dart';
 import '../class/transaction.dart';
 import '../helper/aes.dart';
 import '../helper/dialog.dart';
@@ -53,14 +55,6 @@ import '../class/database/item.dart';
 ///
 class DialogPU extends StatelessWidget {
 
-  /// 이 함수는 일반 매입추가 다이얼로그를 실행하고 결과를 반환합니다.
-  /// showCreatePu 함수가 마이그레이션 되었습니다.
-  ///
-  /// @return pu 매입결과를 작성했을경우 작성기록이 반환됩니다.
-  ///            매입결과를 작석하지 않았거나 데이터베이스 기록이 실패했을 경우 null 이 반환됩니다.
-  ///
-  /// @Create YM
-  /// @Version 1.0.0
   static dynamic showCreateNormalPu(BuildContext context) async {
     var dividHeight = 6.0;
     var heightSize = 36.0;
@@ -1208,13 +1202,7 @@ class DialogPU extends StatelessWidget {
                                         onTap: () async {
                                           var downloadUrl = pu.filesMap.values.elementAt(i);
                                           var fileName = pu.filesMap.keys.elementAt(i);
-                                          var ens = ENAES.fUrlAES(downloadUrl);
-
-                                          var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                          print(url);
-                                          await launchUrl( Uri.parse(url),
-                                            webOnlyWindowName: true ? '_blank' : '_self',
-                                          );
+                                          PdfManager.OpenPdf(downloadUrl, fileName);
                                         },
                                       ),
                                     for(int i = 0; i < fileByteList.length; i++)
@@ -1708,8 +1696,7 @@ class DialogPU extends StatelessWidget {
                                         context: context,
                                         text: (ct == null) ? 'ㅡ' : ct!.csName,
                                         onTap: () async {
-                                          var result = await DialogCT.showInfoCt(context, ct!);
-                                          if(result != null) return;
+                                          UIState.OpenNewWindow(context, WindowCT(org_ct: ct!,));
                                         }
                                     ),
                                     WidgetT.text(' / '),
@@ -1717,8 +1704,7 @@ class DialogPU extends StatelessWidget {
                                         context: context,
                                         text: (ct == null) ? 'ㅡ' : ct!.ctName,
                                         onTap: () async {
-                                          var result = await DialogCT.showInfoCt(context, ct!);
-                                          if(result != null) return;
+                                          UIState.OpenNewWindow(context, WindowCT(org_ct: ct!,));
                                         }
                                     ),
                                   ],

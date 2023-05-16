@@ -262,13 +262,7 @@ class DialogEM extends StatelessWidget {
                                                             onTap: () async {
                                                               var downloadUrl = employee.filesMap.values.elementAt(i);
                                                               var fileName = employee.getFileName(employee.filesMap.keys.elementAt(i));
-                                                              var ens = ENAES.fUrlAES(downloadUrl);
- 
-                                                              var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                                              print(url);
-                                                              await launchUrl( Uri.parse(url),
-                                                                webOnlyWindowName: true ? '_blank' : '_self',
-                                                              );
+                                                              PdfManager.OpenPdf(downloadUrl, fileName);
                                                             },
                                                             child: Container(
                                                                 decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),

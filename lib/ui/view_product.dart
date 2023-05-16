@@ -30,6 +30,7 @@ import '../class/purchase.dart';
 import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
+import '../class/system/state.dart';
 import '../class/transaction.dart';
 import '../class/widget/list.dart';
 import '../class/widget/text.dart';
@@ -38,6 +39,7 @@ import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
 import '../helper/pdfx.dart';
+import '../page/window/window_ct.dart';
 import 'cs.dart';
 import 'dialog_contract.dart';
 import 'dialog_item.dart';
@@ -397,16 +399,8 @@ class View_Factory extends StatelessWidget {
                             InkWell(
                               onTap: () async {
                                 var downloadUrl = fd.filesMap[f];
-                                //var res = await http.get(Uri.parse(downloadUrl));
                                 var fileName = f;
-                                var ens = ENAES.fUrlAES(downloadUrl);
-
-                                var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                print(url);
-                                await launchUrl( Uri.parse(url),
-                                  webOnlyWindowName: true ? '_blank' : '_self',
-                                );
-                                FunT.setStateMain();
+                                PdfManager.OpenPdf(downloadUrl, fileName);
                               },
                               child: Container(
                                 height: 32, color: Colors.grey.withOpacity(0.15),
@@ -428,9 +422,7 @@ class View_Factory extends StatelessWidget {
             ),
             InkWell(
               onTap: () async {
-                var data =await DialogIT.showFdInfo(context, org: fd);
-                if(data != null) clear();
-                FunT.setStateMain();
+                //UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
               },
               child: WidgetT.iconMini(Icons.create, size: 28),
             ),
@@ -604,15 +596,8 @@ class View_Factory extends StatelessWidget {
                             InkWell(
                               onTap: () async {
                                 var downloadUrl = fd.filesMap[f];
-                                //var res = await http.get(Uri.parse(downloadUrl));
                                 var fileName = f;
-                                var ens = ENAES.fUrlAES(downloadUrl);
-
-                                var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                print(url);
-                                await launchUrl( Uri.parse(url),
-                                  webOnlyWindowName: true ? '_blank' : '_self',
-                                );
+                                PdfManager.OpenPdf(downloadUrl, fileName);
                                 FunT.setStateMain();
                               },
                               child: Container(

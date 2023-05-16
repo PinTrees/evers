@@ -505,13 +505,7 @@ class DialogIT extends StatelessWidget {
                                                             onTap: () async {
                                                               var downloadUrl = factoryD.filesMap.values.elementAt(i);
                                                               var fileName = factoryD.filesMap.keys.elementAt(i);
-                                                              var ens = ENAES.fUrlAES(downloadUrl);
-
-                                                              var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                                              print(url);
-                                                              await launchUrl( Uri.parse(url),
-                                                                webOnlyWindowName: true ? '_blank' : '_self',
-                                                              );
+                                                              PdfManager.OpenPdf(downloadUrl, fileName);
                                                             },
                                                             child: Container(
                                                                 decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
@@ -1071,13 +1065,7 @@ class DialogIT extends StatelessWidget {
                                                             onTap: () async {
                                                               var downloadUrl = product.filesMap.values.elementAt(i);
                                                               var fileName = product.filesMap.keys.elementAt(i);
-                                                              var ens = ENAES.fUrlAES(downloadUrl);
-
-                                                              var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                                              print(url);
-                                                              await launchUrl( Uri.parse(url),
-                                                                webOnlyWindowName: true ? '_blank' : '_self',
-                                                              );
+                                                              PdfManager.OpenPdf(downloadUrl, fileName);
                                                             },
                                                             child: Container(
                                                                 decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),

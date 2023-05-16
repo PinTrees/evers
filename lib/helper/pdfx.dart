@@ -17,9 +17,7 @@ import 'package:local_notifier/local_notifier.dart';
 import 'package:pdf_render/pdf_render_widgets.dart';
 import 'package:printing/printing.dart';
 import 'package:quick_notify/quick_notify.dart';
-import 'package:system_tray/system_tray.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:window_manager/window_manager.dart';
 
 import '../helper/interfaceUI.dart';
 import '../helper/style.dart';
@@ -34,8 +32,8 @@ import 'aes.dart';
 
 class PdfManager {
   static void OpenPdf(dynamic downloadUrl, String fileName) async {
-    var ens = ENAES.fUrlAES(downloadUrl);
-    var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
+    var ens = ENAESX.fUrlAES(downloadUrl);
+    var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName/e';
     await launchUrl( Uri.parse(url),   webOnlyWindowName: true ? '_blank' : '_self', );
   }
 }

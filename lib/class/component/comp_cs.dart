@@ -32,89 +32,117 @@ import '../widget/button.dart';
 import '../widget/text.dart';
 import 'package:http/http.dart' as http;
 
-
-
-class CompPU {
+/// 이 클래스는 거래처에 관한 목록UI의 집합입니다.
+class CompCS {
   static dynamic tableHeader() {
     return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', "",  '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
         [ 28, 80, 999, 28 * 2, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
   }
 
+  static dynamic tableHeaderSearch() {
+    return WidgetUI.titleRowNone([ '순번', '업체명', '대표자', '업체번호', '연락처', "" ],
+        [ 32, 999, 100, 100, 100, 80 * 1, 0, 0,  ],
+        background: true, lite: true
+    );
+  }
+
   static dynamic tableHeaderMain() {
     return Container( padding: EdgeInsets.fromLTRB(6, 0, 6, 6),
-      child: WidgetUI.titleRowNone([ '순번', '거래번호', '거래일', '구분', '거래처 및 계약', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '' ],
-          [ 32, 80, 80, 50, 999, 999, 50, 50, 80, 80, 80, 80, 64 + 32, 32 ]),);
+      child: WidgetUI.titleRowNone([ '순번', '업체명', '대표자', '업체번호', '연락처', "" ],
+          [ 32, 999, 100, 100, 100, 80 * 3 + 120, 0, 0,  ]),
+    );
   }
 
 
-  static dynamic tableUIMain(BuildContext context, Purchase pu, {
-    Contract? ct,
+  /// 이 함수는 메인 페이지에 노출되는 거래처 테이블 위젯을 반환합니다.
+  static dynamic tableUIMain(BuildContext context, Customer cs, {
     int? index,
-    Customer? cs,
-    Function? onTap,
     Function? setState,
     Function? refresh,
   }) {
     var w = InkWell(
-      onTap: () async {
-        if(cs == null) return;
-        /// 윈도우 창으로 변경
-        await DialogCS.showPurInCs(context, cs);
-      },
-      child: Container(
-        height: 36 + 6,
-        decoration: StyleT.inkStyleNone(color: Colors.transparent),
-        child: Row(
-            children: [
-              ExcelT.LitGrid(text: '${ index ?? '-' }', width: 32),
-              ExcelT.LitGrid(text: pu.id, width: 80, textSize: 8),
-              ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(pu.purchaseAt.toString()), width: 80,),
-              ExcelT.LitGrid(text: '매입', width: 50, textColor: Colors.red.withOpacity(0.5)),
+        onTap: () async {
+          UIState.OpenNewWindow(context, WindowCS( org_cs: cs,));
+        },
+        child: Container( height: 36 + 6,
+          decoration: StyleT.inkStyleNone(color: Colors.transparent),
+          child: Row(
+              children: [
+                ExcelT.LitGrid(text: '${index ?? '-'}', width: 32, center: true),
+                ExcelT.Grid(text: " " * 5 + cs.businessName, width: 250, expand: true),
+                ExcelT.LitGrid(text: cs.representative, width: 100, center: true),
+                ExcelT.LitGrid(text: cs.companyPhoneNumber, width: 100, center: true),
+                ExcelT.LitGrid(text: cs.phoneNumber, width: 100, center: true),
+                ButtonT.IconText(
+                    color: Colors.transparent,
+                    icon: Icons.input, text: "매입",
+                    onTap: () async {
+                      await DialogCS.showPurInCs(context, cs);
+                    }
+                ),
+                ButtonT.IconText(
+                    color: Colors.transparent,
+                    icon: Icons.output, text: "매출",
+                    onTap: () async {
+                      await DialogCS.showRevInCs(context, cs);
+                    }
+                ),
+                ButtonT.IconText(
+                    color: Colors.transparent,
+                    icon: Icons.all_inbox, text: "전체",
+                    onTap: () async {
+                      await DialogCS.showPUrRevTs(context, cs);
 
-              TextT.OnTap(
-                enable: cs != null, expand: true,
-                width: 150,
-                text: cs == null ? 'ㅡ' : cs.businessName != '' ? cs.businessName : 'ㅡ',
-                onTap: () {
-                  if(cs == null) return;
-                  UIState.OpenNewWindow(context, WindowCS(org_cs: cs));
+                    }
+                ),
+                ButtonT.IconText(
+                  icon: Icons.open_in_new_sharp,
+                  text: '기존창',
+                  onTap: () async {
+                    await DialogCS.showCustomerDialog(context, org: cs);
+                  },
+                ),
+                ButtonT.Icon(
+                    color: Colors.transparent,
+                    icon: Icons.delete,
+                    onTap: () async {
+                      var alt = await DialogT.showAlertDl(context, text: '"${cs.businessName}" 거래처를 데이터베이스에서 삭제하시겠습니까?');
+                      if (!alt) return;
+
+                      await DatabaseM.deleteCustomer(cs);
+                      if (refresh != null) await refresh();
+                    }
+                ),
+              ]
+          ),
+        ));
+    return w;
+  }
+
+  /// 이 함수는 검색창에 노출되는 거래처 테이블 위젯을 반환합니다.
+  static dynamic tableUISearch(BuildContext context, Customer cs, {
+    int? index,
+    Function? onTap,
+    Function? setState,
+    Function? refresh,
+  }) {
+    var w = Container( height: 28,
+      decoration: StyleT.inkStyleNone(color: Colors.transparent),
+      child: Row(
+          children: [
+            ExcelT.LitGrid(text: '${index ?? '-'}', width: 32, center: true),
+            ExcelT.Grid(text: " " * 5 + cs.businessName, width: 250, textSize: 10, expand: true),
+            ExcelT.LitGrid(text: cs.representative, width: 100, center: true),
+            ExcelT.LitGrid(text: cs.companyPhoneNumber, width: 100, center: true),
+            ExcelT.LitGrid(text: cs.phoneNumber, width: 100, center: true),
+            ButtonT.IconText(
+              color: Colors.transparent,
+                icon: Icons.input, text: "선택",
+                onTap: () async {
+                  if(onTap != null) await onTap();
                 }
-              ),
-
-              ExcelT.LitGrid(text: SystemT.getItemName(pu.item), width: 100, expand: true, bold: true),
-              ExcelT.LitGrid(text: SystemT.getItem(pu.item) == null ? 'ㅡ' : SystemT.getItem(pu.item)!.unit, width: 50, ),
-              ExcelT.LitGrid(text: StyleT.krwInt(pu.count), width: 50, ),
-              ExcelT.LitGrid(text: StyleT.krwInt(pu.unitPrice), width: 80, ),
-              ExcelT.LitGrid(text: StyleT.krwInt(pu.supplyPrice), width: 80, ),
-              ExcelT.LitGrid(text: StyleT.krwInt(pu.vat), width: 80, ),
-              ExcelT.LitGrid(text: StyleT.krwInt(pu.totalPrice), width: 80, ),
-
-              if(pu.filesMap.length > 0)
-                WidgetT.iconMini(Icons.file_copy_rounded, size: 32),
-              if(pu.filesMap.length == 0)
-                SizedBox(height: 32,width: 32,),
-
-              InkWell(
-                onTap: () async {
-                  var parent = UIState.mdiController!.createWindow(context);
-                  var page = WindowPUEditor(pu: pu, refresh: refresh ?? () {}, parent: parent,);
-                  UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
-                  /*var result = await DialogPU.showInfoPu(context, org: pu);*/
-                },
-                child: WidgetT.iconMini(Icons.create, size: 32),
-              ),
-              InkWell(
-                onTap: () async {
-                  var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
-                  if(aa) {
-                    await DatabaseM.deletePu(pu);
-                    WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
-                  }
-                },
-                child: WidgetT.iconMini(Icons.delete, size: 32),
-              ),
-            ]
-        ),
+            ),
+          ]
       ),
     );
     return w;

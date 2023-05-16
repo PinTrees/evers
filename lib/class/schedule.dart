@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/helper/pdfx.dart';
 import 'package:evers/helper/style.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
@@ -222,13 +223,7 @@ class Schedule {
                                 onTap: () async {
                                   var downloadUrl = filesMap.values.elementAt(i);
                                   var fileName = filesMap.keys.elementAt(i);
-                                  var ens = ENAES.fUrlAES(downloadUrl);
-
-                                  var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName';
-                                  print(url);
-                                  await launchUrl( Uri.parse(url),
-                                    webOnlyWindowName: true ? '_blank' : '_self',
-                                  );
+                                  PdfManager.OpenPdf(downloadUrl, fileName);
                                 })
                           ],
                         ),
