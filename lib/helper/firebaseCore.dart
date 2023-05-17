@@ -776,6 +776,7 @@ class DatabaseM {
     }
   }
 
+
   static dynamic getTS_CS_PU_date(String id) async {
     Map<dynamic, TS> datas = {};
     CollectionReference coll = await FirebaseFirestore.instance.collection('transaction');
@@ -1589,12 +1590,12 @@ class DatabaseM {
     }
     return data;
   }
-  static dynamic getCSWithTs() async {
+
+  static dynamic getCustomerFromPuCount() async {
     /// 추후 지급, 미지급 금액을 저장 변동시 변동분 따로 저장, 해당값이 0이 아닐경우 읽기, 문서 정렬 필요
     List<Customer> data = [];
     CollectionReference coll = await FirebaseFirestore.instance.collection('customer');
     await coll.where('puCount', isGreaterThan: 0).limit(50).get().then((value) {
-      print('get customer data');
       if(value.docs == null) return false;
       print(value.docs.length);
 
@@ -1608,6 +1609,27 @@ class DatabaseM {
     });
     return data;
   }
+
+
+  /// 이 함수는 거래처 목록을
+  static dynamic getTsWithCustomer(String id) async {
+    List<TS> tsList = [];
+
+    CollectionReference coll = await FirebaseFirestore.instance.collection('customer/$id/cs-dateH-transaction');
+    await coll.limit(50).get().then((value) {
+      if(value.docs == null) return false;
+      for(var a in value.docs) {
+        if(a.data() == null) continue;
+
+        for(var ts in (a.data() as Map).values){
+          tsList.add(TS.fromDatabase(ts as Map));
+        }
+      }
+    });
+
+    return tsList;
+  }
+
   static dynamic getCSWithRe() async {
     /// 추후 지급, 미지급 금액을 저장 변동시 변동분 따로 저장, 해당값이 0이 아닐경우 읽기, 문서 정렬 필요
     List<Customer> data = [];

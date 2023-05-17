@@ -4,10 +4,12 @@ import 'dart:ui';
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_pu.dart';
+import 'package:evers/class/component/comp_re.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/main.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/ui/dialog_revenue.dart';
@@ -366,69 +368,12 @@ class View_REPU extends StatelessWidget {
         var data = sort ? reSortList : revList;
         for(int i = 0; i < data.length; i++) {
           var rev = data[i];
-
-          Widget w = SizedBox();
           var cs = await SystemT.getCS(rev.csUid) ?? Customer.fromDatabase({});
           var ct = await SystemT.getCt(rev.ctUid) ?? Contract.fromDatabase({});
-
-          var item = SystemT.getItem(rev.item);
-          var itemName = (item == null) ? rev.item : item!.name;
-
-          w = InkWell(
-            onTap: () async {
-                UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
-             },
-            child: Container(
-              height: 36 + divideHeight,
-              decoration: StyleT.inkStyleNone(color: Colors.transparent),
-              child: Row(
-                  children: [
-                    WidgetT.excelGrid(textSize: 8, textLite: true, text: '${i + 1}', width: 32,),
-                    WidgetT.excelGrid(textSize: 8, textLite: true, text: rev.id.toString(), width: sizeDate,),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(rev.revenueAt.toString()), width: sizeDate,),
-                    WidgetT.excelGrid(textSize: 10, textLite: false, text: '매출', width: 50, textColor: Colors.blueAccent.withOpacity(0.5)),
-
-                    TextT.OnTap(
-                      width: 150,
-                      text: '${ cs.businessName } / ${ ct.ctName }',
-                        onTap: () async {
-                          UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
-                        }
-                    ),
-                    Expanded(child: WidgetT.excelGrid(textSize: 10, width: 999,  text: itemName,)),
-                    WidgetT.excelGrid(textLite: true,  text:item?.unit, width: 50),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, width: 50,text: StyleT.krw(rev.count.toString()),),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, width: sizePrice, text: StyleT.krw(rev.unitPrice.toString()),),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, width: sizePrice,  text: StyleT.krw(rev.supplyPrice.toString()),),
-                    WidgetT.excelGrid(textSize: 10, textLite: true,  width: sizePrice,  text: StyleT.krw(rev.vat.toString()), ),
-                    WidgetT.excelGrid(textSize: 10, textLite: true, width: sizePrice, text: StyleT.krw(rev.totalPrice.toString()),),
-                    SizedBox(height: 28,width: 32,),
-                    InkWell(
-                      onTap: () async {
-                        var data = await DialogRE.showInfoRe(context, org: rev);
-                        if(data != null) clear();
-                      },
-                      child: WidgetT.iconMini(Icons.create, size: 32),
-                    ),
-                    InkWell(
-                      onTap: () async {
-                        if(!await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?')) {
-                          WidgetT.showSnackBar(context, text: '취소됨');
-                          return;
-                        }
-                         var task = await rev.delete();
-                        if(!task) {
-                          WidgetT.showSnackBar(context, text: '삭제에 실패했습니다. 나중에 다시 시도하세요.');
-                          return;
-                        }
-                        WidgetT.showSnackBar(context, text: '매출 데이터를 삭제했습니다.');
-                        clear();
-                      },
-                      child: WidgetT.iconMini(Icons.delete, size: 32),
-                    ),
-                  ]
-              ),
-            ),
+          var w = CompRE.tableUIMain(context, rev,
+            cs: cs, ct: ct, index: i + 1,
+            refresh: () { mainView(context, menu, refresh: true); },
+            setState: () { FunT.setStateMain(); }
           );
           childrenW.add(w);
           childrenW.add(WidgetT.dividHorizontal(size: 0.35),);

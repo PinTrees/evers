@@ -4,14 +4,11 @@ import 'dart:ui';
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/system/records.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_revenue.dart';
-import 'package:evers/ui/dialog_transration.dart';
-import 'package:evers/ui/ex.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1240,37 +1237,29 @@ class View_MO extends StatelessWidget {
       );
     }
     else if(menu == '미지급현황') {
-      List<Customer> cs = await DatabaseM.getCSWithTs();
+      Map<Customer, Records<List<TS>, List<Purchase>>> purCsList = await Search.searchPurCs();
 
+      /// 미지급 테이블 UI 목록 위젯입니다.
       List<Widget> widgets = [];
+      int index = 1;
+
       var allP = 0, allPdP = 0;
-      for(int i = 0; i < cs.length; i++) {
-        var c = cs[i];
-        Map<dynamic, TS> ts = await DatabaseM.getTS_CS_PU_date(c.id);
-        List<Purchase> pu = await DatabaseM.getPur_withCS(c.id);
-        var allPay = 0, allPayedAmount = 0;
-        pu.forEach((e) { allPay += e.totalPrice; });
-        ts.forEach((key, value) { if(value.type == 'PU') allPayedAmount += value.amount; });
-        if((allPay - allPayedAmount) == 0) continue;
 
-        allP += allPay; allPdP += allPayedAmount;
+      purCsList.forEach((Customer cs, Records<List<TS>, List<Purchase>> value) {
+       var allPayedAmount = 0;
+       var allPurchaseAmount = 0;
 
-        var w = InkWell(
-            onTap: () {},
-            child: Container( height: 42,
-              child: Row(
-                  children: [
-                    WidgetT.excelGrid(label: '${i + 1}', width: 32),
-                    WidgetT.excelGrid(text: c.businessName, width: 250),
-                    WidgetT.excelGrid(text: StyleT.krwInt(allPay), width: 250),
-                    WidgetT.excelGrid(width: 250,text: StyleT.krwInt(allPayedAmount), ),
-                    WidgetT.excelGrid( width: 250, text: StyleT.krwInt(allPay - allPayedAmount),),
-                  ]
-              ),
-            ));
-        widgets.add(w);
-        widgets.add(WidgetT.dividHorizontal(size: 0.35));
-      }
+       value.Item1.forEach((TS e) { allPayedAmount += e.amount; });
+       value.Item2.forEach((Purchase e) { e.init(); allPurchaseAmount += e.totalPrice; });
+
+       allP += allPayedAmount;
+       allPdP += allPurchaseAmount;
+
+       var w = CompTS.tableUIPaymentPU(context, Records(allPurchaseAmount, allPayedAmount), cs: cs, index: index++);
+       widgets.add(w);
+       widgets.add(WidgetT.dividHorizontal(size: 0.35));
+     });
+
       var tsW =  Column(children: widgets,);
       childrenW.add(tsW);
       childrenW.add(SizedBox(height: divideHeight * 3,));
@@ -1322,6 +1311,8 @@ class View_MO extends StatelessWidget {
                         child: WidgetUI.titleRowNone([ '순번', '계좌', '잔고', '전일잔고', '변동금', '수입', '지출', ],
                             [ 32, 200, 100, 100, 100, 100, 100, 100  ]),
                       ),
+                    if(menu == '미지급현황') CompTS.tableHeaderPaymentPU(),
+
                     WidgetT.dividHorizontal(size: 0.7),
                     Expanded(
                       child: ListView(

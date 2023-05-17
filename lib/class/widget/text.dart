@@ -15,6 +15,7 @@ class TextT extends StatelessWidget {
   static Widget OnTap({ BuildContext? context, String? text, Function? onTap, double? width,
     bool expand=false,
     bool enable=true,
+    /*bool center=false,*/
   }) {
     Widget w = RichText(
       text: TextSpan(

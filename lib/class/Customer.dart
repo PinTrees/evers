@@ -136,8 +136,8 @@ class Customer {
   dynamic getPurchase() async {
     List<Purchase> data = [];
     CollectionReference coll = await FirebaseFirestore.instance.collection('customer/${id}/cs-dateH-purchase');
-    await coll.limit(10).get().then((value) {
-      print('get &: customer/${id}/cs-dateH-purchase &: limit:10 &: length:${value.docs?.length}');
+    await coll.limit(50).get().then((value) {
+      //print('get &: customer/${id}/cs-dateH-purchase &: limit:10 &: length:${value.docs?.length}');
       if(value.docs == null) return false;
 
       for(var a in value.docs) {

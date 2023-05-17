@@ -318,6 +318,9 @@ class DialogSHC extends StatelessWidget {
 
     return aa;
   }
+
+
+  ///
   static dynamic showSCHInfo(BuildContext context, List<Schedule> events, DateTime date) async {
     var dividHeight = 6.0;
 

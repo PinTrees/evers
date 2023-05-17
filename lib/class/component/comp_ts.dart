@@ -1,4 +1,5 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/system/records.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
@@ -24,6 +25,13 @@ class CompTS {
     return WidgetUI.titleRowNone([ '순번', '거래번호', '거래일자', '거래처', '적요', '수입', '지출', '계좌', '메모', '', ],
         [ 32, 80, 80, 150, 999, 80, 80, 100, 999, 32 * 2, ], background: true, lite: true);
   }
+
+  /// 이 함수는 미지급 테이블 UI 헤더 위젯을 반환합니다.
+  static dynamic tableHeaderPaymentPU() {
+    return WidgetUI.titleRowNone([ '순번', '거래처', '총 매입금', '총 지급금', '미 지급금', ],
+        [ 32, 999, 200, 200, 200, 0, 0, ],);
+  }
+
 
 
   static dynamic tableUI(BuildContext context, TS ts, {
@@ -442,4 +450,45 @@ class CompTS {
     );
     return w;
   }
+
+
+
+  /// 미지급 테이블 위젯을 반환합니다.
+  /// regued
+  ///   Customer는 NULL일 수 없습니다.
+  static dynamic tableUIPaymentPU(BuildContext context, Records<int, int> amount, {
+    int? index,
+    Customer? cs,
+    Function? onTap,
+    Function? setState,
+    Function? refresh,
+  }) {
+    if(cs == null) return SizedBox();
+
+    var w = InkWell(
+        onTap: () async {
+          UIState.OpenNewWindow(context, WindowCS(org_cs: cs));
+        },
+        child: Container(
+          height: 36,
+          child: Row(
+              children: [
+                ExcelT.LitGrid(text: "${index ?? '-'}", width: 32, center: true),
+                TextT.OnTap(
+                  text: cs.businessName,
+                  width: 250, expand: true,
+                  onTap: () {
+                    UIState.OpenNewWindow(context, WindowCS(org_cs: cs,));
+                  }
+                ),
+                ExcelT.Grid(text: StyleT.krwInt(amount.Item1), width: 200, ),
+                ExcelT.Grid(text: StyleT.krwInt(amount.Item2), width: 200, ),
+                ExcelT.Grid(text: StyleT.krwInt(amount.Item1 - amount.Item2), width: 200,),
+              ]
+          ),
+        )
+    );
+    return w;
+  }
+
 }

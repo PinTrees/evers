@@ -444,9 +444,14 @@ class DialogT extends StatelessWidget {
             builder: (BuildContext context, StateSetter setStateS) {
 
               List<Widget> searchWidets = [];
-              int index = 0;
+              int index = 1;
               for(var item in itemList) {
-                searchWidets.add(CompItem.tableUISearch(context, item));
+                searchWidets.add(CompItem.tableUISearch(context, item,
+                  index: index++,
+                  onTap: () {
+                    Navigator.pop(context, item);
+                  }
+                ));
                 searchWidets.add(WidgetT.dividHorizontal(size: 0.35));
               }
 
@@ -470,6 +475,7 @@ class DialogT extends StatelessWidget {
                             Expanded(
                               child: Container( height: 36,
                                 child: TextFormField(
+                                  autofocus: true,
                                   maxLines: 1,
                                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                   textInputAction: TextInputAction.search,
@@ -525,8 +531,6 @@ class DialogT extends StatelessWidget {
             },
           );
         });
-
-    print(aa?.name);
     return aa;
   }
 

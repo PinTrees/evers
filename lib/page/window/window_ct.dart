@@ -549,26 +549,21 @@ class _WindowCTState extends State<WindowCT> {
                   ),
 
                   dividCol,
-                  TextT.Title(text:'스케쥴 및 메모' ),
+                  TextT.Title(text:'일정 및 메모' ),
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: schW,)),
                   SizedBox(height: dividHeight,),
                   Row(
                     children: [
-                      TextButton(onPressed: () async {
-                        await DialogSHC.showSCHCreate(context, ctUid: ct.id);
-                        sch_list = await DatabaseM.getSCH_CT(ct.id);
-                        setState(() {});
-                      },
-                        style: btnStyle,
-                        child: Container( height: 28,
-                            child: Row(
-                              children: [
-                                WidgetT.iconMini(Icons.schedule),
-                                WidgetT.title('일정추가',),
-                                SizedBox(width: dividHeight,),
-                              ],
-                            )),),
+                      ButtonT.IconText(
+                        icon: Icons.add, text:'일정추가',
+                        onTap: () async {
+                          /// (*******) 윈도우 창으로 변경될 예정입니다.
+                          await DialogSHC.showSCHCreate(context, ctUid: ct.id);
+                          sch_list = await DatabaseM.getSCH_CT(ct.id);
+                          setState(() {});
+                        }
+                      ),
                     ],
                   ),
 
