@@ -32,12 +32,14 @@ class RevPur {
   }
 }
 
-class Revenue {
-  var selectIsTaxed = false;    // - ???
-  var isTaxed = false;          // 세금계산서 마감
 
-  var fixedVat = false;          // 부가세 자동 계산 - 변수명 변경 필요
-  var fixedSup = false;          // 공급가액 자동 계산 - 변수명 변경 필요
+
+class Revenue {
+  var selectIsTaxed = false;    /// - ??? 사용하지 마세요
+  var isTaxed = false;          /// 세금계산서 마감
+
+  var fixedVat = false;          /// 부가세 자동 계산 - 변수명 변경 필요
+  var fixedSup = false;          /// 공급가액 자동 계산 - 변수명 변경 필요
   var isLedger = false;
 
   var state = '';       /// 상태

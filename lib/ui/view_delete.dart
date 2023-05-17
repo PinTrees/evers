@@ -33,7 +33,7 @@ import 'package:http/http.dart' as http;
 
 import 'ux.dart';
 
-class View_Delete extends StatelessWidget {
+class ViewDelete extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var st_sc_vt = ScrollController();
   var st_sc_hr = ScrollController();

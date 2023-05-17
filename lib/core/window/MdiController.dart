@@ -5,6 +5,7 @@ import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/page/window/window_re_editor.dart';
+import 'package:evers/page/window/window_sch_create.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ class MdiController{
     if(widget is WindowPUEditor) resizableWindow.title = '매입 개별 상세정보창';
     if(widget is WindowReCreate) resizableWindow.title = '매출 정보 생성창';
     if(widget is WindowReEditor) resizableWindow.title = '매출 개별 상세정보창';
+    if(widget is WindowSchCreate) resizableWindow.title = '일정 정보 생성창';
   }
 
   ResizableWindow createWindow(BuildContext context, { double? pw, double? ph, }) {
@@ -45,10 +47,8 @@ class MdiController{
 
     var rng = new Random();
 
-    if(pw != null)
-      if(pw > w) pw = w - w * 0.12;
-    if(ph != null)
-      if(ph > h) pw = h - h * 0.12;
+    if(pw != null) if(pw > w) pw = w - w * 0.12;
+    if(ph != null) if(ph > h) pw = h - h * 0.12;
 
     ResizableWindow resizableWindow = ResizableWindow(
       startWidth: pw ?? w - w * 0.15, startHeight: ph ?? h - h * 0.15,

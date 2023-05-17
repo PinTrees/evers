@@ -18,22 +18,36 @@ import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
 import '../ui/ux.dart';
 
+
+/// 일정관리 시스템로 마이그레이션이 진행중입니다.
+/// 기존 manager 시스템 변경
+/// 신규 writer  시스템 추가
+/// 신규 history 시스템 추가
+/// 신규 updateAt 시스템 추가
 class Schedule {
   var id = '';
   var ctUid = '';
-  var type = '0';
-  var managers = [];
+  var type = '';
+
   var memo = '';
   var date = 0;
+
+  var managers = [];
+  var writer = '';
+  var updateAt = 0;
 
   var filesMap = {};
 
   Schedule.fromDatabase(Map<dynamic, dynamic> json) {
     id = json['id'] ?? '';
-    type = json['type'] ?? '0';
+    type = json['type'] ?? '';
     ctUid = json['ctUid'] ?? '';
     memo = json['memo'] ?? '';
+    writer = json['writer'] ?? '';
+
     date = json['date'] ?? 0;
+    updateAt = json['updateAt'] ?? 0;
+
     managers = json['managers'] ?? [];
     filesMap = (json['filesMap'] == null) ? {} : json['filesMap'] as Map;
   }
@@ -44,6 +58,8 @@ class Schedule {
       'ctUid': ctUid,
       'memo': memo,
       'date': date,
+      'writer': writer,
+      'updateAt': updateAt,
       'managers': managers as List,
       'filesMap': filesMap as Map,
     };
@@ -55,7 +71,10 @@ class Schedule {
   }
 
 
-  // 추후 날짜 수정이 필요할 경우를 대비해 org 매개변수를 추가
+  /// 이 함수는 데이터베이스에서 신규 일정추가를 요청하고 작업결과를 반환합니다.
+  ///
+  /// 추후 날짜 수정이 필요할 경우를 대비해 org 매개변수를 추가
+  /// 일정을 추가하려면 반드시 이 함수를 호출해야 합니다.
   dynamic update({ Schedule? org,  Map<String, Uint8List>? files, }) async {
     var create = false;
     if(id == '')  { id = DatabaseM.generateRandomString(16);  create = true; }
@@ -136,6 +155,9 @@ class Schedule {
       onError: (e) => print("Error sch update() $e"),
     );
   }
+
+  /// 이 함수는 데이터 베이스에서 해당 일정 삭제를 요청하고 작업 결과를 반환합니다.
+  /// 일정을 제거하려면 반드시 이 함수를 호출해야 합니다.
   dynamic delete() async {
     if(id == '') return false;
 
@@ -174,10 +196,12 @@ class Schedule {
     return true;
   }
 
+  /// 이 함수는 컴포턴트 통함 클래스로 변경되어야 합니다.
   static Widget buildTitle() {
     return WidgetUI.titleRowNone([ '순번', '일정시간', '태그', '메모', ], [ 28, 150, 150, 999, ], background: true, lite: true);
   }
 
+  /// 이 함수는 컴포넌트 통합 함수로 변경되어야 합니다.
   Widget buildUIAsync({ int? index, Function? onEdite, }) {
     var w = Column(
       children: [

@@ -46,7 +46,7 @@ import 'package:http/http.dart' as http;
 
 import 'ux.dart';
 
-class View_REPU extends StatelessWidget {
+class ViewRePu extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var scrollVertController = ScrollController();
   var scrollHorController = ScrollController();

@@ -157,6 +157,39 @@ class ButtonT extends StatelessWidget {
 
 
 
+
+
+  /// 이 함수는 메인화면의 탭메뉴 위젯을 반환합니다.
+  static Widget TabMenu(String text, IconData icon, {
+    double? width,
+    bool accent=false,
+    Function? onTap,
+    Function? setState,
+  }) {
+    return InkWell(
+        onTap: () async {
+          if(onTap != null) await onTap();
+        },
+        child: Container(
+          margin: EdgeInsets.all(3),
+          height: 36, width: width,
+          decoration: StyleT.inkStyleNone(round: 8,
+            color: accent ? Colors.black.withOpacity(0.15) : Colors.black.withOpacity(0.05), ),
+          child: Row(
+            children: [
+              WidgetT.iconNormal(icon,  size: 36),
+              WidgetT.text(text, size: 12),
+              SizedBox(width: 6,),
+            ],
+          ),
+        ));
+  }
+
+
+
+
+
+
   /// 이 함수는 다이얼로그 액션버튼 템플릿입니다.
   static Widget Action(String text, {
     IconData? icon,

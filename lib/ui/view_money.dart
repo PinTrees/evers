@@ -41,7 +41,7 @@ import 'dart:js' as js;
 import 'dart:html' as html;
 
 
-class View_MO extends StatelessWidget {
+class ViewPayment extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var scrollVertController = ScrollController();
   var scrollHoriController = ScrollController();

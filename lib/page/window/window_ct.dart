@@ -1,30 +1,21 @@
-import 'dart:convert';
-import 'dart:ui';
-
-import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:evers/class/component/comp_contract.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
-import 'package:evers/page/window/window_ts.dart';
-import 'package:evers/ui/dialog_item.dart';
+import 'package:evers/page/window/window_sch_create.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../class/Customer.dart';
 import '../../class/contract.dart';
 import '../../class/database/item.dart';
 import '../../class/database/ledger.dart';
-import '../../class/database/process.dart';
 import '../../class/purchase.dart';
 import '../../class/revenue.dart';
 import '../../class/schedule.dart';
@@ -34,18 +25,13 @@ import '../../class/transaction.dart';
 import '../../class/widget/button.dart';
 import '../../class/widget/excel.dart';
 import '../../class/widget/text.dart';
-import '../../core/window/ResizableWindow.dart';
 import '../../core/window/window_base.dart';
-import '../../helper/aes.dart';
 import '../../helper/dialog.dart';
 import '../../helper/firebaseCore.dart';
 import '../../helper/interfaceUI.dart';
 import '../../helper/pdfx.dart';
-import '../../ui/dialog_contract.dart';
-import '../../ui/dialog_pu.dart';
 import '../../ui/dialog_revenue.dart';
 import '../../ui/dialog_schedule.dart';
-import '../../ui/dl.dart';
 import '../../ui/ip.dart';
 import '../../ui/ux.dart';
 
@@ -64,8 +50,11 @@ class _WindowCTState extends State<WindowCT> {
   Map<String, Uint8List> ctFileByteList = {};
   Contract ct = Contract.fromDatabase({});
 
-  List<TS> tslist = [];
-  List<Schedule> sch_list = [];
+  List<TS> tsList = [];
+
+  List<Schedule> schList = [];
+  int schListIndex = 0;
+
   List<Ledger> ledgerList = [];
   List<Purchase> purList = [];
 
@@ -79,7 +68,7 @@ class _WindowCTState extends State<WindowCT> {
     initAsync();
   }
 
-  void initAsync() async {
+  dynamic initAsync() async {
     print(widget.org_ct.id);
 
     ct = await DatabaseM.getContractDoc(widget.org_ct.id);
@@ -87,10 +76,9 @@ class _WindowCTState extends State<WindowCT> {
 
     ledgerList = await DatabaseM.getLedgerRevenueList(ct.csUid);
     purList = await DatabaseM.getPur_withCT(ct.id);
-    tslist = await DatabaseM.getTransactionCt(ct.id);
-    sch_list = await DatabaseM.getSCH_CT(ct.id);
+    tsList = await DatabaseM.getTransactionCt(ct.id);
+    schList = await DatabaseM.getSCH_CT(ct.id);
 
-    setState(() {});
     setState(() {});
   }
 
@@ -206,8 +194,8 @@ class _WindowCTState extends State<WindowCT> {
     /// 결재
     List<Widget> tsW = [];
     tsW.add(CompTS.tableHeader());
-    for(int i = 0; i < tslist.length; i++) {
-      var tmpTs = tslist[i];
+    for(int i = 0; i < tsList.length; i++) {
+      var tmpTs = tsList[i];
       if(tmpTs.type == 'PU') continue;
       allPayedAmount += tmpTs.amount;
 
@@ -228,20 +216,37 @@ class _WindowCTState extends State<WindowCT> {
       ),
     ));
 
-    /// 일정
-    List<Widget> schW = [];
+    /// 일정 테이블 위젯 목록
+    List<Widget> schTableWidgetList = [];
+    schTableWidgetList.add(Schedule.buildTitle());
 
-    schW.add(Schedule.buildTitle());
-    for(int i = 0; i < sch_list.length; i++) {
-      var sch = sch_list[i];
+    int startIndex = schListIndex * PageInfo.pageLimit;
+    for(int i = startIndex; i < startIndex + PageInfo.pageLimit; i++) {
+      if(i >= schList.length) break;
+      var sch = schList[i];
       var w = sch.buildUIAsync(index: i + 1, onEdite: () async {
         var data = await DialogSHC.showSCHEdite(context, sch);
         if(data != null) {
         }
       });
-      schW.add(w);
-      schW.add(WidgetT.dividHorizontal(size: 0.35));
+      schTableWidgetList.add(w);
+      schTableWidgetList.add(WidgetT.dividHorizontal(size: 0.35));
     }
+    schTableWidgetList.add(SizedBox(height: dividHeight,));
+    schTableWidgetList.add(ListBoxT.Rows(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: 6,
+      children: [
+        for(int i = 0; i < (schList.length / PageInfo.pageLimit).ceil(); i++)
+          ButtonT.Text(
+              size: 28, text: (i + 1).toString(),
+              onTap: () {
+                setState(() {  schListIndex = i; });
+              }
+          )
+      ],
+    ));
+
 
 
     var dividCol =  SizedBox(height: dividHeight * 8,);
@@ -551,16 +556,14 @@ class _WindowCTState extends State<WindowCT> {
                   dividCol,
                   TextT.Title(text:'일정 및 메모' ),
                   SizedBox(height: dividHeight,),
-                  Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: schW,)),
+                  Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: schTableWidgetList,)),
                   SizedBox(height: dividHeight,),
                   Row(
                     children: [
                       ButtonT.IconText(
-                        icon: Icons.add, text:'일정추가',
+                        icon: Icons.add_box, text:'일정추가',
                         onTap: () async {
-                          /// (*******) 윈도우 창으로 변경될 예정입니다.
-                          await DialogSHC.showSCHCreate(context, ctUid: ct.id);
-                          sch_list = await DatabaseM.getSCH_CT(ct.id);
+                          UIState.OpenNewWindow(context, WindowSchCreate(ct: ct, refresh: () async { await initAsync(); },));
                           setState(() {});
                         }
                       ),

@@ -23,7 +23,7 @@ import 'package:http/http.dart' as http;
 import 'ux.dart';
 
 ///
-class View_CS extends StatelessWidget {
+class ViewCustomer extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var st_sc_vt = ScrollController();
   var st_sc_hr = ScrollController();

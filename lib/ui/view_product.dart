@@ -52,7 +52,7 @@ import 'ux.dart';
 ///
 /// 생산관리 시스템 페이지 뷰어
 /// @create YM
-class View_Factory extends StatelessWidget {
+class ViewFactory extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var st_sc_vt = ScrollController();
   var st_sc_hr = ScrollController();

@@ -39,7 +39,7 @@ import 'package:http/http.dart' as http;
 import 'ux.dart';
 
 /// 고객및 계약 시스템
-class View_Contract extends StatelessWidget {
+class ViewContract extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var st_sc_vt = ScrollController();
   var st_sc_hr = ScrollController();
