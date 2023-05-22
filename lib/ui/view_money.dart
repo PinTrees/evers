@@ -22,11 +22,15 @@ import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
 import '../class/system/search.dart';
+import '../class/system/state.dart';
 import '../class/transaction.dart';
+import '../class/widget/button.dart';
+import '../class/widget/textInput.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
 import '../helper/pdfx.dart';
+import '../page/window/window_ts.dart';
 import '../system/system_date.dart';
 import 'cs.dart';
 import 'dialog_contract.dart';
@@ -39,6 +43,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'ux.dart';
 import 'dart:js' as js;
 import 'dart:html' as html;
+
 
 
 class ViewPayment extends StatelessWidget {
@@ -60,8 +65,9 @@ class ViewPayment extends StatelessWidget {
   DateTime sortStartAt = DateTime.now();
   DateTime sortLastAt = DateTime.now();
 
-  dynamic init() async {
-  }
+  bool initailze = false;
+
+  dynamic init() async {}
   String menu = '';
 
   dynamic search(String search) async {
@@ -93,7 +99,6 @@ class ViewPayment extends StatelessWidget {
   }
   void clear() async {
     tsList.clear();
-    await FunT.setStateMain();
   }
 
   var menuStyle = StyleT.buttonStyleNone(round: 8, elevation: 0, padding: 0, color: Colors.blueAccent.withOpacity(0.15), );
@@ -105,8 +110,8 @@ class ViewPayment extends StatelessWidget {
   var currentMenu = '';
   var select_year = 2022;
 
-  dynamic mainView(BuildContext context, String menu, { Widget? topWidget, Widget? infoWidget, bool refresh=false,
-  Function? setState, }) async {
+
+  dynamic mainView(BuildContext context, String menu, { Widget? topWidget, Widget? infoWidget, bool refresh=false,}) async {
     var balance = 0;
 
     if(this.menu != menu) {
@@ -131,6 +136,7 @@ class ViewPayment extends StatelessWidget {
       childrenW.clear();
       var titleW = Row(
         children: [
+          SizedBox(height: 64,),
           InkWell(
             onTap: () {
               currentMenu = '목록';
@@ -160,13 +166,31 @@ class ViewPayment extends StatelessWidget {
               ],
             ),
           ),
+
+          SizedBox(width: divideHeight * 4,),
+          ButtonT.TabMenu("수납 추가", Icons.add_box,
+              onTap: () { UIState.OpenNewWindow(context, WindowTsCreate(cs: null, refresh: () { FunT.setStateMain(); })); }
+          ),
         ],
       );
 
       if(currentMenu == '목록') {
         titleMenu = Column(
           children: [
-            titleW,
+            Row(
+              children: [
+                titleW,
+                SizedBox(width: divideHeight * 3,),
+                InputWidget.textSearch(
+                    search: (text) async {
+                      WidgetT.loadingBottomSheet(context, text:'검색중');
+                      await search(text);
+                      Navigator.pop(context);
+                    },
+                    controller: searchInput
+                ),
+              ],
+            ),
             Container(
               padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
               child: Row(
@@ -270,11 +294,8 @@ class ViewPayment extends StatelessWidget {
           ],
         );
 
-        if(tsList.length < 1) {
-          tsList = await DatabaseM.getTransaction(
-            startDate: sortStartAt.microsecondsSinceEpoch,
-            lastDate: sortLastAt.microsecondsSinceEpoch,
-          );
+        if(tsList.length  < 1) {
+          tsList = await DatabaseM.getTransaction(   startDate: sortStartAt.microsecondsSinceEpoch,  lastDate: sortLastAt.microsecondsSinceEpoch,);
         }
 
         var datas = sort ? tsSortList : tsList;
@@ -1142,7 +1163,6 @@ class ViewPayment extends StatelessWidget {
                     }
 
                     var data = await doc.save();
-                    //await StorageHub.updateFile('tmp', 'printing file upload', data, 'printing.pdf');
                     js.context.callMethod("saveAs", <Object>[
                       html.Blob(<Object>[data!]), '금전출납부.pdf',]);
                   },
@@ -1296,14 +1316,6 @@ class ViewPayment extends StatelessWidget {
               Expanded(
                 child: Column(
                   children: [
-                    WidgetT.searchBar(
-                        search: (text) async {
-                          WidgetT.loadingBottomSheet(context, text:'검색중');
-                          await search(text);
-                          Navigator.pop(context);
-                        },
-                        controller: searchInput
-                    ),
                     titleMenu,
                     if(menu == '금전출납현황' && currentMenu == '목록') TS.OnTableHeaderMain(),
                     if(menu == '금전출납현황' && currentMenu == '금전출납부')

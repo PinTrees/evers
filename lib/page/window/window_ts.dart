@@ -21,23 +21,25 @@ import '../../class/transaction.dart';
 import '../../class/widget/button.dart';
 import '../../class/widget/text.dart';
 import '../../core/window/ResizableWindow.dart';
+import '../../core/window/window_base.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
 
-class WindowTS extends StatefulWidget {
-  Customer cs;
-  ResizableWindow parent;
+class WindowTsCreate extends WindowBaseMDI {
+  Customer? cs;
   Function refresh;
 
-  WindowTS({ required this.cs, required this.refresh, required this.parent }) : super(key: UniqueKey()) { }
+  WindowTsCreate({ required this.cs, required this.refresh, }) { }
 
   @override
-  _WindowTSState createState() => _WindowTSState();
+  _WindowTsCreateState createState() => _WindowTsCreateState();
 }
 
-class _WindowTSState extends State<WindowTS> {
+class _WindowTsCreateState extends State<WindowTsCreate> {
   var dividHeight = 6.0;
+
   List<TS> tslistCr = [];
+  Customer? cs;
 
   @override
   void initState() {
@@ -45,6 +47,11 @@ class _WindowTSState extends State<WindowTS> {
     super.initState();
 
     tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
+    if(widget.cs != null) {
+      var jsonString = jsonEncode(widget.cs!.toJson());
+      var json = jsonDecode(jsonString);
+      cs = Customer.fromDatabase(json);
+    }
   }
 
   Widget main = SizedBox();
@@ -79,7 +86,17 @@ class _WindowTSState extends State<WindowTS> {
               children: [
                 SizedBox(height: dividHeight,),
                 TextT.Title(text: '거래처 정보'),
-                TextT.Lit(text: widget.cs.businessName ),
+                TextT.Lit(text: cs == null ? '-' : cs!.businessName ),
+                SizedBox(height: 6,),
+                if(widget.cs == null)
+                  ButtonT.IconText(
+                    icon: Icons.search, text: "거래처 검색",
+                    onTap: () async {
+                      var cs = await DialogT.selectCS(context);
+                      if(cs != null) this.cs = cs;
+                      setState(() {});
+                    }
+                  ),
                 SizedBox(height: dividHeight * 4,),
 
                 TextT.Title(text: '수납추가 목록',),
@@ -131,7 +148,7 @@ class _WindowTSState extends State<WindowTS> {
                     }
 
                     for(var ts in tslistCr) {
-                      ts.csUid = widget.cs.id;
+                      if(widget.cs != null) ts.csUid = widget.cs!.id;
                       await ts.update();
                     }
 

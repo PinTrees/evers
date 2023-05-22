@@ -12,6 +12,7 @@ import 'package:evers/helper/style.dart';
 import 'package:evers/main.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_re_create.dart';
+import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/dialog_transration.dart';
 import 'package:evers/ui/ex.dart';
@@ -32,7 +33,9 @@ import '../class/system.dart';
 import '../class/system/search.dart';
 import '../class/system/state.dart';
 import '../class/transaction.dart';
+import '../class/widget/list.dart';
 import '../class/widget/text.dart';
+import '../class/widget/textInput.dart';
 import '../helper/dialog.dart';
 import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
@@ -95,12 +98,12 @@ class ViewRePu extends StatelessWidget {
     if(menu == '매입매출관리') {
       if (currentView == '매입') {
         crRpmenuRp = ''; pur_query = '';
-        puSortList = await SystemT.searchPuMeta(search,);
+        await Search.searchPuMeta(search);
+        puSortList = await Search.searchPurchase();
       }
       else if (currentView == '매출') {
         crRpmenuRp = ''; pur_query = '';
         reSortList = await SystemT.searchReMeta(search,);
-        print(reSortList.length);
       }
     }
     else if(menu == '수납관리') {
@@ -135,6 +138,7 @@ class ViewRePu extends StatelessWidget {
     if(this.menu != menu) {
       sort = false; searchInput.text = '';
     }
+
     if(refresh) {
       puList.clear();
       revList.clear();
@@ -158,6 +162,8 @@ class ViewRePu extends StatelessWidget {
         children: [
           Row(
             children: [
+              SizedBox(height: 64,),
+
               InkWell(
                 onTap: () async {
                   currentView = '매입';
@@ -174,6 +180,41 @@ class ViewRePu extends StatelessWidget {
                   clear();
                 },
                 child: Container(child: (currentView == '매출') ? WidgetT.title('매출 목록', size: 18) : WidgetT.text('매출 목록', size: 18,  bold: true, color: disableTextColor)),
+              ),
+              SizedBox(width: divideHeight * 2,),
+
+              ListBoxT.Rows(
+                spacing: 6,
+                children: [
+                  ButtonT.TabMenu(
+                    "일반 매입 추가", Icons.input,
+                    onTap: () async {
+                      UIState.OpenNewWindow(context, WindowPUCreate(refresh: FunT.setStateMain,));
+                    },
+                  ),
+                  ButtonT.TabMenu(
+                    "품목 매입 추가", Icons.input,
+                    onTap: () async {
+                      var result = await DialogPU.showCreateItemPu(context);
+                      FunT.setStateMain();
+                    },
+                  ),
+                  ButtonT.TabMenu(
+                    '일반 매출 추가', Icons.output,
+                    onTap: () async {
+                      UIState.OpenNewWindow(context, WindowReCreate(refresh: FunT.setStateMain,));
+                    },
+                  ),
+                ],
+              ),
+              SizedBox(width: divideHeight * 3,),
+              InputWidget.textSearch(
+                  search: (text) async {
+                    WidgetT.loadingBottomSheet(context, text:'검색중');
+                    await search(text);
+                    Navigator.pop(context);
+                  },
+                  controller: searchInput
               ),
             ],
           ),
@@ -291,44 +332,22 @@ class ViewRePu extends StatelessWidget {
               ],
             ),
           ),
-          Row(
-            children: [
-              ButtonT.InfoSubMenu(
-                "일반 매입 추가", Icons.add_box, width: 128,
-                onTap: () async {
-                  UIState.OpenNewWindow(context, WindowPUCreate(refresh: FunT.setStateMain,));
-                },
-              ),
-              ButtonT.InfoSubMenu(
-                "품목 매입 추가", Icons.add_box, width: 128,
-                onTap: () async {
-                  var result = await DialogPU.showCreateItemPu(context);
-                  FunT.setStateMain();
-                },
-              ),
-              ButtonT.InfoSubMenu(
-                '일반 매출 추가', Icons.add_box, width: 128,
-                onTap: () async {
-                  UIState.OpenNewWindow(context, WindowReCreate(refresh: FunT.setStateMain,));
-                },
-              ),
-            ],
-          )
         ],
       );
 
       if(currentView == '매입') {
-        if(puList.length < 1) puList = await DatabaseM.getPurchase(
-          startDate: rpStartAt.microsecondsSinceEpoch,
-          lastDate: rpLastAt.microsecondsSinceEpoch,
-        );
+        if(puList.isEmpty) {
+          puList = await DatabaseM.getPurchase( startDate: rpStartAt.microsecondsSinceEpoch, lastDate: rpLastAt.microsecondsSinceEpoch);
+        }
 
         var data = sort ? puSortList : puList;
         for(int i = 0; i < data.length; i++) {
           Purchase pu = data[i];
           var cs = await SystemT.getCS(pu.csUid);
           childrenW.add(CompPU.tableUIMain(context, pu, index: i + 1,
-            cs: cs, refresh: () { mainView(context, menu); },
+            cs: cs, refresh: () {
+              FunT.setRefreshMain();
+            },
           ));
           childrenW.add(WidgetT.dividHorizontal(size: 0.35),);
         }
@@ -413,9 +432,23 @@ class ViewRePu extends StatelessWidget {
         children: [
           Row(
             children: [
+              SizedBox(height: 64,),
               WidgetT.title('수납 목록', size: 18),
               SizedBox(width: divideHeight * 2,),
-              WidgetT.text('( 수납 목록, 거래 기록 )', size: 12,)
+              WidgetT.text('( 수납 목록, 거래 기록 )', size: 12,),
+              SizedBox(width: divideHeight * 2,),
+              ButtonT.TabMenu("수납 추가", Icons.add_box,
+                onTap: () { UIState.OpenNewWindow(context, WindowTsCreate(cs: null, refresh: () { FunT.setStateMain(); })); }
+              ),
+              SizedBox(width: divideHeight * 3,),
+              InputWidget.textSearch(
+                  search: (text) async {
+                    WidgetT.loadingBottomSheet(context, text:'검색중');
+                    await search(text);
+                    Navigator.pop(context);
+                  },
+                  controller: searchInput
+              ),
             ],
           ),
           Container(
@@ -584,13 +617,7 @@ class ViewRePu extends StatelessWidget {
               Expanded(
                 child: Column(
                   children: [
-                    WidgetT.searchBar(search: (text) async {
-                      WidgetT.loadingBottomSheet(context, text:'검색중');
-                      await search(text);
-                      Navigator.pop(context);
-                    }, controller: searchInput ),
                     titleMenu,
-                    //searchMenuW,
                     if(menu == '매입매출관리') CompPU.tableHeaderMain(),
                     if(menu == '수납관리') TS.OnTableHeaderMain(),
                     WidgetT.dividHorizontal(size: 0.7),

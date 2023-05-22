@@ -633,6 +633,8 @@ class WidgetT extends StatelessWidget {
     return Container(height: size ?? 1.4, width: width, color: color ?? StyleT.titleColor.withOpacity(0.35),);
   }
 
+
+  /// 레거시 코드
   static dynamic showSnackBar(BuildContext context, { String? text }) async {
     ScaffoldMessenger.of(context).clearSnackBars();
     await ScaffoldMessenger.of(context).showSnackBar(
@@ -651,6 +653,7 @@ class WidgetT extends StatelessWidget {
         )
     );
   }
+
   static dynamic loadingBottomSheet(BuildContext context, { String? text }) async {
     showModalBottomSheet(context: context,
         isDismissible: false,

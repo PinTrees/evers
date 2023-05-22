@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/purchase.dart';
+import 'package:evers/class/widget/list.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_item.dart';
@@ -25,16 +26,16 @@ import '../../class/transaction.dart';
 import '../../class/widget/button.dart';
 import '../../class/widget/text.dart';
 import '../../core/window/ResizableWindow.dart';
+import '../../core/window/window_base.dart';
 import '../../helper/dialog.dart';
 import '../../helper/firebaseCore.dart';
 import '../../helper/interfaceUI.dart';
 
-class WindowPUEditor extends StatefulWidget {
+class WindowPUEditor extends WindowBaseMDI {
   Purchase pu;
-  ResizableWindow parent;
   Function refresh;
 
-  WindowPUEditor({ required this.pu, required this.refresh, required this.parent }) : super(key: UniqueKey()) { }
+  WindowPUEditor({ required this.pu, required this.refresh,}) { }
 
   @override
   _WindowPUEditorState createState() => _WindowPUEditorState();
@@ -77,8 +78,7 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
     pu.init();
 
     List<Widget> widgetsPu = [];
-    widgetsPu.add(CompPU.tableHeader());
-
+    widgetsPu.add(CompPU.tableHeaderEditor());
     widgetsPu.add(CompPU.tableUIEditor(context, pu,
       fileByteList: fileByteList, cs: cs,
       setState: () { setState(() {}); },
@@ -91,7 +91,7 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
     var customerWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextT.Title(text: '거래처'),
+        TextT.SubTitle(text: '거래처'),
         TextT.Lit(text: cs == null ? '-' : cs!.businessName),
       ],
     );
@@ -111,6 +111,46 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
       ],
     );
 
+    var deleteWidget =  ButtonT.IconText(
+      icon: Icons.delete_forever,
+      text: "매입 삭제",
+      onTap: () async {
+        if(!await DialogT.showAlertDl(context, text:'삭제하시겠습니까?')) {
+          WidgetT.showSnackBar(context, text: '취소됨');
+          return;
+        }
+
+        WidgetT.loadingBottomSheet(context);
+        await DatabaseM.deletePu(pu);
+        Navigator.pop(context);
+
+        WidgetT.showSnackBar(context, text: '삭제됨');
+        widget.refresh();
+        widget.parent.onCloseButtonClicked!();
+        },
+    );
+
+    var fileEditeWidget =  ButtonT.IconText(
+      icon: Icons.file_copy_rounded, text: "파일첨부",
+      onTap: () async {
+        FilePickerResult? result;
+        try {
+          result = await FilePicker.platform.pickFiles();
+        } catch (e) {
+          WidgetT.showSnackBar(context, text: '파일선택 오류');
+        }
+        if(result != null){
+          WidgetT.showSnackBar(context, text: '파일선택');
+          if(result.files.isNotEmpty) {
+            String fileName = result.files.first.name;
+            fileByteList[fileName] = result.files.first.bytes!;
+            print(fileByteList[fileName]!.length);
+          }
+        }
+        setState(() {});
+      },
+    );
+
     return Container(
       width: 1280,
       child: Column(
@@ -124,9 +164,14 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
                 customerWidget,
                 SizedBox(height: dividHeight * 4,),
 
-                TextT.Title(text: '매입정보'),
+                TextT.SubTitle(text: '매입정보'),
                 SizedBox(height: dividHeight,),
                 widgetPU,
+                SizedBox(height: dividHeight,),
+                ListBoxT.Rows( spacing: 6, children: [fileEditeWidget,deleteWidget ],),
+
+                SizedBox(height: dividHeight * 4,),
+                TextT.SubTitle(text: '변경 기록', more: "현재 매입정보에 대한 수정기록이 표시됩니다."),
                 SizedBox(height: dividHeight,),
               ],
             ),

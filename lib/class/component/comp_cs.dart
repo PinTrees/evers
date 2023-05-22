@@ -656,8 +656,7 @@ class CompCS {
                   icon: Icons.create,
                   onTap: () async {
                     var parent = UIState.mdiController!.createWindow(context);
-                    var page = WindowPUEditor(pu: pu, refresh: refresh ?? () {}, parent: parent,);
-                    UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
+                    UIState.OpenNewWindow(context, WindowPUEditor(pu: pu, refresh: refresh ?? () {}, ));
                     if(setState != null) setState();
                   },
                 ),

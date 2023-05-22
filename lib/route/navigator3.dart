@@ -50,18 +50,24 @@ final GoRouter router = GoRouter(
             ]
         ),
         GoRoute(
-            path: 'work',
+            path: 'work/u',
             builder: (BuildContext context, GoRouterState state) {
-              return SizedBox();
+              return WorkPage(url: 'u',);
             },
-            routes: [
-              GoRoute(
-                path: 'u',
-                builder: (BuildContext context, GoRouterState state) {
-                  return WorkPage();
-                },
-              ),
-            ]
+        ),
+        GoRoute(
+          path: 'work/home',
+          builder: (BuildContext context, GoRouterState state) {
+            return WorkPage(url: 'home',);
+          },
+        ),
+        /// 깊이 설정시 새로고침 즉시 적용 안됨
+        GoRoute(
+            path: 'work/:id/:id1',
+            builder: (BuildContext context, GoRouterState state) {
+              return WorkPage(url: state.pathParameters['id'],
+                subUrl: state.pathParameters['id1'],);
+            },
         ),
         GoRoute(
           path: 'error',

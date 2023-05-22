@@ -89,14 +89,12 @@ class _LogInPageState extends State<LogInPage> {
             },
             onEditingComplete: () async {
               try {
-                var id = '';
                 UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
                   email: emailInput.text + '@evers.com',
                   password: passwordInput.text,
                 );
-                var currentUser = FirebaseAuth.instance.currentUser;
-                print(currentUser?.email);
 
+                var currentUser = FirebaseAuth.instance.currentUser;
                 if(currentUser != null) {
                   await WidgetT.showSnackBar(context, text: '로그인 성공',);
                   context.pop();

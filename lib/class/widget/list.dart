@@ -27,8 +27,8 @@ class ListBoxT extends StatelessWidget {
       children.forEach((e) { widgets.add(e); widgets.add(SizedBox(width: spacing,)); });
     else if(spacingWidget != null) {
       children.forEach((e) { widgets.add(e); widgets.add(spacingWidget); });
+      widgets.removeLast();
     }
-
     else widgets = children;
 
     Widget w = Row(

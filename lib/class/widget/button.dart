@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/widget/messege.dart';
 import 'package:evers/class/widget/text.dart';
+import 'package:evers/helper/dialog.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -46,6 +48,35 @@ class ButtonT extends StatelessWidget {
   }
 
 
+  static Widget IconAction(BuildContext context, IconData? icon, {Function? onTap,
+    String? altText,
+    Widget? leaging,
+    Color? color,
+    Color? background
+  }) {
+    var w = InkWell(
+      onTap: () async {
+        if(altText != null) {
+          var alt = await DialogT.showAlertDl(context, text: altText);
+          if (!alt) return Messege.toReturn(context, "취소됨", false);
+        }
+        if(onTap != null) return await onTap();
+      },
+      child: Container(
+        color: background,
+        child: Row(
+          children: [
+            WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28, color: color),
+          ],
+        ),
+      ),
+    );
+
+
+    return w;
+  }
+
+
   /// 이 함수는 아이콘과 텍스트가 있는 고정형 위젯입니다.
   static Widget IconText({ String? text, IconData? icon, Function? onTap,
     bool bold=false,
@@ -70,11 +101,41 @@ class ButtonT extends StatelessWidget {
         ),
       ),
     );
-
     if(padding != null) return Container( padding: padding,  child: w, );
-
     return w;
   }
+
+
+
+
+  static Widget IconTextExpaned({ String? text, IconData? icon, Function? onTap,
+    bool bold=false,
+    Color? color,
+    EdgeInsets? padding,
+    Widget? leaging,
+    Color? textColor, }) {
+    var w = InkWell(
+      onTap: () async {
+        if(onTap != null) return await onTap();
+      },
+      child: Container(
+        color: color ?? Colors.grey.withOpacity(0.25),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28),
+            TextT.Lit(text: text ?? '텍스트 입력', size: 12, color: textColor, bold: bold,
+              expand: true,
+            ),
+            SizedBox(width: 6,),
+            if(leaging != null) leaging,
+          ],
+        ),
+      ),
+    );
+    return w;
+  }
+
 
 
   /// 이 함수는 간단한 텍스트 추가 버튼입니다.
@@ -171,7 +232,6 @@ class ButtonT extends StatelessWidget {
           if(onTap != null) await onTap();
         },
         child: Container(
-          margin: EdgeInsets.all(3),
           height: 36, width: width,
           decoration: StyleT.inkStyleNone(round: 8,
             color: accent ? Colors.black.withOpacity(0.15) : Colors.black.withOpacity(0.05), ),
@@ -189,9 +249,9 @@ class ButtonT extends StatelessWidget {
 
 
 
-
+  /// 레거시 코드
   /// 이 함수는 다이얼로그 액션버튼 템플릿입니다.
-  static Widget Action(String text, {
+  static Widget ActionLegacy(String text, {
     IconData? icon,
     double? width,
     Color? backgroundColor,
@@ -210,7 +270,59 @@ class ButtonT extends StatelessWidget {
             child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 WidgetT.iconMini(icon ?? Icons.add_box),
-                TextT.SubTitle(text: text),
+                TextT.Lit(text: text, size: 14, color: StyleT.titleColor),
+                SizedBox(width: 6,),
+              ],
+            )
+        )
+    );
+
+    if(expend) return Expanded(child: w);
+    else return w;
+  }
+
+
+
+
+  /// 최신버전
+  /// 이 함수는 윈도우창 액션버튼 템플릿입니다.
+  /// 파라미터
+  ///   altText: 다이얼로그 출력 메세지 입니다.
+  ///   init: 버튼 최초 실행 로직입니다.
+  ///   onTap: 버튼 실행 로직입니다.
+  ///   setState: 사용되지 않는 파라미터 (확장 가능성)
+  static Widget Action(BuildContext context, String text, {
+    String? altText,
+    IconData? icon,
+    double? width,
+    Color? backgroundColor,
+    Function? onTap,
+    Function? setState,
+    bool Function()? init,
+    bool expend=true,
+  }) {
+    var w = InkWell(
+        onTap: () async {
+          if(init != null) {
+            var alt = await init();
+            if(!alt) return;
+          }
+
+          if(altText != null) {
+            var alt = await DialogT.showAlertDl(context, text: altText);
+            if(!alt) return;
+          }
+
+          if(onTap != null) await onTap();
+        },
+        child: Container(
+            width: width,
+            color: backgroundColor ?? Colors.blue.withOpacity(0.5),
+            height: 42,
+            child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                WidgetT.iconMini(icon ?? Icons.add_box),
+                TextT.Lit(text: text, size: 14, color: StyleT.titleColor),
                 SizedBox(width: 6,),
               ],
             )

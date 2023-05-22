@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:evers/class/component/comp_re.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/core/window/window_base.dart';
+import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/style.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,17 +29,16 @@ import '../../ui/ip.dart';
 
 
 /// 이 윈도우 클래스는 일정추가를 위한 위젯을 렌더링 합니다.
-class WindowSchCreate extends WindowBaseMDI {
+class WindowSchEditor extends WindowBaseMDI {
   Function refresh;
-  Contract? ct;
-  DateTime? dateTime;
+  Schedule schedule;
 
-  WindowSchCreate({ required this.ct, required this.refresh, this.dateTime }) { }
+  WindowSchEditor({ required this.schedule, required this.refresh, }) { }
 
   @override
-  _WindowSchCreateState createState() => _WindowSchCreateState();
+  _WindowSchEditorState createState() => _WindowSchEditorState();
 }
-class _WindowSchCreateState extends State<WindowSchCreate> {
+class _WindowSchEditorState extends State<WindowSchEditor> {
   var dividHeight = 6.0;
   var heightSize = 36.0;
 
@@ -47,22 +48,17 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
   Map<String, Uint8List> fileByteList = {};
   var date = DateTime.now();
   var time = TimeOfDay.now();
-  var selectType = '';
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
 
-    /// 최초 실행시
-    if(widget.dateTime != null) date = widget.dateTime!;
-    else date = DateTime.now();
-
-    if(widget.ct != null) ct = widget.ct;
-
-    schedule = Schedule.fromDatabase({});
-    if(ct != null) schedule.ctUid = ct!.id;
-    schedule.date = date.microsecondsSinceEpoch;
+    String jsonString = jsonEncode(widget.schedule.toJson());
+    dynamic json = jsonDecode(jsonString);
+    schedule = Schedule.fromDatabase(json);
+    date = DateTime.fromMicrosecondsSinceEpoch(schedule.date);
+    time = TimeOfDay.fromDateTime(date);
 
     initAsync();
   }
@@ -71,6 +67,8 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
   /// 이 함수는 동기 초기화를 시도합니다.
   /// 상속구조로 재설계 되어야 합니다.
   void initAsync() async {
+    ct = await DatabaseM.getContractDoc(schedule.ctUid);
+
     setState(() {});
   }
 
@@ -84,16 +82,15 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
       children: [
         TextT.SubTitle(text: "계약정보", ),
         TextT.Lit(text: ct == null ? '-' : "${ct!.csName} / ${ct!.ctName}" ),
-
+        SizedBox(height: 6,),
         /// 계약 정보가 포함된 상태라면 계약선택 기능 비활성화
-        if(widget.ct == null)
-          ButtonT.IconText(
-          icon: Icons.content_paste_search, text: "계약 검색",
-          onTap: () async {
-             var tmpCt = await DialogT.selectCt(context);
-             if(tmpCt != null) ct = tmpCt;
-             setState(() {});
-          }
+        ButtonT.IconText(
+            icon: Icons.content_paste_search, text: "계약 검색",
+            onTap: () async {
+              var tmpCt = await DialogT.selectCt(context);
+              if(tmpCt != null) ct = tmpCt;
+              setState(() {});
+            }
         )
       ],
     );
@@ -104,10 +101,10 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
         TextT.SubTitle(text: "태그",),
         for(int i = 0; i < StyleT.scheduleColor.length; i++)
           ButtonT.IconText(
-            icon: selectType != StyleT.scheduleColor.keys.elementAt(i) ? Icons.check_box_outline_blank : Icons.check_box,
+            icon: schedule.type != StyleT.scheduleColor.keys.elementAt(i) ? Icons.check_box_outline_blank : Icons.check_box,
             text: StyleT.scheduleName[StyleT.scheduleColor.keys.elementAt(i)]?? "NULL",
             onTap: () {
-              schedule.type = selectType = StyleT.scheduleColor.keys.elementAt(i);
+              schedule.type = StyleT.scheduleColor.keys.elementAt(i);
               setState(() {});
             }
           )
@@ -246,6 +243,21 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
         ),
       ],
     );
+    var deleteWidget = ButtonT.IconText(
+        icon: Icons.delete_forever, text: "일정 삭제",
+        onTap: () async {
+          var alt = await DialogT.showAlertDl(context, text:  "일정을 제거하시겠습니까?");
+          if(!alt) { return; }
+
+          var result = await schedule.delete();
+          if(!result) { WidgetT.showSnackBar(context, text: "Database Error"); return; }
+          else WidgetT.showSnackBar(context, text: "제거됨");
+
+          widget.refresh!();
+          widget.parent.onCloseButtonClicked!();
+          setState(() {});
+        }
+    );
 
     return Container(
       width: 1280,
@@ -263,6 +275,7 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
                 titleWidget,
                 inputWidget,
                 fileWidget,
+                deleteWidget
               ]
             ),
           ),
@@ -304,7 +317,7 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
                 child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     WidgetT.iconMini(Icons.check_circle),
-                    Text('일정 추가', style: StyleT.titleStyle(),),
+                    Text('일정 저장', style: StyleT.titleStyle(),),
                     SizedBox(width: 6,),
                   ],
                 )

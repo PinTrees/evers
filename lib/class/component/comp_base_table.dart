@@ -19,6 +19,8 @@ import '../transaction.dart';
 import '../widget/button.dart';
 import '../widget/text.dart';
 
+
+/// 테이블 위젯 상속 클래스 설계 입니다.
 class ComponentBaseTable {
 
 }

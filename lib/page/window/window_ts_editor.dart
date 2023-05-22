@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_item.dart';
@@ -24,13 +25,12 @@ import '../../core/window/ResizableWindow.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
 
-class WindowTSEditor extends StatefulWidget {
+class WindowTSEditor extends WindowBaseMDI {
   TS ts;
   Customer? cs;
-  ResizableWindow parent;
   Function refresh;
 
-  WindowTSEditor({ required this.ts, required this.cs, required this.refresh, required this.parent }) : super(key: UniqueKey()) { }
+  WindowTSEditor({ required this.ts, required this.cs, required this.refresh }) { }
 
   @override
   _WindowTSEditorState createState() => _WindowTSEditorState();
@@ -59,7 +59,6 @@ class _WindowTSEditorState extends State<WindowTSEditor> {
     var w = CompTS.tableUIEditor(
       context, ts,
       cs: widget.cs, index: 1,
-      onClose: widget.parent.onCloseButtonClicked,
       setState: () { setState(() {}); },
       refresh: widget.refresh,
     );
@@ -83,9 +82,25 @@ class _WindowTSEditorState extends State<WindowTSEditor> {
 
                 TextT.Title(text: '수납추가 목록',),
                 SizedBox(height: dividHeight,),
-                TS.OnTableHeader(),
+                CompTS.tableHeaderEditor(),
                 for(var w in tsCW) w,
                 SizedBox(height: dividHeight,),
+                ButtonT.IconText(
+                  icon: Icons.delete_forever,
+                  text: "수납 삭제",
+                  onTap: () async {
+                    /// 현재 TS에 대한 데이터베이서 제거 요청
+                    var alt = await DialogT.showAlertDl(context, text: '해당 수납정보를 삭제하시겠습니까?');
+                    if(!alt) { WidgetT.showSnackBar(context, text: '취소됨'); return; }
+                    else WidgetT.showSnackBar(context, text: '삭제됨');
+
+                    await ts.delete();
+
+                    setState(() {});
+                    widget.refresh();
+                    widget.parent.onCloseButtonClicked!();
+                  },
+                ),
               ],
             ),
           ),

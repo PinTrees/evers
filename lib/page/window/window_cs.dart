@@ -610,7 +610,7 @@ class _WindowCSState extends State<WindowCS> {
       children: [
         Row(
           children: [
-            ButtonT.Action("신규 매출 등록",
+            ButtonT.ActionLegacy("신규 매출 등록",
               expend: true,
               icon: Icons.output, backgroundColor: Colors.blue.withOpacity(0.5),
               onTap: () async {
@@ -618,7 +618,7 @@ class _WindowCSState extends State<WindowCS> {
                 if(result != null) return;
               },
             ),
-            ButtonT.Action("신규 매입 등록",
+            ButtonT.ActionLegacy("신규 매입 등록",
               expend: true,
               icon: Icons.input, backgroundColor: Colors.red.withOpacity(0.5),
               onTap: () async {
@@ -626,28 +626,25 @@ class _WindowCSState extends State<WindowCS> {
                 UIState.OpenNewWindow(context, WindowPUCreateWithCS(cs : widget.org_cs, refresh: initAsync,));
               },
             ),
-            ButtonT.Action("신규 품목 매입 등록",
+            ButtonT.ActionLegacy("신규 품목 매입 등록",
               expend: true,
               icon: Icons.input, backgroundColor: Colors.blueGrey.withOpacity(0.5),
               onTap: () async {
                 WidgetT.showSnackBar(context, text: "품목에 대한매입은 계약을 비워둘 수 없습니다. 계약화면에서 추가해주세요.");
               },
             ),
-            ButtonT.Action("신규 수납 등록",
+            ButtonT.ActionLegacy("신규 수납 등록",
               expend: true,
               icon: Icons.monetization_on_sharp, backgroundColor: StyleT.accentOver.withOpacity(0.5),
               onTap: () async {
-                /// 수납등록 윈도우창 표시
-                var parent = UIState.mdiController!.createWindow(context);
-                var page = WindowTS(cs: cs, refresh: initAsync, parent: parent,);
-                UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
+                UIState.OpenNewWindow(context, WindowTsCreate(cs: cs, refresh: initAsync));
               },
             ),
           ],
         ),
         Row(
           children: [
-            ButtonT.Action("거래처 저장",
+            ButtonT.ActionLegacy("거래처 저장",
               expend: true, icon: Icons.save,
               backgroundColor: StyleT.accentColor.withOpacity(0.5),
               onTap: () async {

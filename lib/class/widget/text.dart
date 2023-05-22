@@ -110,12 +110,15 @@ class TextT extends StatelessWidget {
   static Widget SubTitle({
     BuildContext? context,
     String? text,
+    String? more,
     double? width,
     bool expand=false}) {
-    var w = Text(
+    Widget w = Text(
       text ?? '',
       style: TextStyle(color: StyleT.titleColor, fontSize: 14, fontWeight: FontWeight.w900),
     );
+
+    if(more != null) w = Row( children: [ w, const SizedBox(width: 6 * 3,), Lit(text: more), ],);
 
     if(expand) {
       return Expanded(

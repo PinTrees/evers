@@ -4,10 +4,14 @@ import 'package:evers/page/window/window_factory.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_re_create.dart';
+import 'package:evers/page/window/window_re_create_ct.dart';
 import 'package:evers/page/window/window_re_editor.dart';
+import 'package:evers/page/window/window_schList_info.dart';
 import 'package:evers/page/window/window_sch_create.dart';
+import 'package:evers/page/window/window_sch_editor.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
+import 'package:evers/page/window/window_user_create.dart';
 import 'package:flutter/material.dart';
 
 import '../../page/window/window_ct.dart';
@@ -30,7 +34,7 @@ class MdiController{
 
     if(widget is WindowTSEditor) resizableWindow.title = '수납 개별 상세정보 수정창';
     if(widget is WindowCS) resizableWindow.title = '거래처 개별 상세정보창';
-    if(widget is WindowTS) resizableWindow.title = '수납 개별 상세정보창';
+    if(widget is WindowTsCreate) resizableWindow.title = '수납 개별 상세정보창';
     if(widget is WindowFactoryCreate) resizableWindow.title = '공장일보 생성창';
     if(widget is WindowCT) resizableWindow.title = '계약 개별 상세정보창';
     if(widget is WindowPUCreateWithCS) resizableWindow.title = '거래처 매입 입력창';
@@ -39,6 +43,11 @@ class MdiController{
     if(widget is WindowReCreate) resizableWindow.title = '매출 정보 생성창';
     if(widget is WindowReEditor) resizableWindow.title = '매출 개별 상세정보창';
     if(widget is WindowSchCreate) resizableWindow.title = '일정 정보 생성창';
+    if(widget is WindowSchEditor) resizableWindow.title = '일정 개별정보 수정창';
+    if(widget is WindowSchListInfo) resizableWindow.title = '일정 정보 목록 상세정보창';
+    if(widget is WindowReCreateWithCt) resizableWindow.title = '매출 정보 생성창 (계약)';
+    if(widget is WindowUserCreate) resizableWindow.title = '계정 신규 생성창';
+    if(widget is WindowUserEditor) resizableWindow.title = '계정 정보 수정창';
   }
 
   ResizableWindow createWindow(BuildContext context, { double? pw, double? ph, }) {

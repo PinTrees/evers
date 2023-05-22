@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:evers/class/Customer.dart';
 import 'package:evers/class/purchase.dart';
+import 'package:evers/class/revenue.dart';
 import 'package:evers/class/system.dart';
 import 'package:evers/class/system/records.dart';
 import 'package:evers/helper/firebaseCore.dart';
@@ -11,6 +12,8 @@ import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/intl.dart';
 
 import 'package:async/async.dart';
+import 'package:korea_regexp/get_regexp.dart';
+import 'package:korea_regexp/models/regexp_options.dart';
 import '../transaction.dart';
 
 
@@ -20,6 +23,17 @@ class Search {
   /// 거래기록 검색 목록. : 정렬됨
   static List<SortKey> tsList = [];
   static int tsListIndex = 0;
+
+
+  /// 매출기록 검색 목록. : 정렬됨
+  static List<SortKey> reList = [];
+  static int reListIndex = 0;
+
+
+  /// 매입기록 검색 목록. : 정렬됨
+  static List<SortKey> puList = [];
+  static int puListIndex = 0;
+
 
   /// 미수현황을 계산해야 하는 거래처 목록
   static List<Customer> purCsList = [];
@@ -60,6 +74,82 @@ class Search {
 
     return search;
   }
+
+
+  /// 이 함수는 매출기록 검색을 비동기로 요청합니다.
+  /// 반환
+  ///   List<Revenue> list; Revenue는 NUll일 수 없습니다.
+  ///     목록은 항상 날짜로 Dec 정렬되어 반환됩니다.
+  static dynamic searchRevenue() async {
+    List<TS> search = [];
+    if(tsList.length <= tsListIndex) return search;
+
+    final futureGroup = FutureGroup();
+    for(int i = 0; i < 25; i++) {
+      if(tsList.length <= tsListIndex) break;
+
+      futureGroup.add(DatabaseM.getTsDoc(tsList[tsListIndex++].id));
+    }
+
+    futureGroup.close();
+
+    await futureGroup.future.then((value) {
+      value.forEach((e) {
+        if(e == null) return;
+        search.add(e);
+      });
+    });
+
+    return search;
+  }
+
+
+  /// *********************************
+  /// 구조 변경 필요 매우 중료 / 거래기록 검색 시스템으로 변경 필요
+  /// 이 함수는 매입기록 검색을 비동기로 요청합니다.
+  /// 반환
+  ///   List<Purchase> list; Purchase는 NUll일 수 없습니다.
+  ///     목록은 항상 날짜로 Dec 정렬되어 반환됩니다.
+  static dynamic searchPurchase() async {
+    puListIndex = 0;
+
+    List<Purchase> search = [];
+    if(puList.length <= puListIndex) return search;
+
+    final futureGroup = FutureGroup();
+    for(int i = 0; i < 200; i++) { 
+      if(puList.length <= puListIndex) break;
+      futureGroup.add(DatabaseM.getPurchaseDoc(puList[puListIndex++].id));
+    }
+    futureGroup.close();
+
+    await futureGroup.future.then((List<dynamic> value) {
+      value.forEach((e) { if(e != null) search.add(e); });
+    });
+
+    search.sort((a, b) => b.purchaseAt.compareTo(a.purchaseAt));
+    return search;
+  }
+  static dynamic searchPuMeta(String search) async {
+    search = search.trim();
+    puList.clear();
+
+    late RegExp regExp;
+    try {
+      regExp = getRegExp(search, RegExpOptions(initialSearch: true, startsWith: false, endsWith: false));
+    } catch (e) {  print(e);return [];  }
+
+    for(var a in SystemT.purSearch.values) {
+      var meta = a as Map;
+      meta.forEach((k, e) {
+        if(e != null) if(regExp.hasMatch(e)) puList.add(SortKey.fromData(id: k, data: e));
+      });
+    }
+
+    puList.sort((a, b) => b.data.compareTo(a.data));
+  }
+
+
 
 
   /// 이 함수는 거래처문서 검색을 비동기로 요청합니다.

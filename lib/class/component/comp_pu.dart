@@ -1,3 +1,4 @@
+import 'dart:html';
 import 'dart:typed_data';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
@@ -40,6 +41,11 @@ class CompPU {
         [ 28, 80, 999, 28 * 2, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
   }
 
+  static dynamic tableHeaderEditor() {
+    return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', "",  '단위', '수량', '단가', '공급가액', 'VAT', '합계', ],
+        [ 28, 80, 999, 28 * 2, 50, 80, 80, 80, 80, 80, ], background: true, lite: true);
+  }
+
   static dynamic tableHeaderMain() {
     return Container( padding: EdgeInsets.fromLTRB(6, 0, 6, 6),
       child: WidgetUI.titleRowNone([ '순번', '거래번호', '거래일', '구분', '거래처 및 계약', '품목', '단위', '수량', '단가', '공급가액', 'VAT', '합계', '' ],
@@ -59,7 +65,7 @@ class CompPU {
       onTap: () async {
         if(cs == null) return;
         /// 윈도우 창으로 변경
-        await DialogCS.showPurInCs(context, cs);
+        UIState.OpenNewWindow(context, WindowPUEditor(pu: pu, refresh: refresh!,));
       },
       child: Container(
         height: 36 + 6,
@@ -67,9 +73,9 @@ class CompPU {
         child: Row(
             children: [
               ExcelT.LitGrid(text: '${ index ?? '-' }', width: 32),
-              ExcelT.LitGrid(text: pu.id, width: 80, textSize: 8),
-              ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(pu.purchaseAt.toString()), width: 80,),
-              ExcelT.LitGrid(text: '매입', width: 50, textColor: Colors.red.withOpacity(0.5)),
+              ExcelT.LitGrid(text: "P-${pu.id}", width: 80, textSize: 9, center: true),
+              ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(pu.purchaseAt.toString()), width: 80, center: true),
+              ExcelT.LitGrid(text: '매입', width: 50, textColor: Colors.red.withOpacity(0.5), center: true),
 
               TextT.OnTap(
                 enable: cs != null, expand: true,
@@ -94,25 +100,14 @@ class CompPU {
               if(pu.filesMap.length == 0)
                 SizedBox(height: 32,width: 32,),
 
-              InkWell(
+              ButtonT.IconAction(
+                context, Icons.delete, altText: "매입 데이터를 삭제하시겠습니까?",
                 onTap: () async {
-                  var parent = UIState.mdiController!.createWindow(context);
-                  var page = WindowPUEditor(pu: pu, refresh: refresh ?? () {}, parent: parent,);
-                  UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
-                  /*var result = await DialogPU.showInfoPu(context, org: pu);*/
-                },
-                child: WidgetT.iconMini(Icons.create, size: 32),
-              ),
-              InkWell(
-                onTap: () async {
-                  var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
-                  if(aa) {
-                    await DatabaseM.deletePu(pu);
-                    WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
-                  }
-                },
-                child: WidgetT.iconMini(Icons.delete, size: 32),
-              ),
+                  await DatabaseM.deletePu(pu);
+                  WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
+                  if(refresh != null) await refresh();
+                }
+              )
             ]
         ),
       ),
@@ -145,6 +140,7 @@ class CompPU {
                 ),
 
                 ExcelT.LitInput(context, 'pu.info::품목', width: 200, textSize: 10,
+                    expand: true,
                     onEdited: (i, data) {
                       var item = SystemT.getItem(pu.item);
                       if (item == null) { pu.item = data; return; }
@@ -254,53 +250,6 @@ class CompPU {
                   setState: setState,
                   text: StyleT.krwInt(pu.vat), value: pu.vat.toString(),),
                 ExcelT.LitGrid(text: StyleT.krw(pu.totalPrice.toString()), width: 80, center: true),
-                ExcelT.LitInput(context, 'pu.info::메모', width: 200, textSize: 10,
-                  onEdited: (i, data) { pu.memo  = data ?? ''; },
-                  setState: setState,
-                  text: pu.memo,
-                  expand: true,
-                ),
-
-                /// file
-                ButtonT.Icon(
-                  icon: Icons.file_copy_rounded,
-                  onTap: () async {
-                    FilePickerResult? result;
-                    try {
-                      result = await FilePicker.platform.pickFiles();
-                    } catch (e) {
-                      WidgetT.showSnackBar(context, text: '파일선택 오류');
-                    }
-                    if(result != null){
-                      WidgetT.showSnackBar(context, text: '파일선택');
-                      if(result.files.isNotEmpty) {
-                        String fileName = result.files.first.name;
-                        fileByteList[fileName] = result.files.first.bytes!;
-                        print(fileByteList[fileName]!.length);
-                      }
-                    }
-                    /// 즉시 업데이트 - 삭제시 내부에서 재거
-                    if(setState != null) setState();
-                  },
-                ),
-                /// delete
-                ButtonT.Icon(
-                  icon: Icons.delete_forever,
-                  color: Colors.redAccent,
-                  onTap: () async {
-                    if(!await DialogT.showAlertDl(context, text:'삭제하시겠습니까?')) {
-                      WidgetT.showSnackBar(context, text: '취소됨');
-                      return;
-                    }
-
-                    WidgetT.loadingBottomSheet(context);
-                    await DatabaseM.deletePu(pu);
-                    Navigator.pop(context);
-
-                    WidgetT.showSnackBar(context, text: '삭제됨');
-                    Navigator.pop(context, pu);
-                  },
-                ),
               ]
           ),
         ),
@@ -308,7 +257,7 @@ class CompPU {
           height: 28,
           child: Row(
               children: [
-                WidgetT.excelGrid( width: 178, label: '거래명세서 첨부파일', ),
+                TextT.Lit(width: 100, text: '거래명세서 첨부파일',),
                 Expanded(
                     child: Container( padding: EdgeInsets.all(6),
                       child: Wrap(
@@ -350,6 +299,20 @@ class CompPU {
                             ),
                         ],
                       ),)),
+              ]
+          ),
+        ),
+        Container( height: 32,
+          child: Row(
+              children: [
+                TextT.Lit(text: "메모", width: 100,),
+                ExcelT.LitInput(context, 'pu.info::메모', width: 200, textSize: 10,
+                  onEdited: (i, data) { pu.memo  = data ?? ''; },
+                  alignment: Alignment.centerLeft,
+                  setState: setState,
+                  text: pu.memo,
+                  expand: true,
+                ),
               ]
           ),
         ),
@@ -627,9 +590,7 @@ class CompPU {
                 ButtonT.Icon(
                   icon: Icons.create,
                   onTap: () async {
-                    var parent = UIState.mdiController!.createWindow(context);
-                    var page = WindowPUEditor(pu: pu, refresh: refresh ?? () {}, parent: parent,);
-                    UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
+                    UIState.OpenNewWindow(context, WindowPUEditor(pu: pu, refresh: refresh ?? () {}));
                     if(setState != null) setState();
                   },
                 ),

@@ -1,8 +1,13 @@
 import 'package:evers/class/component/comp_pu.dart';
+import 'package:evers/class/component/comp_re.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/list.dart';
+import 'package:evers/class/widget/messege.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_pu_create.dart';
+import 'package:evers/page/window/window_re_create.dart';
+import 'package:evers/page/window/window_re_create_ct.dart';
 import 'package:evers/page/window/window_sch_create.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
@@ -50,13 +55,12 @@ class _WindowCTState extends State<WindowCT> {
   Map<String, Uint8List> ctFileByteList = {};
   Contract ct = Contract.fromDatabase({});
 
-  List<TS> tsList = [];
-
-  List<Schedule> schList = [];
   int schListIndex = 0;
 
+  List<TS> tsList = [];
   List<Ledger> ledgerList = [];
   List<Purchase> purList = [];
+  List<Schedule> schList = [];
 
   var vatTypeNameList = [ '포함', '별도', ];
 
@@ -78,6 +82,8 @@ class _WindowCTState extends State<WindowCT> {
     purList = await DatabaseM.getPur_withCT(ct.id);
     tsList = await DatabaseM.getTransactionCt(ct.id);
     schList = await DatabaseM.getSCH_CT(ct.id);
+
+    await ct.updateInit();
 
     setState(() {});
   }
@@ -109,29 +115,16 @@ class _WindowCTState extends State<WindowCT> {
     List<Widget> reW = [];
     reW.add(Revenue.buildTitleUI());
     for(int i = 0; i < ct.revenueList.length; i++) {
-      Widget w = SizedBox();
       var re = ct.revenueList[i];
       var item = SystemT.getItem(re.item) ?? Item.fromDatabase({});
 
       re.init();
       allPay += re.totalPrice;
 
-      w = re.buildUsAsync(
-        item,
-        state: () { setState(() {}); },
-        onEdite:  () async {
-          var data = await DialogRE.showInfoRe(context, org: re);
-
-          WidgetT.loadingBottomSheet(context, text:'로딩중');
-          if(data != null) {
-            await ct.updateInit();
-          }
-          Navigator.pop(context);
-          setState(() {});
-        },
-      );
-
-      reW.add(w);
+      reW.add(CompRE.tableUI(context, re,
+          refresh: () async { await initAsync(); },
+          setState: () { setState(() {}); }
+      ));
       reW.add(WidgetT.dividHorizontal(size: 0.35));
     }
 
@@ -558,17 +551,6 @@ class _WindowCTState extends State<WindowCT> {
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: schTableWidgetList,)),
                   SizedBox(height: dividHeight,),
-                  Row(
-                    children: [
-                      ButtonT.IconText(
-                        icon: Icons.add_box, text:'일정추가',
-                        onTap: () async {
-                          UIState.OpenNewWindow(context, WindowSchCreate(ct: ct, refresh: () async { await initAsync(); },));
-                          setState(() {});
-                        }
-                      ),
-                    ],
-                  ),
 
                   dividCol,
                   TextT.Title(text:'매입 목록' ),
@@ -593,20 +575,6 @@ class _WindowCTState extends State<WindowCT> {
                   SizedBox(height: dividHeight,),
                   Row(
                     children: [
-                      ButtonT.IconText(
-                        icon: Icons.add_box,
-                        text: '매출추가',
-                        onTap: () async {
-                          var data = await DialogRE.showCreateRe(context, ctUid: ct.id);
-                          WidgetT.loadingBottomSheet(context, text:'로딩중');
-                          if(data != null) {
-                            await ct.updateInit();
-                          }
-                          Navigator.pop(context);
-                          setState(() {});
-                        }
-                      ),
-                      SizedBox(width: dividHeight * 8,),
                       InkWell(
                           onTap: () async {
                             WidgetT.loadingBottomSheet(context, text: '저장중');
@@ -685,37 +653,61 @@ class _WindowCTState extends State<WindowCT> {
           ),
 
           /// action
-          Row(
-            children: [
-              Expanded(child:TextButton(
-                  onPressed: () async {
-                    var alert = await DialogT.showAlertDl(context, title: ct.csUid ?? 'NULL');
-                    if(alert == false) {
-                      WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
-                      return;
-                    }
-
-                    var data = await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
-                    if(data == null) { WidgetT.showSnackBar(context, text: 'Database Error'); return; }
-                    WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
-                    Navigator.pop(context);
-                  },
-                  style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
-                  child: Container(
-                      color: StyleT.accentColor.withOpacity(0.5), height: 42,
-                      child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          WidgetT.iconMini(Icons.save),
-                          Text('계약저장', style: StyleT.titleStyle(),),
-                          SizedBox(width: 6,),
-                        ],
-                      )
-                  )
-              ),),
-            ],
-          ),
+          buildAction(),
         ],
       ),
+    );
+  }
+
+
+  Widget buildAction() {
+    var revenueSaveWidget = ButtonT.ActionLegacy("신규 매출 등록",
+      expend: true,
+      icon: Icons.output, backgroundColor: Colors.blue.withOpacity(0.5),
+      onTap: () async {
+       UIState.OpenNewWindow(context, WindowReCreateWithCt(refresh: () async { await initAsync(); }, ct: ct,));
+      },
+    );
+    var purchaseSaveWidget = ButtonT.Action(
+      context, "신규 매입 등록",
+      expend: true,
+      icon: Icons.schedule, backgroundColor: Colors.redAccent.withOpacity(0.5),
+      onTap: () async {
+        UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct,));
+      },
+    );
+    var scheduleSaveWidget = ButtonT.Action(
+      context, "신규 일정 등록",
+      expend: true,
+      icon: Icons.schedule, backgroundColor: Colors.blueGrey.withOpacity(0.5),
+      onTap: () async {
+        UIState.OpenNewWindow(context, WindowSchCreate(refresh: () async { await initAsync(); }, ct: ct,));
+      },
+    );
+
+
+
+    var saveWidget = ButtonT.Action(
+      context, "계약 저장",
+      expend: true,
+      altText: "변경된 계약 정보를 저장하시겠습니까? ",
+      icon: Icons.save, backgroundColor: StyleT.accentColor.withOpacity(0.5),
+      onTap: () async {
+        var data = await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
+        if(data == null) return Messege.toReturn(context, "Database Error", false);
+        widget.parent.onCloseButtonClicked!();
+      },
+    );
+
+    return Column(
+      children: [
+        Row( children: [ revenueSaveWidget, purchaseSaveWidget, scheduleSaveWidget ],  ),
+        Row(
+          children: [
+            saveWidget,
+          ],
+        ),
+      ],
     );
   }
 

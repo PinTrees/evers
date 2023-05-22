@@ -65,7 +65,7 @@ class ViewCustomer extends StatelessWidget {
     if(menu == '매입매출관리') {
       if (currentView == '매입') {
         crRpmenuRp = ''; crRrpmenuDt = '';
-        pur_sort_list = await SystemT.searchPuMeta(search,);
+        //pur_sort_list = await SystemT.searchPuMeta(search,);
       }
       else if (currentView == '매출') {
         crRpmenuRp = ''; crRrpmenuDt = '';

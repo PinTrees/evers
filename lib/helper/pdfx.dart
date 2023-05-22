@@ -32,7 +32,7 @@ import 'aes.dart';
 
 class PdfManager {
   static void OpenPdf(dynamic downloadUrl, String fileName) async {
-    var ens = ENAESX.fUrlAES(downloadUrl);
+    var ens = ENAESX.fullUrlAES(downloadUrl);
     var url = Uri.base.toString().split('/work').first + '/pdfview/$ens/$fileName/e';
     await launchUrl( Uri.parse(url),   webOnlyWindowName: true ? '_blank' : '_self', );
   }
