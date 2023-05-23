@@ -14,6 +14,7 @@ class InputWidget {
     }
     var w = Row(
       children: [
+        SizedBox(height: 64,),
         Expanded(
           child: Container(
             height: 36,

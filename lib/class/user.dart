@@ -76,6 +76,17 @@ class UserData {
   }
 
 
+  /// 이 함수는 해당권한이 유저에게 존재하는지에 대한 여부를 true, false 로 반환합니다
+  bool isPermit(PermissionType permit) {
+    var code = permit.code;
+    if(permission.containsKey(code)) {
+      return permission[code];
+    } else {
+      return false;
+    }
+  }
+
+
   /// 이 함수는 생성이 완료된 유저정보에 대헤 데이터베이스 변경을 시도하고 결과를 반환합니다.
   /// Cloud Function 벡엔드로 재설계 되어야 합니다.
   dynamic update() async {

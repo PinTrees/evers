@@ -9,6 +9,7 @@ import 'package:evers/class/system/state.dart';
 import 'package:evers/class/user.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/text.dart';
+import 'package:evers/class/widget/widget.dart';
 import 'package:evers/helper/datetime.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
@@ -26,6 +27,7 @@ import 'package:http/http.dart' as http;
 
 import '../../class/system.dart';
 import '../../class/widget/list.dart';
+import '../../core/xxx/xxx.dart';
 import '../../helper/interfaceUI.dart';
 import '../../ui/dialog_schedule.dart';
 import '../window/window_user_create.dart';
@@ -65,7 +67,13 @@ class ViewUserAuth extends StatelessWidget {
     userList = await DatabaseM.getUserDataList();
   }
 
+  Widget titleWidget = SizedBox();
+  Widget bottomWidget = SizedBox();
+
   dynamic mainView(BuildContext context, String menu, { Widget? topWidget, Widget? infoWidget, bool refresh=false }) async {
+    titleWidget = SizedBox();
+    bottomWidget = SizedBox();
+
     if(this.menu != menu) {
       sort = false; searchInput.text = '';
     }
@@ -74,13 +82,63 @@ class ViewUserAuth extends StatelessWidget {
     }
 
     this.menu = menu;
-    Widget titleWidget = SizedBox();
-    Widget bottomWidget = SizedBox();
 
-    List<Widget> childrenW = [];
+
+    List<Widget> widgets = [];
 
     if(menu == '계정현황') {
-      childrenW.clear();
+      widgets.clear();
+      widgets.add(Widgets.LoadingBar());
+      if(UserSystem.userData.id != XXX.databaseAdminUserUID) {
+        widgets.clear();
+        widgets.add(Widgets.AccessRestriction());
+      }
+      else widgets = authInfoWidget(context);
+    }
+
+    var main = Column (
+      children: [
+        if(topWidget != null) topWidget,
+        Expanded(
+          child: Row(
+            children: [
+              if(infoWidget != null) infoWidget,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleWidget,
+                    WidgetT.dividHorizontal(size: 1.4),
+                    Expanded(
+                      child: ListView(
+                        padding: EdgeInsets.all(12),
+                        children: [
+                          Column(children: widgets,),
+                          SizedBox(height: 18,),
+                        ],
+                      ),
+                    ),
+                    bottomWidget,
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    return main;
+  }
+
+
+  dynamic authInfoWidget(BuildContext context) {
+    List<Widget> widgets = [];
+    if(menu == '계정현황') {
+      widgets.clear();
+      if(UserSystem.userData.id != XXX.databaseAdminUserUID) {
+        widgets.add(Widgets.LoadingBar());
+        return;
+      };
 
       var titleText = TextT.Title(text: "계정목록");
 
@@ -126,54 +184,23 @@ class ViewUserAuth extends StatelessWidget {
                 ),
               ),
               ButtonT.Icon(
-                icon:Icons.create,
-                onTap: () {
-                  UIState.OpenNewWindow(context, WindowUserEditor(user: user, refresh: () { FunT.setStateMain(); }));
-                }
+                  icon:Icons.create,
+                  onTap: () {
+                    UIState.OpenNewWindow(context, WindowUserEditor(user: user, refresh: () { FunT.setStateMain(); }));
+                  }
               ),
             ],
           ),
         ));
       });
 
-      childrenW.add(ListBoxT.Columns(
-          spacingWidget:WidgetT.dividHorizontal(size: 0.35),
+      widgets.add(ListBoxT.Columns(
+        spacingWidget:WidgetT.dividHorizontal(size: 0.35),
         crossAxisAlignment:CrossAxisAlignment.start, children: userWidgetList,
       ));
     }
 
-    var main = Column (
-      children: [
-        if(topWidget != null) topWidget,
-        Expanded(
-          child: Row(
-            children: [
-              if(infoWidget != null) infoWidget,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    titleWidget,
-                    WidgetT.dividHorizontal(size: 1.4),
-                    Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.all(12),
-                        children: [
-                          Column(children: childrenW,),
-                          SizedBox(height: 18,),
-                        ],
-                      ),
-                    ),
-                    bottomWidget,
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-    return main;
+    return widgets;
   }
 
   Widget build(context) {

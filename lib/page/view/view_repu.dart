@@ -6,7 +6,10 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_re.dart';
 import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/user.dart';
 import 'package:evers/class/widget/button.dart';
+import 'package:evers/class/widget/page.dart';
+import 'package:evers/class/widget/widget.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/main.dart';
@@ -24,39 +27,34 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../class/Customer.dart';
-import '../class/contract.dart';
-import '../class/purchase.dart';
-import '../class/revenue.dart';
-import '../class/schedule.dart';
-import '../class/system.dart';
-import '../class/system/search.dart';
-import '../class/system/state.dart';
-import '../class/transaction.dart';
-import '../class/widget/list.dart';
-import '../class/widget/text.dart';
-import '../class/widget/textInput.dart';
-import '../helper/dialog.dart';
-import '../helper/firebaseCore.dart';
-import '../helper/interfaceUI.dart';
-import '../helper/pdfx.dart';
-import '../page/window/window_ct.dart';
-import 'cs.dart';
-import 'dialog_contract.dart';
-import 'dialog_pu.dart';
-import 'dl.dart';
+import '../../class/Customer.dart';
+import '../../class/contract.dart';
+import '../../class/purchase.dart';
+import '../../class/revenue.dart';
+import '../../class/schedule.dart';
+import '../../class/system.dart';
+import '../../class/system/search.dart';
+import '../../class/system/state.dart';
+import '../../class/transaction.dart';
+import '../../class/widget/list.dart';
+import '../../class/widget/text.dart';
+import '../../class/widget/textInput.dart';
+import '../../helper/dialog.dart';
+import '../../helper/firebaseCore.dart';
+import '../../helper/interfaceUI.dart';
+import '../../helper/pdfx.dart';
+import '../window/window_ct.dart';
+import '../../ui/cs.dart';
+import '../../ui/dialog_contract.dart';
+import '../../ui/dialog_pu.dart';
+import '../../ui/dl.dart';
 import 'package:http/http.dart' as http;
 
-import 'ux.dart';
+import '../../ui/ux.dart';
 
 class ViewRePu extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
-  var scrollVertController = ScrollController();
-  var scrollHorController = ScrollController();
   var divideHeight = 6.0;
-
-  var sizePrice = 80.0;
-  var sizeDate = 80.0;
 
   List<Purchase> puList = [];
   List<Revenue> revList = [];
@@ -129,11 +127,10 @@ class ViewRePu extends StatelessWidget {
     await FunT.setStateMain();
   }
 
-  var menuStyle = StyleT.buttonStyleNone(round: 8, elevation: 0, padding: 0, color: Colors.blueAccent.withOpacity(0.15), );
-  var menuSelectStyle = StyleT.buttonStyleNone(round: 8, elevation: 0, padding: 0, color: Colors.blueAccent.withOpacity(0.35), );
   var menuPadding = EdgeInsets.fromLTRB(6 * 4, 6 * 1, 6 * 4, 6 * 1);
   var disableTextColor = StyleT.titleColor.withOpacity(0.35);
 
+  /// 이 함수는 해당 페이지의 메인뷰를 구성하고 반환합니다.
   dynamic mainView(BuildContext context, String menu, { Widget? topWidget, Widget? infoWidget, bool refresh=false  }) async {
     if(this.menu != menu) {
       sort = false; searchInput.text = '';
@@ -153,11 +150,11 @@ class ViewRePu extends StatelessWidget {
     this.menu = menu;
 
     Widget titleMenu = SizedBox();
-    Widget bottomWidget = SizedBox();
 
-    List<Widget> childrenW = [];
+    List<Widget> widgets = [];
     if(menu == '매입매출관리') {
-      childrenW.clear();
+      widgets.clear();
+
       titleMenu = Column(
         children: [
           Row(
@@ -323,7 +320,7 @@ class ViewRePu extends StatelessWidget {
                     revList.clear();
                     FunT.setStateMain();
                   },
-                  child: Container( height: 32, 
+                  child: Container( height: 32,
                     padding: menuPadding,
                     child: WidgetT.text('검색초기화', size: 14, bold: true,
                         color: StyleT.textColor.withOpacity(0.5)),
@@ -335,99 +332,31 @@ class ViewRePu extends StatelessWidget {
         ],
       );
 
+
+      /// 현재 상세메뉴 분기 확인
       if(currentView == '매입') {
-        if(puList.isEmpty) {
-          puList = await DatabaseM.getPurchase( startDate: rpStartAt.microsecondsSinceEpoch, lastDate: rpLastAt.microsecondsSinceEpoch);
+        /// 유저 매입정보 읽기권한 확인
+        if(UserSystem.userData.isPermissioned(PermissionType.isPurchaseRead.code)) {
+          widgets.add(await buildPurchaseView(context));
         }
-
-        var data = sort ? puSortList : puList;
-        for(int i = 0; i < data.length; i++) {
-          Purchase pu = data[i];
-          var cs = await SystemT.getCS(pu.csUid);
-          childrenW.add(CompPU.tableUIMain(context, pu, index: i + 1,
-            cs: cs, refresh: () {
-              FunT.setRefreshMain();
-            },
-          ));
-          childrenW.add(WidgetT.dividHorizontal(size: 0.35),);
+        else {
+          widgets.clear();
+          widgets.add(Widgets.AccessRestriction());
         }
-
-        if(!sort)
-          childrenW.add(InkWell(
-          onTap: () async {
-            WidgetT.loadingBottomSheet(context, text: '로딩중');
-
-            var list = await DatabaseM.getPurchase(
-              startAt: puList.last.id,
-              startDate: rpStartAt.microsecondsSinceEpoch,
-              lastDate: rpLastAt.microsecondsSinceEpoch,
-            );
-            puList.addAll(list);
-
-            Navigator.pop(context);
-            await FunT.setStateMain();
-          },
-          child: Container(
-            height: 36,
-            child: Row(
-              children: [
-                WidgetT.iconMini(Icons.add_box, size: 36),
-                WidgetT.title('더보기'),
-              ],
-            ),
-          ),
-        ));
       }
       else if(currentView == '매출') {
-        if(revList.length < 1) revList = await DatabaseM.getRevenue(
-          startDate: rpStartAt.microsecondsSinceEpoch,
-          lastDate: rpLastAt.microsecondsSinceEpoch,
-        );
-
-        var data = sort ? reSortList : revList;
-        for(int i = 0; i < data.length; i++) {
-          var rev = data[i];
-          var cs = await SystemT.getCS(rev.csUid) ?? Customer.fromDatabase({});
-          var ct = await SystemT.getCt(rev.ctUid) ?? Contract.fromDatabase({});
-          var w = CompRE.tableUIMain(context, rev,
-            cs: cs, ct: ct, index: i + 1,
-            refresh: () { mainView(context, menu, refresh: true); },
-            setState: () { FunT.setStateMain(); }
-          );
-          childrenW.add(w);
-          childrenW.add(WidgetT.dividHorizontal(size: 0.35),);
+        /// 유저 매출정보 읽기권한 확인
+        if(UserSystem.userData.isPermissioned(PermissionType.isRevenueRead.code)) {
+          widgets.add(await buildRevenueView(context));
         }
-
-        if(!sort)
-          childrenW.add(InkWell(
-          onTap: () async {
-            WidgetT.loadingBottomSheet(context, text: '로딩중');
-
-            var list = await DatabaseM.getRevenue(
-              startAt: revList.last.id,
-              startDate: rpStartAt.microsecondsSinceEpoch,
-              lastDate: rpLastAt.microsecondsSinceEpoch,
-            );
-            revList.addAll(list);
-
-            Navigator.pop(context);
-            await FunT.setStateMain();
-          },
-          child: Container(
-            height: 36,
-            child: Row(
-              children: [
-                WidgetT.iconMini(Icons.add_box, size: 36),
-                WidgetT.title('더보기'),
-              ],
-            ),
-          ),
-        ));
+        else {
+          widgets.clear();
+          widgets.add(Widgets.AccessRestriction());
+        }
       }
     }
-
     else if(menu == '수납관리') {
-      childrenW.clear();
+      widgets.clear();
       titleMenu = Column(
         children: [
           Row(
@@ -557,90 +486,149 @@ class ViewRePu extends StatelessWidget {
         ],
       );
 
-      if(tsList.length < 1) {
-        tsList = await DatabaseM.getTransaction(
-          startDate: rpStartAt.microsecondsSinceEpoch,
-          lastDate: rpLastAt.microsecondsSinceEpoch,
-        );
+      /// 유저 수납정보 읽기권한 확인
+      if(UserSystem.userData.isPermissioned(PermissionType.isPaymentRead.code)) {
+        widgets.add(await buildPaymentView(context));
       }
-
-      var datas = sort ? tsSortList : tsList;
-      for(int i = 0; i < datas.length; i++) {
-        var tmpTs = datas[i];
-        var cs = await SystemT.getCS(tmpTs.csUid);
-
-        Widget w = CompTS.tableUIMain( tmpTs,
-          context: context, index: i + 1, cs: cs,
-          setState: () { mainView(context, menu); },
-          refresh: () { mainView(context, menu, refresh: true); }
-        );
-
-        childrenW.add(w);
-        childrenW.add(WidgetT.dividHorizontal(size: 0.35));
-      }
-
-      if(!sort) {
-        childrenW.add(InkWell(
-          onTap: () async {
-            WidgetT.loadingBottomSheet(context, text: '로딩중');
-
-            var list = await DatabaseM.getTransaction(
-                startAt: tsList.last.id,
-                startDate: rpStartAt.microsecondsSinceEpoch,
-                lastDate: rpLastAt.microsecondsSinceEpoch,
-            );
-            tsList.addAll(list);
-
-            Navigator.pop(context);
-            await FunT.setStateMain();
-          },
-          child: Container(
-            height: 36,
-            child: Row(
-              children: [
-                WidgetT.iconMini(Icons.add_box, size: 36),
-                WidgetT.title('더보기'),
-              ],
-            ),
-          ),
-        ));
+      else {
+        widgets.clear();
+        widgets.add(Widgets.AccessRestriction());
       }
     }
 
-    var main = Column(
-      children: [
-        if(topWidget != null) topWidget,
-        Expanded(
-          child: Row(
-            children: [
-              if(infoWidget != null) infoWidget,
-              Expanded(
-                child: Column(
-                  children: [
-                    titleMenu,
-                    if(menu == '매입매출관리') CompPU.tableHeaderMain(),
-                    if(menu == '수납관리') TS.OnTableHeaderMain(),
-                    WidgetT.dividHorizontal(size: 0.7),
-                    Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.all(12),
-                        children: [
-                          Column(children: childrenW,),
-                          SizedBox(height: 18,),
-                        ],
-                      ),
-                    ),
-                    bottomWidget,
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+
+    var main = PageWidget.Main(
+      topWidget: topWidget,
+      infoWidget: infoWidget,
+      titleWidget: Column(children: [
+        titleMenu,
+        if(menu == '매입매출관리') CompPU.tableHeaderMain(),
+        if(menu == '수납관리') TS.OnTableHeaderMain(),
+      ],),
+      children: widgets,
     );
     return main;
   }
+
+  /// 이 함수는 매출화면 위젯을 구성하고 반환합니다.
+  dynamic buildRevenueView(BuildContext context) async {
+    List<Widget> widgets = [];
+
+    if(revList.isEmpty) revList = await DatabaseM.getRevenue(startDate: rpStartAt.microsecondsSinceEpoch,  lastDate: rpLastAt.microsecondsSinceEpoch, );
+
+    var data = sort ? reSortList : revList;
+    int index = 1;
+    for(var re in data) {
+      var cs = await SystemT.getCS(re.csUid) ?? Customer.fromDatabase({});
+      var ct = await SystemT.getCt(re.ctUid) ?? Contract.fromDatabase({});
+      var w = CompRE.tableUIMain(context, re,
+          cs: cs, ct: ct, index: index++,
+          refresh: () { mainView(context, menu, refresh: true); },
+          setState: FunT.setStateMain,
+      );
+      widgets.add(w);
+      widgets.add(WidgetT.dividHorizontal(size: 0.35),);
+    }
+
+    if(!sort) {
+      var moreWidget = ButtonT.IconText(
+          icon: Icons.add_box, text: "더보기",
+          onTap:() async {
+            WidgetT.loadingBottomSheet(context, text: '로딩중');
+            var list = await DatabaseM.getRevenue(
+              startAt: revList.last.id,
+              startDate: rpStartAt.microsecondsSinceEpoch,
+              lastDate: rpLastAt.microsecondsSinceEpoch,
+            );
+            revList.addAll(list);
+            Navigator.pop(context);
+            await FunT.setStateMain();
+          }
+      );
+      widgets.add(moreWidget);
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: widgets,);
+  }
+
+  /// 이 함수는 매입화면 위젯을 구성하고 반환합니다.
+  dynamic buildPurchaseView(BuildContext context) async {
+    List<Widget> widgets = [];
+
+    if(puList.isEmpty) {
+      puList = await DatabaseM.getPurchase( startDate: rpStartAt.microsecondsSinceEpoch, lastDate: rpLastAt.microsecondsSinceEpoch);
+    }
+
+    var data = sort ? puSortList : puList;
+    int index = 1;
+    for(var pu in data) {
+      var cs = await SystemT.getCS(pu.csUid);
+      widgets.add(CompPU.tableUIMain(context, pu, index: index++,
+        cs: cs, refresh: FunT.setRefreshMain,
+      ));
+      widgets.add(WidgetT.dividHorizontal(size: 0.35),);
+    }
+
+    if(!sort) {
+      var moreWidget = ButtonT.IconText(
+        icon: Icons.add_box, text: "더보기",
+        onTap: () async {
+          WidgetT.loadingBottomSheet(context, text: '로딩중');
+          var list = await DatabaseM.getPurchase(
+            startAt: puList.last.id,
+            startDate: rpStartAt.microsecondsSinceEpoch,
+            lastDate: rpLastAt.microsecondsSinceEpoch,
+          );
+          puList.addAll(list);
+          Navigator.pop(context);
+          await FunT.setStateMain();
+        }
+      );
+      widgets.add(moreWidget);
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: widgets,);
+  }
+
+  /// 이 함수는 수납화면 위젯을 구성하고 반환합니다.
+  dynamic buildPaymentView(BuildContext context) async {
+    List<Widget> widgets = [];
+
+    if(tsList.isEmpty) tsList = await DatabaseM.getTransaction( startDate: rpStartAt.microsecondsSinceEpoch, lastDate: rpLastAt.microsecondsSinceEpoch, );
+
+    var datas = sort ? tsSortList : tsList;
+    int index = 1;
+    for(var ts in datas) {
+      var cs = await SystemT.getCS(ts.csUid);
+      Widget w = CompTS.tableUIMain(ts,
+          context: context, index: index++, cs: cs,
+          setState: () { mainView(context, menu); },
+          refresh: () { mainView(context, menu, refresh: true); }
+      );
+      widgets.add(w);
+      widgets.add(WidgetT.dividHorizontal(size: 0.35));
+    }
+
+    if(!sort) {
+      var moreWidget = ButtonT.IconText(
+        icon: Icons.add_box, text: "더보기",
+        onTap: () async {
+          WidgetT.loadingBottomSheet(context, text: '로딩중');
+          var list = await DatabaseM.getTransaction(
+            startAt: tsList.last.id,
+            startDate: rpStartAt.microsecondsSinceEpoch,
+            lastDate: rpLastAt.microsecondsSinceEpoch,
+          );
+          tsList.addAll(list);
+          Navigator.pop(context);
+          await FunT.setStateMain();
+        }
+      );
+      widgets.add(moreWidget);
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: widgets,);
+  }
+
 
   Widget build(context) {
     return Container();
