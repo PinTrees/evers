@@ -277,7 +277,6 @@ class InputWidget {
           ),
         ),
       );
-
       inputWidget = Focus(
         onFocusChange: (hasFocus) async {
           if(!hasFocus) {
@@ -293,6 +292,7 @@ class InputWidget {
     if(expand) inputWidget = Expanded(child: inputWidget);
 
     var w = Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         if(lavel != null) TextT.Lit(text: lavel, width: widthLavel ?? 100, color: StyleT.titleColor, size: 12, bold: true),
         if(lavel != null) SizedBox(width: 6,),

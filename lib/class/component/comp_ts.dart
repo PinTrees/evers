@@ -1,6 +1,7 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/system/records.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +19,7 @@ import '../system.dart';
 import '../system/state.dart';
 import '../transaction.dart';
 import '../widget/button.dart';
+import '../widget/list.dart';
 import '../widget/text.dart';
 
 class CompTS {
@@ -204,116 +206,124 @@ class CompTS {
     if(context == null) return Container();
     if(setState == null) return Container();
 
-    var w = Container( height: 28,
-      child: Row(
+    var w = ListBoxT.Columns(
+      spacingStartEnd: 6,
+      children: [
+        Row(
+            children: [
+              ExcelT.LitGrid(text: '${ index ?? '-'}', width: 28, center: true),
+              ExcelT.LitInput(context, '$index::ts거래일자', width: 150, index: index,
+                onEdited: (i, data) {
+                  var date = DateTime.tryParse(data.toString().replaceAll('/','')) ?? DateTime.now();
+                  ts.transactionAt = date.microsecondsSinceEpoch;
+                },
+                setState: setState,
+                text: StyleT.dateInputFormatAtEpoch(ts.transactionAt.toString()),
+              ),
+              ExcelT.LitGrid(text: (ts.type != 'PU') ? '수입' : '지출', width: 100, center: true),
+              SizedBox(
+                height: 28, width: 28,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton2(
+                    focusColor: Colors.transparent,
+                    focusNode: FocusNode(),
+                    autofocus: false,
+                    customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
+                    items: ['수입', '지출'].map((item) => DropdownMenuItem<dynamic>(
+                      value: item,
+                      child: Text(
+                        item,
+                        style: StyleT.titleStyle(),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )).toList(),
+                    onChanged: (value) async {
+                      if(value == '수입') ts.type = 'RE';
+                      else if(value == '지출') ts.type = 'PU';
+                      else ts.type = 'ETC';
+                      setState();
+                    },
+                    itemHeight: 24,
+                    itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                    dropdownWidth: 100 + 28,
+                    dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                    dropdownDecoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1.7,
+                        color: Colors.grey.withOpacity(0.5),
+                      ),
+                      borderRadius: BorderRadius.circular(0),
+                      color: Colors.white.withOpacity(0.95),
+                    ),
+                    dropdownElevation: 0,
+                    offset: const Offset(-128 + 28, 0),
+                  ),
+                ),
+              ),
+              ExcelT.LitInput(context, '$index::ts적요', width: 250, index: index,
+                onEdited: (i, data) { ts.summary = data; }, text: ts.summary,
+                setState: setState, expand: true,
+              ),
+              ExcelT.LitGrid(text: (SystemT.accounts[ts.account] != null) ? SystemT.accounts[ts.account]!.name : 'NULL', width: 180, center: true),
+              SizedBox(
+                height: 28, width: 28,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton2(
+                    focusColor: Colors.transparent,
+                    focusNode: FocusNode(),
+                    autofocus: false,
+                    customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
+                    items: SystemT.accounts.keys.map((item) => DropdownMenuItem<dynamic>(
+                      value: item,
+                      child: Text(
+                        (SystemT.accounts[item] != null) ? SystemT.accounts[item]!.name : 'NULL',
+                        style: StyleT.titleStyle(),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )).toList(),
+                    onChanged: (value) async {
+                      ts.account = value;
+                      setState();
+                    },
+                    itemHeight: 24,
+                    itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                    dropdownWidth: 180 + 28,
+                    dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                    dropdownDecoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1.7,
+                        color: Colors.grey.withOpacity(0.5),
+                      ),
+                      borderRadius: BorderRadius.circular(0),
+                      color: Colors.white.withOpacity(0.95),
+                    ),
+                    dropdownElevation: 0,
+                    offset: const Offset(-208 + 28, 0),
+                  ),
+                ),
+              ),
+              ExcelT.LitInput(context, '$index::ts금액', width: 120, index: index,
+                onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
+                setState: setState,
+                text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
+              ButtonT.Icon(
+                icon: Icons.cancel,
+                onTap: () async {
+                  ts.type = 'DEL';
+                  setState();
+                },
+              ),
+            ]
+        ),
+        Row(
           children: [
-            ExcelT.LitGrid(text: '${ index ?? '-'}', width: 28, center: true),
-            ExcelT.LitInput(context, '$index::ts거래일자', width: 150, index: index,
-              onEdited: (i, data) {
-                var date = DateTime.tryParse(data.toString().replaceAll('/','')) ?? DateTime.now();
-                ts.transactionAt = date.microsecondsSinceEpoch;
-              },
-              setState: setState,
-              text: StyleT.dateInputFormatAtEpoch(ts.transactionAt.toString()),
-            ),
-            ExcelT.LitGrid(text: (ts.type != 'PU') ? '수입' : '지출', width: 100, center: true),
-            SizedBox(
-              height: 28, width: 28,
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton2(
-                  focusColor: Colors.transparent,
-                  focusNode: FocusNode(),
-                  autofocus: false,
-                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                  items: ['수입', '지출'].map((item) => DropdownMenuItem<dynamic>(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: StyleT.titleStyle(),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )).toList(),
-                  onChanged: (value) async {
-                    if(value == '수입') ts.type = 'RE';
-                    else if(value == '지출') ts.type = 'PU';
-                    else ts.type = 'ETC';
-                    setState();
-                  },
-                  itemHeight: 24,
-                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                  dropdownWidth: 100 + 28,
-                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                  dropdownDecoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1.7,
-                      color: Colors.grey.withOpacity(0.5),
-                    ),
-                    borderRadius: BorderRadius.circular(0),
-                    color: Colors.white.withOpacity(0.95),
-                  ),
-                  dropdownElevation: 0,
-                  offset: const Offset(-128 + 28, 0),
-                ),
-              ),
-            ),
-            ExcelT.LitInput(context, '$index::ts적요', width: 250, index: index,
-              onEdited: (i, data) { ts.summary = data; }, text: ts.summary,
-              setState: setState,
-            ),
-            ExcelT.LitGrid(text: (SystemT.accounts[ts.account] != null) ? SystemT.accounts[ts.account]!.name : 'NULL', width: 180, center: true),
-            SizedBox(
-              height: 28, width: 28,
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton2(
-                  focusColor: Colors.transparent,
-                  focusNode: FocusNode(),
-                  autofocus: false,
-                  customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                  items: SystemT.accounts.keys.map((item) => DropdownMenuItem<dynamic>(
-                    value: item,
-                    child: Text(
-                      (SystemT.accounts[item] != null) ? SystemT.accounts[item]!.name : 'NULL',
-                      style: StyleT.titleStyle(),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  )).toList(),
-                  onChanged: (value) async {
-                    ts.account = value;
-                    setState();
-                  },
-                  itemHeight: 24,
-                  itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                  dropdownWidth: 180 + 28,
-                  dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                  dropdownDecoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1.7,
-                      color: Colors.grey.withOpacity(0.5),
-                    ),
-                    borderRadius: BorderRadius.circular(0),
-                    color: Colors.white.withOpacity(0.95),
-                  ),
-                  dropdownElevation: 0,
-                  offset: const Offset(-208 + 28, 0),
-                ),
-              ),
-            ),
-            ExcelT.LitInput(context, '$index::ts금액', width: 120, index: index,
-              onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
-              setState: setState,
-              text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
+            TextT.Lit(text: "메모", width: 100),
             ExcelT.LitInput(context, '$index::ts메모', width: 250, index: index,
               setState: setState, expand: true,
               onEdited: (i, data) { ts.memo = data;}, text: ts.memo,  ),
-            ButtonT.Icon(
-              icon: Icons.cancel,
-              onTap: () async {
-                ts.type = 'DEL';
-                setState();
-              },
-            ),
-          ]
-      ),
+          ],
+        )
+      ],
     );
     return w;
   }
@@ -329,116 +339,114 @@ class CompTS {
     if(context == null) return Container();
     if(setState == null) return Container();
 
-    var w = Column(
+    var w = ListBoxT.Columns(
+      spacingStartEnd: 6,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container( height: 28,
-          child: Row(
-              children: [
-                ExcelT.LitGrid(text: '${ index ?? '-'}', width: 28, center: true),
-                ExcelT.LitInput(context, '$index::ts.editor.거래일자', width: 150, index: index,
-                  onEdited: (i, data) {
-                    var date = DateTime.tryParse(data.toString().replaceAll('/','')) ?? DateTime.now();
-                    ts.transactionAt = date.microsecondsSinceEpoch;
-                  },
-                  setState: setState,
-                  text: StyleT.dateInputFormatAtEpoch(ts.transactionAt.toString()),
-                ),
-                ExcelT.LitGrid(text: (ts.type != 'PU') ? '수입' : '지출', width: 100, center: true),
-                SizedBox(
-                  height: 28, width: 28,
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton2(
-                      focusColor: Colors.transparent,
-                      focusNode: FocusNode(),
-                      autofocus: false,
-                      customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                      items: ['수입', '지출'].map((item) => DropdownMenuItem<dynamic>(
-                        value: item,
-                        child: Text(
-                          item,
-                          style: StyleT.titleStyle(),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )).toList(),
-                      onChanged: (value) async {
-                        if(value == '수입') ts.type = 'RE';
-                        else if(value == '지출') ts.type = 'PU';
-                        else ts.type = 'ETC';
-                        setState();
-                      },
-                      itemHeight: 24,
-                      itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                      dropdownWidth: 100 + 28,
-                      dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                      dropdownDecoration: BoxDecoration(
-                        border: Border.all(
-                          width: 1.7,
-                          color: Colors.grey.withOpacity(0.5),
-                        ),
-                        borderRadius: BorderRadius.circular(0),
-                        color: Colors.white.withOpacity(0.95),
+        Row(
+            children: [
+              ExcelT.LitGrid(text: '${ index ?? '-'}', width: 28, center: true),
+              ExcelT.LitInput(context, '$index::ts.editor.거래일자', width: 150, index: index,
+                onEdited: (i, data) {
+                  var date = DateTime.tryParse(data.toString().replaceAll('/','')) ?? DateTime.now();
+                  ts.transactionAt = date.microsecondsSinceEpoch;
+                },
+                setState: setState,
+                text: StyleT.dateInputFormatAtEpoch(ts.transactionAt.toString()),
+              ),
+              ExcelT.LitGrid(text: (ts.type != 'PU') ? '수입' : '지출', width: 100, center: true),
+              SizedBox(
+                height: 28, width: 28,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton2(
+                    focusColor: Colors.transparent,
+                    focusNode: FocusNode(),
+                    autofocus: false,
+                    customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
+                    items: ['수입', '지출'].map((item) => DropdownMenuItem<dynamic>(
+                      value: item,
+                      child: Text(
+                        item,
+                        style: StyleT.titleStyle(),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      dropdownElevation: 0,
-                      offset: const Offset(-128 + 28, 0),
+                    )).toList(),
+                    onChanged: (value) async {
+                      if(value == '수입') ts.type = 'RE';
+                      else if(value == '지출') ts.type = 'PU';
+                      else ts.type = 'ETC';
+                      setState();
+                    },
+                    itemHeight: 24,
+                    itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                    dropdownWidth: 100 + 28,
+                    dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                    dropdownDecoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1.7,
+                        color: Colors.grey.withOpacity(0.5),
+                      ),
+                      borderRadius: BorderRadius.circular(0),
+                      color: Colors.white.withOpacity(0.95),
                     ),
+                    dropdownElevation: 0,
+                    offset: const Offset(-128 + 28, 0),
                   ),
                 ),
-                ExcelT.LitInput(context, '$index::ts.editor.적요', width: 250, index: index,
-                  onEdited: (i, data) { ts.summary = data; }, text: ts.summary, expand: true,
-                  setState: setState,
-                ),
-                ExcelT.LitInput(context, '$index::ts.editor.금액', width: 150, index: index,
-                  onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
-                  setState: setState,
-                  text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
-                ExcelT.LitGrid(text: (SystemT.accounts[ts.account] != null) ? SystemT.accounts[ts.account]!.name : 'NULL', width: 150, center: true),
-                SizedBox(
-                  height: 28, width: 28,
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton2(
-                      focusColor: Colors.transparent,
-                      focusNode: FocusNode(),
-                      autofocus: false,
-                      customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
-                      items: SystemT.accounts.keys.map((item) => DropdownMenuItem<dynamic>(
-                        value: item,
-                        child: Text(
-                          (SystemT.accounts[item] != null) ? SystemT.accounts[item]!.name : 'NULL',
-                          style: StyleT.titleStyle(),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )).toList(),
-                      onChanged: (value) async {
-                        ts.account = value;
-                        setState();
-                      },
-                      itemHeight: 24,
-                      itemPadding: const EdgeInsets.only(left: 16, right: 16),
-                      dropdownWidth: 180 + 28,
-                      dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
-                      dropdownDecoration: BoxDecoration(
-                        border: Border.all(
-                          width: 1.7,
-                          color: Colors.grey.withOpacity(0.5),
-                        ),
-                        borderRadius: BorderRadius.circular(0),
-                        color: Colors.white.withOpacity(0.95),
+              ),
+              ExcelT.LitInput(context, '$index::ts.editor.적요', width: 250, index: index,
+                onEdited: (i, data) { ts.summary = data; }, text: ts.summary, expand: true,
+                setState: setState,
+              ),
+              ExcelT.LitInput(context, '$index::ts.editor.금액', width: 150, index: index,
+                onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
+                setState: setState,
+                text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
+              ExcelT.LitGrid(text: (SystemT.accounts[ts.account] != null) ? SystemT.accounts[ts.account]!.name : 'NULL', width: 150, center: true),
+              SizedBox(
+                height: 28, width: 28,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton2(
+                    focusColor: Colors.transparent,
+                    focusNode: FocusNode(),
+                    autofocus: false,
+                    customButton: WidgetT.iconMini(Icons.arrow_drop_down_circle_sharp),
+                    items: SystemT.accounts.keys.map((item) => DropdownMenuItem<dynamic>(
+                      value: item,
+                      child: Text(
+                        (SystemT.accounts[item] != null) ? SystemT.accounts[item]!.name : 'NULL',
+                        style: StyleT.titleStyle(),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      dropdownElevation: 0,
-                      offset: const Offset(-208 + 28, 0),
+                    )).toList(),
+                    onChanged: (value) async {
+                      ts.account = value;
+                      setState();
+                    },
+                    itemHeight: 24,
+                    itemPadding: const EdgeInsets.only(left: 16, right: 16),
+                    dropdownWidth: 180 + 28,
+                    dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+                    dropdownDecoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1.7,
+                        color: Colors.grey.withOpacity(0.5),
+                      ),
+                      borderRadius: BorderRadius.circular(0),
+                      color: Colors.white.withOpacity(0.95),
                     ),
+                    dropdownElevation: 0,
+                    offset: const Offset(-208 + 28, 0),
                   ),
                 ),
-              ]
-          ),
+              ),
+            ]
         ),
         Row(
             children: [
               TextT.Lit(text: "메모", size: 12, bold: true, width: 80),
               ExcelT.LitInput(context, '$index::ts.editor.메모', width: 250, index: index,
-                setState: setState, expand: true, alignment: Alignment.centerLeft,
-                textSize: 10, isMultiLine: true,
+                setState: setState, expand: true, alignment: Alignment.centerLeft, textSize: 10,
                 onEdited: (i, data) { ts.memo = data;}, text: ts.memo,  ),
             ]
         ),

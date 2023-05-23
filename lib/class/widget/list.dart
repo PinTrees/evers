@@ -23,11 +23,13 @@ class ListBoxT extends StatelessWidget {
     if(children == null) return SizedBox();
 
     List<Widget> widgets = [];
-    if(spacing != null)
+    if(spacing != null) {
       children.forEach((e) { widgets.add(e); widgets.add(SizedBox(width: spacing,)); });
+      if(!widgets.isEmpty) widgets.removeLast();
+    }
     else if(spacingWidget != null) {
       children.forEach((e) { widgets.add(e); widgets.add(spacingWidget); });
-      widgets.removeLast();
+      if(!widgets.isEmpty) widgets.removeLast();
     }
     else widgets = children;
 
@@ -80,11 +82,12 @@ class ListBoxT extends StatelessWidget {
     /// Column 위젯의 Vertical SizedBox 의 반목 추가자입니다.
     if(spacing != null) {
       children.forEach((e) { widgets.add(e); widgets.add(SizedBox(height: spacing,)); });
+      if(!widgets.isEmpty) widgets.removeLast();
     }
     /// 사용자 정의 위젯의 반복 추가자입니다.
     else if(spacingWidget != null) {
       children.forEach((e) { widgets.add(e); widgets.add(spacingWidget); });
-      widgets.removeLast();
+      if(!widgets.isEmpty) widgets.removeLast();
     }
     /// 사용자 정의 위젯의 반복 추가자입니다.
     else if(spacingStartEnd != null) {

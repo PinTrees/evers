@@ -192,8 +192,7 @@ class ViewRePu extends StatelessWidget {
                   ButtonT.TabMenu(
                     "품목 매입 추가", Icons.input,
                     onTap: () async {
-                      var result = await DialogPU.showCreateItemPu(context);
-                      FunT.setStateMain();
+                      UIState.OpenNewWindow(context, WindowPUCreate(refresh: FunT.setStateMain, isItemPurchase: true,));
                     },
                   ),
                   ButtonT.TabMenu(

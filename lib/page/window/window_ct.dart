@@ -30,6 +30,7 @@ import '../../class/transaction.dart';
 import '../../class/widget/button.dart';
 import '../../class/widget/excel.dart';
 import '../../class/widget/text.dart';
+import '../../class/widget/textInput.dart';
 import '../../core/window/window_base.dart';
 import '../../helper/dialog.dart';
 import '../../helper/firebaseCore.dart';
@@ -250,196 +251,144 @@ class _WindowCTState extends State<WindowCT> {
 
     var ctInfoWidget = Container(
       decoration: gridStyleT,
-      child: Column(children: [
-        Container( height: 28,
-          child: ListBoxT.Rows(
-              spacingWidget: WidgetT.dividViertical(),
-              children: [
-                ExcelT.ExcelInput(context, 'df계약명',
-                  lavel: "계약명", widthLavel: 150, width: 300,
-                  onEdited: (i, data) { ct.ctName = data; },
-                  setState: () { setState(() {}); },
-                  text: ct.ctName,
-                ),
-                ExcelT.ExcelGrid(
-                  lavel: "거래처", widthLavel: 150, width: 250,
-                  text: SystemT.getCSName(ct.csUid),
-                ),
-              ]
+      padding: EdgeInsets.only(left: 6, right: 6),
+      child: ListBoxT.Columns(
+        spacingStartEnd: 6,
+        children: [
+          InputWidget.Lit(context, 'df계약명',
+            lavel: "계약명", width: 250,
+            onEdited: (i, data) { ct.ctName = data; },
+            setState: () { setState(() {}); },
+            text: ct.ctName,
           ),
-        ),
-        WidgetT.dividHorizontal(size: 0.35),
-        Container( height: 28,
-          child: ListBoxT.Rows(
-              spacingWidget: WidgetT.dividViertical(),
-              children: [
-                ExcelT.ExcelInput(context, 'df구매부서',
-                  lavel: "구매부서", widthLavel: 150, width: 300,
-                  setState: () { setState(() {}); },
-                  onEdited: (i, data) { ct.purchasingDepartment = data; },
-                  text: ct.purchasingDepartment,
-                ),
-                ExcelT.ExcelInput(context, 'df담당자',
-                  lavel: "담당자", widthLavel: 150, width: 250,
-                  setState: () { setState(() {}); },
-                  onEdited: (i, data) { ct.manager = data; },
-                  text: ct.manager,
-                ),
-                ExcelT.ExcelInput(context, 'df연락처',
-                  lavel: "연락처", widthLavel: 150, width: 250,
-                  setState: () { setState(() {}); },
-                  onEdited: (i, data) { ct.managerPhoneNumber = data; },
-                  text: ct.managerPhoneNumber,
-                ),
-              ]
+          Row(
+            children: [
+              TextT.Lit(text: "거래처", width: 100, size: 12, bold: true),
+              TextT.Lit(text: SystemT.getCSName(ct.csUid), width: 250, size: 12, bold: true),
+            ],
           ),
-        ),
-        WidgetT.dividHorizontal(size: 0.35),
-        Container( height: 28,
-          child: ListBoxT.Rows(
-              spacingWidget: WidgetT.dividViertical(),
-              children: [
-                ExcelT.ExcelInput(context, 'df납품지주소',
-                  lavel: "납품지주소", widthLavel: 150, width: 300,
-                  setState: () { setState(() {}); },
-                  onEdited: (i, data) { ct.workSitePlace = data; },
-                  text: ct.workSitePlace, ),
-                ExcelT.ExcelInput(context, 'df계약일자',
-                  lavel: "계약일자", widthLavel: 150, width: 250,
-                  setState: () { setState(() {}); },
-                  onEdited: (i, data) { ct.contractAt = StyleT.dateEpoch(data); },
-                  text: StyleT.dateInputFormatAtEpoch(ct.contractAt.toString()),
-                ),
-              ]
+          InputWidget.Lit(context, 'df구매부서',
+            lavel: "구매부서", width: 250,
+            setState: () { setState(() {}); },
+            onEdited: (i, data) { ct.purchasingDepartment = data; },
+            text: ct.purchasingDepartment,
           ),
-        ),
-        WidgetT.dividHorizontal(size: 0.35),
-        Container( padding: EdgeInsets.all(0),
-          child: IntrinsicHeight(
-            child: Row(
+          InputWidget.Lit(context, 'df담당자',
+            lavel: "담당자", width: 250,
+            setState: () { setState(() {}); },
+            onEdited: (i, data) { ct.manager = data; },
+            text: ct.manager,
+          ),
+          InputWidget.Lit(context, 'df연락처',
+            lavel: "연락처",  width: 250,
+            setState: () { setState(() {}); },
+            onEdited: (i, data) { ct.managerPhoneNumber = data; },
+            text: ct.managerPhoneNumber,
+          ),
+          InputWidget.Lit(context, 'df납품지주소',
+            lavel: "납품지주소",  width: 400,
+            setState: () { setState(() {}); },
+            onEdited: (i, data) { ct.workSitePlace = data; },
+            text: ct.workSitePlace, ),
+          InputWidget.Lit(context, 'df계약일자',
+            lavel: "계약일자", width: 250,
+            setState: () { setState(() {}); },
+            onEdited: (i, data) { ct.contractAt = StyleT.dateEpoch(data); },
+            text: StyleT.dateInputFormatAtEpoch(ct.contractAt.toString()),
+          ),
+          InputWidget.Lit(context, 'input::메모',
+            lavel: "메모", expand: true, isMultiLine: true,
+            onEdited: (i, data) { ct.memo = data; },
+            setState: () { setState(() {}); },
+            text: ct.memo,
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextT.SubTitle(text: '계약서 첨부파일'),
+              SizedBox(height: dividHeight,),
+              Wrap(
+                runSpacing: dividHeight, spacing: dividHeight,
                 children: [
-                  WidgetEX.excelTitle(width: 150, text: '메모',),
-                  WidgetT.dividViertical(),
-                  Expanded(child: WidgetTF.textTitInput(context, '메모', isMultiLine: true, textSize: 12,
-                    onEdite: (i, data) { ct.memo = data; },
-                    setState: () { setState(() {}); },
-                    text: ct.memo,
-                  ),)
-                ]
-            ),
-          ),
-        ),
-        WidgetT.dividHorizontal(size: 0.35),
-        Container(
-            child: IntrinsicHeight(
-              child: Row(
-                children: [
-                  SizedBox(width: dividHeight * 2, height: 32),
-                  WidgetT.text('계약서 첨부파일', size: 10),
-                  SizedBox(width: dividHeight,),
-                  Expanded(
-                      flex: 3,
-                      child: Container( padding: EdgeInsets.all(dividHeight), child:Wrap(
-                        runSpacing: dividHeight, spacing: dividHeight,
-                        children: [
-                          for(int i = 0; i < ct.contractFiles.length; i++)
-                            ButtonT.IconText(
-                              icon: Icons.file_copy_rounded,
-                              text: ct.contractFiles.keys.elementAt(i),
-                              onTap: () async {
-                                var downloadUrl = ct.contractFiles.values.elementAt(i);
-                                var fileName = ct.contractFiles.keys.elementAt(i);
-                                PdfManager.OpenPdf(downloadUrl, fileName);
-                              },
-                              leaging: TextButton(
-                                  onPressed: () {
-                                    //fileByteList.remove(fileByteList.keys.elementAt(i));
-                                    setState(() {});
-                                  },
-                                  style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                  child: Container( height: 28, width: 28,
-                                    child: WidgetT.iconMini(Icons.cancel),)
-                              ),
-                            ),
-                          for(int i = 0; i < ctFileByteList.length; i++)
-                            ButtonT.IconText(
-                              icon: Icons.file_copy_rounded,
-                              text: ctFileByteList.keys.elementAt(i),
-                              onTap: () async {
-                                PDFX.showPDFtoDialog(context, data: ctFileByteList.values.elementAt(i), name: ctFileByteList.keys.elementAt(i));
-                              },
-                              leaging: TextButton(
-                                  onPressed: () {
-                                    ctFileByteList.remove(ctFileByteList.keys.elementAt(i));
-                                    setState(() {});
-                                  },
-                                  style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                  child: Container( height: 28, width: 28,
-                                    child: WidgetT.iconMini(Icons.cancel),)
-                              ),
-                            ),
-                        ],
-                      ), )),
-                  WidgetT.dividViertical(),
-                  SizedBox(width: dividHeight * 2,),
-                  WidgetT.text('추가 첨부파일', size: 10),
-                  SizedBox(width: dividHeight,),
-                  Expanded(
-                      flex: 7,
-                      child: Container(
-                        padding: EdgeInsets.all(dividHeight),
-                        child: Wrap(
-                          runSpacing: dividHeight, spacing: dividHeight * 3,
-                          children: [
-                            for(int i = 0; i < ct.filesMap.length; i++)
-                              ButtonT.IconText(
-                                icon: Icons.file_copy_rounded,
-                                text: ct.getFileName(ct.filesMap.keys.elementAt(i)),
-                                onTap: () async {
-                                  var downloadUrl = ct.filesMap.values.elementAt(i);
-                                  var fileName = ct.getFileName(ct.filesMap.keys.elementAt(i));
-                                  PdfManager.OpenPdf(downloadUrl, fileName);
-                                  },
-                                leaging: TextButton(
-                                    onPressed: () {
-                                      WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
-                                      FunT.setStateDT();
-                                    },
-                                    style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                    child: Container( height: 28, width: 28,
-                                      child: WidgetT.iconMini(Icons.cancel),)
-                                ),
-                              ),
-                            for(int i = 0; i < fileByteList.length; i++)
-                              ButtonT.IconText(
-                                icon: Icons.file_copy_rounded,
-                                text: ct.getFileName(fileByteList.keys.elementAt(i)),
-                                onTap: () async {
-                                  PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
-                                },
-                                leaging: TextButton(
-                                    onPressed: () {
-                                      ctFileByteList.remove(ctFileByteList.keys.elementAt(i));
-                                      setState(() {});
-                                    },
-                                    style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                    child: TextButton(
-                                        onPressed: () {
-                                          fileByteList.remove(fileByteList.keys.elementAt(i));
-                                          FunT.setStateDT();
-                                        },
-                                        style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                        child: Container( height: 28, width: 28,
-                                          child: WidgetT.iconMini(Icons.cancel),)
-                                    ),
-                                ),
-                              ),
-                          ],
-                        ),)),
+                  for(int i = 0; i < ct.contractFiles.length; i++)
+                    ButtonT.IconText(
+                      icon: Icons.file_copy_rounded,
+                      text: ct.contractFiles.keys.elementAt(i),
+                      onTap: () async {
+                        var downloadUrl = ct.contractFiles.values.elementAt(i);
+                        var fileName = ct.contractFiles.keys.elementAt(i);
+                        PdfManager.OpenPdf(downloadUrl, fileName);
+                      },
+                      leaging: ButtonT.Icon(
+                        icon: Icons.delete,
+                        onTap: () {
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  for(int i = 0; i < ctFileByteList.length; i++)
+                    ButtonT.IconText(
+                      icon: Icons.file_copy_rounded,
+                      text: ctFileByteList.keys.elementAt(i),
+                      onTap: () async {
+                        PDFX.showPDFtoDialog(context, data: ctFileByteList.values.elementAt(i), name: ctFileByteList.keys.elementAt(i));
+                      },
+                      leaging: ButtonT.Icon(
+                        icon: Icons.delete,
+                        onTap: () {
+                          ctFileByteList.remove(ctFileByteList.keys.elementAt(i));
+                          setState(() {});
+                        },
+                      ),
+                    ),
                 ],
               ),
-            )
-        ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextT.SubTitle(text: '추가 첨부파일'),
+              SizedBox(height: dividHeight,),
+              Wrap(
+                runSpacing: dividHeight, spacing: dividHeight,
+                children: [
+                  for(int i = 0; i < ct.filesMap.length; i++)
+                    ButtonT.IconText(
+                      icon: Icons.file_copy_rounded,
+                      text: ct.getFileName(ct.filesMap.keys.elementAt(i)),
+                      onTap: () async {
+                        var downloadUrl = ct.filesMap.values.elementAt(i);
+                        var fileName = ct.getFileName(ct.filesMap.keys.elementAt(i));
+                        PdfManager.OpenPdf(downloadUrl, fileName);
+                      },
+                      leaging: ButtonT.Icon(
+                        icon:Icons.delete,
+                          onTap: () {
+                            WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+                            FunT.setStateDT();
+                          },
+                      ),
+                    ),
+                  for(int i = 0; i < fileByteList.length; i++)
+                    ButtonT.IconText(
+                      icon: Icons.file_copy_rounded,
+                      text: ct.getFileName(fileByteList.keys.elementAt(i)),
+                      onTap: () async {
+                        PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
+                      },
+                      leaging: ButtonT.Icon(
+                        icon: Icons.delete,
+                        onTap: () {
+                          fileByteList.remove(fileByteList.keys.elementAt(i));
+                          FunT.setStateDT();
+                        },
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
       ],),);
 
     return main = Container(

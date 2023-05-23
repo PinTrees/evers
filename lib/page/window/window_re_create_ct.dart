@@ -108,7 +108,7 @@ class _WindowReCreateWithCtState extends State<WindowReCreateWithCt> {
       re.vatType = currentVatType;
       re.init();
 
-      var w = CompRE.tableUIInputWithCs(context, re,
+      var w = CompRE.tableUIInputWithCt(context, re,
         index: i + 1,
         setState: () { setState(() {}); }
       );
