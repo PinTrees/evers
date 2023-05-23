@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/style.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -104,7 +105,9 @@ class ExcelT extends StatelessWidget {
 
 
   /// 이 함수는 텍스트 위젯을 반환합니다.
+  /// 메테리얼 디자인 3.0 적용됨
   ///
+  /// Version 1.0.1
   static Widget LitInput(BuildContext context, String key, {
     int? index,
     Function(int, dynamic)? onEdited,
@@ -125,7 +128,7 @@ class ExcelT extends StatelessWidget {
     if(isActive[key] == true) {
       w = Container(
         width: width ?? double.maxFinite,
-        height: isMultiLine ? height : 24,
+        height: isMultiLine ? height : 28,
         child: TextFormField(
           autofocus: true,
           maxLines: isMultiLine ? 10 : 1,
@@ -136,7 +139,17 @@ class ExcelT extends StatelessWidget {
             if(onEdited != null) await onEdited(index ?? 0, textInputs[key]!.text);
             if(setState != null) await setState();
           },
-          decoration: WidgetT.textInputDecoration( hintText: hint ?? '...', round: 4),
+          decoration: InputDecoration(
+            enabledBorder: OutlineInputBorder( borderRadius: BorderRadius.circular(6),
+                borderSide: BorderSide(color: StyleT.disableColor.withOpacity(0.0), width: 0.01)),
+            focusedBorder: OutlineInputBorder( borderRadius: BorderRadius.circular(6),
+              borderSide: BorderSide(color: Colors.grey.withOpacity(0.35), width: 1.4),),
+            filled: true,
+            fillColor: StyleT.accentColor.withOpacity(0.07),
+            hintText: '...',
+            hintStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
+            contentPadding: EdgeInsets.fromLTRB(8, 8, 8, 8),
+          ),
           controller: textInputs[key],
         ),
       );
@@ -152,8 +165,10 @@ class ExcelT extends StatelessWidget {
       );
     }
     else {
-      w = SizedBox(
-        height: height ?? 24,
+      w = Container(
+        height: height ?? 28,
+        width: width ?? double.maxFinite,
+        padding: EdgeInsets.only(left: 3, right: 3),
         child: InkWell(
           onFocusChange: (hasFocus) async {
             isActive[key] = true;
@@ -166,20 +181,14 @@ class ExcelT extends StatelessWidget {
             if(setState != null) await setState();
           },
           child: Container(
-            height: height ?? 24,
-            width: width ?? double.maxFinite,
             alignment: alignment ?? Alignment.center,
+            decoration: StyleT.inkStyle(color: Colors.grey.withOpacity(0.15), round: 8, stroke: 0.01, strokeColor: Colors.transparent),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(width: 4,),
-                Text(
-                  ((text == null) && (text == '')) ? (hint ?? '텍스트 입력') : text!,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: textSize ?? 12,
-                    color: textColor ?? StyleT.titleColor,
-                  ),
+                TextT.Lit(text: ((text == null) && (text == '')) ? (hint ?? '텍스트 입력') : text!,
+                  color: StyleT.titleColor, size: 12,
                 )
               ],
             ),
@@ -189,6 +198,7 @@ class ExcelT extends StatelessWidget {
     }
 
     if(expand) return Expanded(child: w);
+
     return w;
   }
 
@@ -227,7 +237,7 @@ class ExcelT extends StatelessWidget {
             if(onEdited != null) await onEdited(index ?? 0, textInputs[key]!.text);
             if(setState != null) await setState();
           },
-          decoration: WidgetT.textInputDecoration( hintText: hint ?? '...', round: 4),
+          decoration: WidgetT.textInputDecoration( hintText: hint ?? '...', round: 8),
           controller: textInputs[key],
         ),
       );

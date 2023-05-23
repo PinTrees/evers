@@ -7,6 +7,7 @@ import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
+import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
@@ -78,8 +79,6 @@ class _WindowCSState extends State<WindowCS> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.parent.title = '${ widget.org_cs.businessName } 거래처 개별 상세정보창';
-
     initAsync();
   }
 
@@ -230,7 +229,7 @@ class _WindowCSState extends State<WindowCS> {
     inputOutputWidgets.add(ExcelT.ExcelGrid(lavel: "총 매출액", text: StyleT.krwInt(0), width: 150, widthLavel: 150));
     inputOutputWidgets.add(ExcelT.ExcelGrid(lavel: "총 수입금", text: StyleT.krwInt(revTsAmount), width: 150, widthLavel: 150));
 
-    var gridStyle = StyleT.inkStyle(round: 8, color: Colors.black.withOpacity(0.03), stroke: 0.7, strokeColor: StyleT.titleColor.withOpacity(0.35));
+    var gridStyle = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.03), stroke: 1.4, strokeColor: StyleT.titleColor.withOpacity(0.15));
 
     return main = Container(
       width: 1280,
@@ -245,320 +244,226 @@ class _WindowCSState extends State<WindowCS> {
                   children: [
                     TextT.Title(text: '거래처 상세 정보',),
                     SizedBox(height: dividHeight,),
-                    Container( decoration: gridStyle,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Column(
-                          children: [
-                            Container( height: 28,
-                              child: Row(
-                                  children: [
-                                    WidgetEX.excelTitle(width: 150, text: '구분',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.dropMenu(dropMenus: ['개인', '사업자',], width: 250,
-                                      onEdite: (i, data) { cs.bsType = data; },
-                                      text: cs.bsType,
-                                    ),
-
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '거래처분류',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.dropMenu(dropMenus: ['매입', '매출', '매입/매출'], width: 250,
-                                      onEdite: (i, data) { cs.csType = data; },
-                                      text: cs.csType,
-                                    ),
-                                  ]
+                    Container(
+                      padding: const EdgeInsets.only(top: 6, right: 6),
+                      decoration: gridStyle,
+                      child: ListBoxT.Columns(
+                        spacing: 6,
+                        children: [
+                          ListBoxT.Rows(
+                            spacing: 6 * 4,
+                            children: [
+                              InputWidget.DropButton(dropMenus: ['개인', '사업자',],  width: 250,
+                                label: "구분",
+                                onEdite: (i, data) { cs.bsType = data; },
+                                setState: () { setState(() {}); },
+                                text: cs.bsType,
                               ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container( height: 28,
-                              child: Row(
-                                  children: [
-                                    WidgetEX.excelTitle(width: 150, text: '상호명',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, 'cs상호명', width: 250,
-                                      onEdite: (i, data) { cs.businessName = data; },
-                                      text: cs.businessName,
-                                    ),
-
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '대표이름',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, 'cs대표이름', width: 250,
-                                      onEdite: (i, data) { cs.representative = data; },
-                                      text: cs.representative,
-                                    ),
-                                  ]
+                              InputWidget.DropButton(dropMenus: ['매입', '매출', '매입/매출'], width: 250,
+                                label: "거래처 분류",
+                                onEdite: (i, data) { cs.csType = data; },
+                                setState: () { setState(() {}); },
+                                text: cs.csType,
                               ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container( height: 28,
-                              child: Row(
-                                  children: [
-                                    WidgetEX.excelTitle(width: 150, text: '사업자등록번호',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '사업자등록번호1', width: 70,
-                                      onEdite: (i, data) { cs.businessRegistrationNumber['0'] = data; },
-                                      text: cs.businessRegistrationNumber['0'],
-                                    ),
-                                    WidgetT.title('ㅡ', width: 20,),
-                                    WidgetT.excelInput(context, '사업자등록번호2', width: 70,
-                                      onEdite: (i, data) { cs.businessRegistrationNumber['1'] = data; },
-                                      text: cs.businessRegistrationNumber['1'],
-                                    ),
-                                    WidgetT.title('ㅡ', width: 20,),
-                                    WidgetT.excelInput(context, '사업자등록번호3', width: 70,
-                                      onEdite: (i, data) { cs.businessRegistrationNumber['2'] = data; },
-                                      text: cs.businessRegistrationNumber['2'],
-                                    ),
-
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '팩스번호',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '팩스번호1', width: 70,
-                                      onEdite: (i, data) { cs.faxNumber['0'] = data; },
-                                      text: cs.faxNumber['0'],
-                                    ),
-                                    WidgetT.title('ㅡ', width: 20,),
-                                    WidgetT.excelInput(context, '팩스번호2', width: 70,
-                                      onEdite: (i, data) { cs.faxNumber['1'] = data; },
-                                      text: cs.faxNumber['1'],
-                                    ),
-                                    WidgetT.title('ㅡ', width: 20,),
-                                    WidgetT.excelInput(context, '팩스번호3', width: 70,
-                                      onEdite: (i, data) { cs.faxNumber['2'] = data; },
-                                      text: cs.faxNumber['2'],
-                                    ),
-                                  ]
+                            ]
+                          ),
+                          InputWidget.Lit(context, "cs상호명",
+                            lavel: "상호명", width: 250,
+                            onEdited: (i, data) { cs.businessName = data; },
+                            setState: () { setState(() {}); },
+                            text: cs.businessName,
+                          ),
+                          InputWidget.Lit(context, "cs::업태::input",
+                            lavel: "업태", width: 250,
+                            onEdited: (i, data) { cs.businessType = data; },
+                            text: cs.businessType,
+                            setState: () { setState(() {}); },
+                          ),
+                          InputWidget.Lit(context, "cs::종목::input",
+                              lavel: "종목", width: 250,
+                              onEdited: (i, data) { cs.businessItem = data.toString().split(','); },
+                              text: cs.businessItem.join(', '), value: cs.businessItem.join(','),
+                            setState: () { setState(() {}); },
+                          ),
+                          InputWidget.Lit(context, "cs대표이름",
+                            lavel: "대표이름", width: 250,
+                            onEdited: (i, data) { cs.representative = data; },
+                            text: cs.representative,
+                            setState: () { setState(() {}); },
+                          ),
+                          ListBoxT.Rows(
+                            spacingWidget: TextT.Lit(text:'  ㅡ  ', bold: true),
+                            children: [
+                              InputWidget.Lit(context, "cs::사업자등록번호1::input",
+                                lavel: "사업자등록번호", width: 70,
+                                onEdited: (i, data) { cs.businessRegistrationNumber['0'] = data; },
+                                text: cs.businessRegistrationNumber['0'],
+                                setState: () { setState(() {}); },
                               ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container( height: 28,
-                              child: Row(
-                                  children: [
-                                    WidgetEX.excelTitle(width: 150, text: '담당자',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '담당자', width: 250,
-                                      onEdite: (i, data) { cs.manager = data; },
-                                      text: cs.manager,
-                                    ),
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '전화번호',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '전화번호1', width: 250,
-                                      onEdite: (i, data) { cs.companyPhoneNumber = data; },
-                                      text: cs.companyPhoneNumber,
-                                    ),
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '모바일',),
-                                    WidgetT.excelInput(context, '모바일전화번호', width: 250,
-                                      onEdite: (i, data) { cs.phoneNumber = data; },
-                                      text: cs.phoneNumber,
-                                    ),
-                                  ]
+                              InputWidget.Lit(context, "cs::사업자등록번호2::input",
+                                width: 70,
+                                onEdited: (i, data) { cs.businessRegistrationNumber['1'] = data; },
+                                text: cs.businessRegistrationNumber['1'],
+                                setState: () { setState(() {}); },
                               ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container( height: 28,
-                              child: Row(
-                                  children: [
-                                    WidgetEX.excelTitle(width: 150, text: '이메일',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '담당자이메일', width: 250,
-                                      onEdite: (i, data) { cs.email = data; },
-                                      text: cs.email,
-                                    ),
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '홈페이지',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '홈페이지', width: 250,
-                                      onEdite: (i, data) { cs.website = data; },
-                                      text: cs.website,
-                                    ),
-                                  ]
+                              InputWidget.Lit(context, "cs::사업자등록번호3::input",
+                                width: 70,
+                                onEdited: (i, data) { cs.businessRegistrationNumber['2'] = data; },
+                                text: cs.businessRegistrationNumber['2'],
+                                setState: () { setState(() {}); },
                               ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container( padding: EdgeInsets.all(0),
-                              child: IntrinsicHeight(
-                                child: Row(
-                                    children: [
-                                      WidgetEX.excelTitle(width: 150, text: '주소',),
-                                      WidgetT.dividViertical(),
-                                      Expanded(child: WidgetTF.textTitInput(context, '주소', isMultiLine: true, textSize: 12,
-                                        onEdite: (i, data) { cs.address = data; },
-                                        text: cs.address,
-                                      ),)
-                                    ]
-                                ),
-                              ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container( padding: EdgeInsets.all(0),
-                              child: IntrinsicHeight(
-                                child: Row(
-                                    children: [
-                                      WidgetEX.excelTitle(width: 150, text: '메모',),
-                                      WidgetT.dividViertical(),
-                                      Expanded(child: WidgetTF.textTitInput(context, '메모', isMultiLine: true, textSize: 12,
-                                        onEdite: (i, data) { cs.memo = data; },
-                                        text: cs.memo,
-                                      ),)
-                                    ]
-                                ),
-                              ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container( height: 28,
-                              child: Row(
-                                  children: [
-                                    WidgetEX.excelTitle(width: 150, text: '업태',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '업태', width: 250,
-                                      onEdite: (i, data) { cs.businessType = data; },
-                                      text: cs.businessType,
-                                    ),
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '종목 ( , , )',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '종목', width: 400,
-                                        onEdite: (i, data) { cs.businessItem = data.toString().split(','); },
-                                        text: cs.businessItem.join(', '), value: cs.businessItem.join(',')
-                                    ),
-                                  ]
-                              ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container( height: 28,
-                              child: Row(
-                                  children: [
-                                    WidgetEX.excelTitle(width: 150, text: '은행',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '은행', width: 250,
-                                      onEdite: (i, data) { cs.account['bank'] = data; },
-                                      text: cs.account['bank'],
-                                    ),
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '계좌번호',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '계좌번호', width: 250,
-                                      onEdite: (i, data) { cs.account['number'] = data; },
-                                      text: cs.account['number'],
-                                    ),
-
-                                    WidgetT.dividViertical(),
-                                    WidgetEX.excelTitle(width: 150, text: '예금주',),
-                                    WidgetT.dividViertical(),
-                                    WidgetT.excelInput(context, '예금주', width: 250,
-                                      onEdite: (i, data) { cs.account['user'] = data; },
-                                      text: cs.account['user'],
-                                    ),
-                                  ]
-                              ),
-                            ),
-                            WidgetT.dividHorizontal(size: 0.35),
-                            Container(
-                                child: IntrinsicHeight(
-                                  child: Row(
-                                    children: [
-                                      SizedBox(width: dividHeight * 2, height: 28,),
-                                      WidgetT.text('첨부파일', size: 10),
-                                      SizedBox(width: dividHeight,),
-                                      Expanded(
-                                          flex: 7,
-                                          child: Container(
-                                            padding: EdgeInsets.all(dividHeight),
-                                            child: Wrap(
-                                              runSpacing: dividHeight, spacing: dividHeight * 3,
-                                              children: [
-                                                for(int i = 0; i < cs.filesMap.length; i++)
-                                                  Row(
-                                                    mainAxisSize: MainAxisSize.min,
-                                                    children: [
-                                                      InkWell(
-                                                          onTap: () async {
-                                                            var downloadUrl = cs.filesMap.values.elementAt(i);
-                                                            var fileName = cs.filesMap.keys.elementAt(i);
-                                                            PdfManager.OpenPdf(downloadUrl, fileName);
-                                                           },
-                                                          child: Container(
-                                                              decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
-                                                              child: Row(
-                                                                mainAxisSize: MainAxisSize.min,
-                                                                children: [
-                                                                  SizedBox(width: 6,),
-                                                                  WidgetT.title(cs.filesMap.keys.elementAt(i),),
-                                                                  TextButton(
-                                                                      onPressed: () {
-                                                                        WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
-                                                                        setState(() {});
-                                                                      },
-                                                                      style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                                                      child: Container( height: 28, width: 28,
-                                                                        child: WidgetT.iconMini(Icons.cancel),)
-                                                                  ),
-                                                                ],
-                                                              ))
-                                                      ),
-                                                    ],
-                                                  ),
-                                                for(int i = 0; i < fileByteList.length; i++)
-                                                  Row(
-                                                    children: [
-                                                      SizedBox(width: dividHeight * 0.5),
-                                                      InkWell(
-                                                          onTap: () {
-                                                            PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
-                                                          },
-                                                          child: Container(
-                                                              decoration: StyleT.inkStyle(stroke: 0.35, round: 8, color: StyleT.accentLowColor.withOpacity(0.05)),
-                                                              child: Row(
-                                                                mainAxisSize: MainAxisSize.min,
-                                                                children: [
-                                                                  SizedBox(width: 6,),
-                                                                  WidgetT.title(fileByteList.keys.elementAt(i),),
-                                                                  TextButton(
-                                                                      onPressed: () {
-                                                                        fileByteList.remove(fileByteList.keys.elementAt(i));
-                                                                        setState(() {});
-                                                                      },
-                                                                      style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
-                                                                      child: Container( height: 28, width: 28,
-                                                                        child: WidgetT.iconMini(Icons.cancel),)
-                                                                  ),
-                                                                ],
-                                                              ))
-                                                      ),
-                                                    ],
-                                                  ),
-                                              ],
-                                            ),)),
-                                    ],
-                                  ),
-                                )
-                            ),
-                          ],),
-                      ),),
-                    SizedBox(height: dividHeight,),
-                    Row(children: [
-                      TextButton(onPressed: () async {
-                        FilePickerResult? result = await FilePicker.platform.pickFiles();
-                        if( result != null && result.files.isNotEmpty ){
-                          String fileName = result.files.first.name;
-                          fileByteList[fileName] = result.files.first.bytes!;
-                          setState(() {});
-                        }
-                      },
-                        style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7),
-                        child: Container( height: 28,
-                            child: Row(
+                            ]
+                          ),
+                          ListBoxT.Rows(
+                              spacingWidget: TextT.Lit(text:'  ㅡ  ', bold: true),
                               children: [
-                                WidgetT.iconMini(Icons.file_copy_rounded),
-                                WidgetT.title('첨부파일추가',),
-                                SizedBox(width: dividHeight,),
-                              ],
-                            )),),
-                    ],),
+                                InputWidget.Lit(context, "cs::팩스번호1::input",
+                                  lavel: "팩스번호", width: 70,
+                                  onEdited: (i, data) { cs.faxNumber['0'] = data; },
+                                  text: cs.faxNumber['0'],
+                                  setState: () { setState(() {}); },
+                                ),
+                                InputWidget.Lit(context, "cs::팩스번호2::input",
+                                  width: 70,
+                                  onEdited: (i, data) { cs.faxNumber['1'] = data; },
+                                  text: cs.faxNumber['1'],
+                                  setState: () { setState(() {}); },
+                                ),
+                                InputWidget.Lit(context, "cs::팩스번호3::input",
+                                  width: 70,
+                                  onEdited: (i, data) { cs.faxNumber['2'] = data; },
+                                  text: cs.faxNumber['2'],
+                                  setState: () { setState(() {}); },
+                                ),
+                              ]
+                          ),
+                          InputWidget.Lit(context, "cs담당자",
+                            lavel: "담당자", width: 250,
+                            onEdited: (i, data) { cs.manager = data; },
+                            text: cs.manager,
+                            setState: () { setState(() {}); },
+                          ),
+                          InputWidget.Lit(context, "전화번호1",
+                            lavel: "전화번호", width: 250,
+                            onEdited: (i, data) { cs.companyPhoneNumber = data; },
+                            text: cs.companyPhoneNumber,
+                            setState: () { setState(() {}); },
+                          ),
+                          InputWidget.Lit(context, "cs::mobile::input",
+                            lavel: "모바일", width: 250,
+                            onEdited: (i, data) { cs.phoneNumber = data; },
+                            text: cs.phoneNumber,
+                            setState: () { setState(() {}); },
+                          ),
+                          InputWidget.Lit(context, "cs::email::input",
+                            lavel: "이메일", width: 250,
+                            onEdited: (i, data) { cs.email = data; },
+                            text: cs.email,
+                            setState: () { setState(() {}); },
+                          ),
+                          InputWidget.Lit(context, "cs::homePageurl::input",
+                            lavel: "홈페이지", width: 500,
+                            onEdited: (i, data) { cs.website = data; },
+                            text: cs.website,
+                            setState: () { setState(() {}); },
+                          ),
+                          InputWidget.Lit(context, "cs::address::input",
+                            lavel: "주소", width: 500, isMultiLine: true,
+                            onEdited: (i, data) { cs.address = data; },
+                            text: cs.address,
+                            setState: () { setState(() {}); },
+                          ),
+                          InputWidget.Lit(context, "cs::memo::input",
+                            lavel: "메모", width: 500, isMultiLine: true, expand: true,
+                            onEdited: (i, data) { cs.memo = data; },
+                            text: cs.memo,
+                            setState: () { setState(() {}); },
+                          ),
+
+                          ListBoxT.Rows(
+                            spacing: 6 * 4,
+                            children: [
+                              InputWidget.Lit(context, "cs::은행::input",
+                                lavel: "은행", width: 150,
+                                onEdited: (i, data) { cs.account['bank'] = data; },
+                                text: cs.account['bank'],
+                                setState: () { setState(() {}); },
+                              ),
+                              InputWidget.Lit(context, "cs::계좌번호::input",
+                                lavel: "계좌번호", width: 200,
+                                onEdited: (i, data) { cs.account['number'] = data; },
+                                text: cs.account['number'],
+                                setState: () { setState(() {}); },
+                              ),
+                              InputWidget.Lit(context, "cs::예금주::input",
+                                lavel: "예금주", width: 150,
+                                onEdited: (i, data) { cs.account['user'] = data; },
+                                text: cs.account['user'],
+                                setState: () { setState(() {}); },
+                              ),
+                            ]
+                          ),
+                          Container(
+                              child: IntrinsicHeight(
+                                child: Row(
+                                  children: [
+                                    TextT.Lit(text:"첨부파일", width: 100, size: 12, bold: true),
+                                    Expanded(
+                                        flex: 7,
+                                        child: Container(
+                                          padding: EdgeInsets.all(dividHeight),
+                                          child: Wrap(
+                                            runSpacing: dividHeight, spacing: dividHeight,
+                                            children: [
+                                              for(int i = 0; i < cs.filesMap.length; i++)
+                                                ButtonT.IconText(
+                                                  icon: Icons.cloud_done, text: cs.filesMap.keys.elementAt(i),
+                                                  onTap: () async {
+                                                    var downloadUrl = cs.filesMap.values.elementAt(i);
+                                                    var fileName = cs.filesMap.keys.elementAt(i);
+                                                    PdfManager.OpenPdf(downloadUrl, fileName);
+                                                  },
+                                                  leaging: ButtonT.Icon(
+                                                    icon: Icons.delete,
+                                                    onTap: () {
+                                                      WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+                                                      setState(() {});
+                                                    }
+                                                  )
+                                                ),
+                                              for(int i = 0; i < fileByteList.length; i++)
+                                                ButtonT.IconText(
+                                                    icon: Icons.file_copy_rounded, text: fileByteList.keys.elementAt(i),
+                                                    onTap: () async {
+                                                      PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
+                                                    },
+                                                    leaging: ButtonT.Icon(
+                                                        icon: Icons.delete,
+                                                        onTap: () {
+                                                          fileByteList.remove(fileByteList.keys.elementAt(i));
+                                                          setState(() {});
+                                                        }
+                                                    )
+                                                ),
+                                            ],
+                                          ),)),
+                                  ],
+                                ),
+                              )
+                          ),
+                        ],),),
+                    SizedBox(height: dividHeight,),
+                    ButtonT.IconText(
+                        icon: Icons.file_copy_rounded, text: "첨부파일추가",
+                        onTap: () async {
+                          FilePickerResult? result = await FilePicker.platform.pickFiles();
+                          if( result != null && result.files.isNotEmpty ){
+                            String fileName = result.files.first.name;
+                            fileByteList[fileName] = result.files.first.bytes!;
+                            setState(() {});
+                          }
+                        },
+                    ),
                     SizedBox(height: dividHeight * 8,),
 
                     TextT.Title(text: '생산관리 - 거래처 연결품목 재고관리',),

@@ -86,6 +86,7 @@ class _WindowReCreateState extends State<WindowReCreate> {
   Widget mainBuild() {
     List<Widget> widgetReW = [];
     widgetReW.add(CompRE.tableHeaderSearch());
+
     for(int i = 0; i < revenueList.length; i++) {
       var re = revenueList[i];
       var ct = revContract[i];
@@ -107,6 +108,79 @@ class _WindowReCreateState extends State<WindowReCreate> {
       widgetReW.add(WidgetT.dividHorizontal(size: 0.35));
     }
 
+
+    var paymentWidget = ListBoxT.Columns(
+      children: [
+        TextT.SubTitle(text: '지불관련'),
+        SizedBox(height: dividHeight,),
+        Row(
+          children: [
+            ButtonT.IconText(
+              icon: payment == '매출' ? Icons.check_box : Icons.check_box_outline_blank, text: "매출만",
+              onTap: () {
+                payment = '매출';
+                setState(() {});
+              }
+            ),
+            SizedBox(width: dividHeight,),
+            ButtonT.IconText(
+                icon: payment == '즉시' ? Icons.check_box : Icons.check_box_outline_blank, text: "즉시지불",
+                onTap: () {
+                  payment = '즉시';
+                  setState(() {});
+                }
+            ),
+            if(payment == '즉시')
+              Row(
+                children: [
+                  WidgetT.dropMenuMapD(dropMenuMaps: SystemT.accounts, width: 130, label: '구분',
+                    onEdite: (i, data) {
+                      payType = data;
+                      setState(() {});
+                    },
+                    text: (SystemT.accounts[payType] == null) ? '선택안됨' : SystemT.accounts[payType]!.name,
+                  ),
+                  SizedBox(width: dividHeight,),
+                  WidgetT.text('즉시수금 시 적요는 품목명으로 추가됩니다.', size: 10),
+                ],
+              ),
+          ],
+        ),
+      ],
+    );
+
+    var vatWidget = ListBoxT.Columns(
+      children: [
+        TextT.SubTitle(text: "부가세 설정"),
+        SizedBox(height: dividHeight,),
+        ListBoxT.Rows(
+          spacing: 6,
+          children: [
+            for(var v in vatTypeList)
+              ButtonT.IconText(
+                  icon: currentVatType == v ? Icons.check_box : Icons.check_box_outline_blank,
+                  text: vatTypeNameList[v],
+                  onTap: () {
+                    currentVatType = v;
+                    setState(() {});
+                  }
+              ),
+            ButtonT.IconText(
+                icon: Icons.auto_mode,
+                text: "부가세 및 공급가액 자동계산",
+                onTap: () {
+                  revenueList.forEach((e) {
+                    e.fixedSup = e.fixedVat = false;
+                    e.init();
+                  });
+                  setState(() {});
+                }
+            )
+          ]
+        )
+      ]
+    );
+
     return Container(
       width: 1280,
       child: Column(
@@ -117,7 +191,7 @@ class _WindowReCreateState extends State<WindowReCreate> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextT.Title(text: '추가할 매출 목록'),
+                TextT.SubTitle(text: '추가할 매출 목록'),
                 SizedBox(height: dividHeight,),
                 Container( child: Column(children: widgetReW,),),
                 SizedBox(height: dividHeight,),
@@ -132,98 +206,18 @@ class _WindowReCreateState extends State<WindowReCreate> {
                       }
                     ),
                     SizedBox(width: dividHeight * 8,),
-                    WidgetT.title('부가세', size: 12 ),
-                    SizedBox(width: dividHeight,),
-                    for(var v in vatTypeList)
-                      Container(
-                        child: InkWell(
-                            onTap: () {
-                              currentVatType = v;
-                              setState(() {});
-                            },
-                            child: Container(
-                                height: 36,
-                                padding: EdgeInsets.all(dividHeight), alignment: Alignment.center,
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    SizedBox(width: dividHeight,),
-                                    WidgetT.titleT('' + vatTypeNameList[v], size: 14,
-                                      color: (currentVatType == v) ? StyleT.titleColor : StyleT.textColor.withOpacity(0.35),
-                                    ),
-                                    SizedBox(width: dividHeight,),
-                                  ],
-                                ))
-                        ),
-                      ),
+
                   ],
                 ),
 
-                SizedBox(height: 6 * 8,),
-                TextT.Title(text: '지불관련'),
-                SizedBox(height: dividHeight,),
+                SizedBox(height: 6 * 4,),
                 Row(
                   children: [
-                    TextButton(
-                        onPressed: () {
-                          payment = '매출';
-                          setState(() {});
-                        },
-                        style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0,
-                            color: StyleT.backgroundColor.withOpacity(0.5), strock: 1),
-                        child: Container(padding: EdgeInsets.all(0), child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if(payment != '매출')
-                              Container( height: 28, width: 28,
-                                child: WidgetT.iconMini(Icons.check_box_outline_blank),),
-                            if(payment == '매출')
-                              Container( height: 28, width: 28,
-                                child: WidgetT.iconMini(Icons.check_box),),
-                            WidgetT.title('매출만'),
-                            SizedBox(width: 6,),
-                          ],
-                        ))
-                    ),
-                    SizedBox(width: dividHeight,),
-                    TextButton(
-                        onPressed: () {
-                          payment = '즉시';
-                          setState(() {});
-                        },
-                        style: StyleT.buttonStyleOutline(round: 0, elevation: 0, padding: 0,
-                            color: StyleT.backgroundColor.withOpacity(0.5), strock: 1),
-                        child: Container(padding: EdgeInsets.all(0), child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if(payment != '즉시')
-                              Container( height: 28, width: 28,
-                                child: WidgetT.iconMini(Icons.check_box_outline_blank),),
-                            if(payment == '즉시')
-                              Container( height: 28, width: 28,
-                                child: WidgetT.iconMini(Icons.check_box),),
-                            WidgetT.title('수금추가'),
-                            SizedBox(width: 6,),
-                          ],
-                        ))
-                    ),
-
-                    if(payment == '즉시')
-                      Row(
-                        children: [
-                          WidgetT.dropMenuMapD(dropMenuMaps: SystemT.accounts, width: 130, label: '구분',
-                            onEdite: (i, data) {
-                              payType = data;
-                              setState(() {});
-                            },
-                            text: (SystemT.accounts[payType] == null) ? '선택안됨' : SystemT.accounts[payType]!.name,
-                          ),
-                          SizedBox(width: dividHeight,),
-                          WidgetT.text('즉시수금 시 적요는 품목명으로 추가됩니다.', size: 10),
-                        ],
-                      ),
+                    paymentWidget,
+                    SizedBox(width: 6 * 8,),
+                    vatWidget
                   ],
-                ),
+                )
               ]
             ),
           ),

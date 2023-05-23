@@ -245,6 +245,7 @@ class WidgetT extends StatelessWidget {
     }
     return w;
   }
+
   static Widget dropMenu({String text='', List<dynamic>? dropMenus, Map<dynamic, dynamic>? dropMenuMaps,
     double? width, Function(int, dynamic)? onEdite, int? index, String? label, double? labelSize,}) {
     /// 키가 진짜 갑 - 밸류가 표시되는 값 : key, value
@@ -330,6 +331,7 @@ class WidgetT extends StatelessWidget {
     }
     return w;
   }
+
   static Widget dropMenuMapD({String text='', Map<String, dynamic>? dropMenuMaps,
     double? width, Function(int, dynamic)? onEdite, int? index, String? label, double? labelSize}) {
 

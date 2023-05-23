@@ -131,13 +131,11 @@ class _WindowPUCreateWithCSState extends State<WindowPUCreateWithCS> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                WidgetT.title('등록유형', size: 16 ),
-                SizedBox(height: dividHeight,),
-                TextT.Title(text: "거래처 정보"),
+                TextT.SubTitle(text: "거래처 정보"),
                 TextT.Lit(text: widget.cs.businessName),
                 dividCol,
 
-                TextT.Title(text: "매입 추가 목록"),
+                TextT.SubTitle(text: "매입 추가 목록"),
                 SizedBox(height: dividHeight,),
                 Column( children: widgetsPu, ),
                 SizedBox(height: dividHeight,),
@@ -177,7 +175,7 @@ class _WindowPUCreateWithCSState extends State<WindowPUCreateWithCS> {
 
                 dividCol,
 
-                TextT.Title(text: "지불관련"),
+                TextT.SubTitle(text: "지불관련"),
                 SizedBox(height: dividHeight,),
                 ListBoxT.Rows(
                   spacing: 6,
@@ -371,7 +369,7 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
     }
 
     List<Widget> widgetsPu = [];
-    widgetsPu.add(CompPU.tableHeader());
+    widgetsPu.add(CompPU.tableHeaderInput());
     for(int i = 0; i < pus.length; i++) {
       var pu = pus[i];
       var fileMap = fileByteList[i] as Map<String, Uint8List>;

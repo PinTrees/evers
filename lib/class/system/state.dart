@@ -4,6 +4,11 @@ import 'dart:ui';
 import 'package:evers/class/system.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_cs.dart';
+import 'package:evers/page/window/window_pu_create.dart';
+import 'package:evers/page/window/window_pu_editor.dart';
+import 'package:evers/page/window/window_re_create.dart';
+import 'package:evers/page/window/window_re_create_ct.dart';
+import 'package:evers/page/window/window_re_editor.dart';
 import 'package:evers/page/window/window_sch_create.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
@@ -51,6 +56,9 @@ class UIState {
     if(window is WindowTsCreate || window is WindowTSEditor || window is Window) width = 1000;
     if(window is WindowUserCreate) width = 800;
     if(window is WindowCT || window is WindowCS) width = 1200;
+    if(window is WindowPUCreate || window is WindowPUEditor || window is WindowPUCreateWithCS) width = 1000;
+    if(window is WindowReCreate || window is WindowReEditor || window is WindowReCreateWithCt) width = 1000;
+
 
     var parent = mdiController!.createWindow(context, pw: width);
     window!.parent = parent;

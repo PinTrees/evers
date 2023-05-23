@@ -67,6 +67,7 @@ class ListBoxT extends StatelessWidget {
     CrossAxisAlignment? crossAxisAlignment,
     double? width,
     double? spacing,
+    double? spacingStartEnd,
     Widget? spacingWidget,
     EdgeInsets? padding,
     bool expand=false,
@@ -83,6 +84,12 @@ class ListBoxT extends StatelessWidget {
     /// 사용자 정의 위젯의 반복 추가자입니다.
     else if(spacingWidget != null) {
       children.forEach((e) { widgets.add(e); widgets.add(spacingWidget); });
+      widgets.removeLast();
+    }
+    /// 사용자 정의 위젯의 반복 추가자입니다.
+    else if(spacingStartEnd != null) {
+      widgets.add(SizedBox(height: spacingStartEnd,));
+      children.forEach((e) { widgets.add(e); widgets.add(SizedBox(height: spacingStartEnd,)); });
     }
     else widgets = children;
 

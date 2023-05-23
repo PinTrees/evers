@@ -1,5 +1,6 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_re_editor.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
@@ -23,6 +24,7 @@ import '../system.dart';
 import '../system/state.dart';
 import '../transaction.dart';
 import '../widget/button.dart';
+import '../widget/list.dart';
 import '../widget/text.dart';
 
 class CompRE {
@@ -103,7 +105,7 @@ class CompRE {
 
     var w = InkWell(
       onTap: () async {
-        //UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
+        UIState.OpenNewWindow(context, WindowReEditor(re: re, refresh: refresh));
       },
       child: Container(
         height: 36 + 6,
@@ -158,6 +160,8 @@ class CompRE {
 
 
 
+  /// 이 함수는 신규매출을 추가하기위한 테이블 위젯입니다.
+  /// 매출추가 화면의 위젯은 반드시 이 함수를 위젯을 생성해야 합니다.
   static dynamic tableUIInput( BuildContext? context, Revenue re, {
     int? index,
     Customer? cs,
@@ -172,98 +176,90 @@ class CompRE {
 
     var w = Column(
       children: [
-        Container(
-          height: 28,
-          decoration: StyleT.inkStyleNone(color: Colors.transparent),
-          child: Row(
-              children: [
-                ExcelT.LitGrid(text: "${index ?? '-'}" ,width: 32),
-                ButtonT.Text(
-                  width: 200, color: Colors.transparent,
-                  onTap: () async {
-                    Contract? tmp  = await DialogT.selectCt(context);
-                    if(tmp == null) return;
-                    if(ct != null) ct.fromJson(tmp.toJson());
-                    setState();
-                  },
-                  text: ct == null ? '-' : (ct.csName + ' / ' + ct.ctName),
-                ),
-                ExcelT.LitInput(context, "$index::매출일자", width: 100, index: index,
-                  setState: setState, textSize: 10,
+        SizedBox(height: 6,),
+        Row(
+            children: [
+              ExcelT.LitGrid(text: "${index ?? '-'}" ,width: 32),
+              ButtonT.Text(
+                width: 200, color: Colors.transparent,
+                onTap: () async {
+                  Contract? tmp  = await DialogT.selectCt(context);
+                  if(tmp == null) return;
+                  if(ct != null) ct.fromJson(tmp.toJson());
+                  setState();
+                },
+                text: ct == null ? '-' : (ct.csName + ' / ' + ct.ctName),
+              ),
+              ExcelT.LitInput(context, "$index::매출일자", width: 100, index: index,
+                setState: setState, textSize: 10,
+                onEdited: (i, data) {
+                  var date = DateTime.tryParse(data.toString().replaceAll("/", "")) ?? DateTime.now();
+                  re.revenueAt = date.microsecondsSinceEpoch;
+                },
+                text: StyleT.dateInputFormatAtEpoch(re.revenueAt.toString()),
+              ),
+              ExcelT.LitInput(context, "${index}::item::input",
+                setState: setState, index: index, width: 200, expand: true,
+                onEdited: (i, data) { re.item = data;  },
+                text: item == null ? re.item : item.name == '' ? re.item : item.name,
+              ),
+              ExcelT.LitGrid(text: item == null ? '-' : item.unit,width: 32),
+              ExcelT.LitInput(context, "$index::re.count", width: 80, index: index,
+                setState: setState,
+                onEdited: (i, data) { re.count = int.tryParse(data) ?? 0; },
+                text: StyleT.krw(re.count.toString()), value: re.count.toString(),
+              ),
+              ExcelT.LitInput(context, "$index::re.unitPrice", width: 80, index: index,
+                  setState: setState,
+                  onEdited: (i, data) => re.unitPrice = int.tryParse(data) ?? 0,
+                  text: StyleT.krw(re.unitPrice.toString()), value: re.unitPrice.toString()
+              ),
+              ExcelT.LitInput(context, "$index::re.supplyPrice", width: 80, index: index,
+                  setState: setState,
                   onEdited: (i, data) {
-                    var date = DateTime.tryParse(data.toString().replaceAll("/", "")) ?? DateTime.now();
-                    re.revenueAt = date.microsecondsSinceEpoch;
-                  },
-                  text: StyleT.dateInputFormatAtEpoch(re.revenueAt.toString()),
-                ),
-                ButtonT.Text(
-                  width: 150, color: Colors.transparent, expand: true,
-                  onTap: () async {
-                    Item? tmp  = await DialogT.selectItem(context);
-                    if(tmp != null) re.item = tmp.id;
-                    setState();
-                  },
-                  text: item == null ? '품목선택' : item.name,
-                ),
-                ExcelT.LitGrid(text: item == null ? '-' : item.unit,width: 32),
-                ExcelT.LitInput(context, "$index::re.count", width: 80, index: index,
+                    re.supplyPrice = int.tryParse(data) ?? 0;
+                    re.fixedSup = true;
+                  }, text: StyleT.krw(re.supplyPrice.toString()), value: re.supplyPrice.toString()
+              ),
+              ExcelT.LitInput(context, "$index::re.vat", width: 80, index: index,
                   setState: setState,
-                  onEdited: (i, data) { re.count = int.tryParse(data) ?? 0; },
-                  text: StyleT.krw(re.count.toString()), value: re.count.toString(),
-                ),
-                ExcelT.LitInput(context, "$index::re.unitPrice", width: 80, index: index,
-                  setState: setState,
-                    onEdited: (i, data) => re.unitPrice = int.tryParse(data) ?? 0,
-                    text: StyleT.krw(re.unitPrice.toString()), value: re.unitPrice.toString()
-                ),
-                ExcelT.LitInput(context, "$index::re.supplyPrice", width: 80, index: index,
-                    setState: setState,
-                    onEdited: (i, data) {
-                      re.supplyPrice = int.tryParse(data) ?? 0;
-                      re.fixedSup = true;
-                    }, text: StyleT.krw(re.supplyPrice.toString()), value: re.supplyPrice.toString()
-                ),
-                ExcelT.LitInput(context, "$index::re.vat", width: 80, index: index,
-                    setState: setState,
-                    onEdited: (i, data) {
-                      re.vat = int.tryParse(data) ?? 0;
-                      re.fixedVat = true;
-                    }, text: StyleT.krw(re.vat.toString()), value: re.vat.toString()
-                ),
-                ExcelT.LitGrid(text: StyleT.krw(re.totalPrice.toString()),width: 80, center: true),
-              ]
-          ),
-        ),
-        Container(
-          height: 28,
-          decoration: StyleT.inkStyleNone(color: Colors.transparent),
-          child: Row(
-              children: [
-                TextT.Lit(text: "메모", width: 100),
-                ExcelT.LitInput(context, "$index::메모", width: 200, index: index,
-                  setState: setState, expand: true, textSize: 10,
-                  onEdited: (i, data) { re.memo  = data ?? ''; },
-                  text: re.memo,
-                ),
-              ]
-          ),
+                  onEdited: (i, data) {
+                    re.vat = int.tryParse(data) ?? 0;
+                    re.fixedVat = true;
+                  }, text: StyleT.krw(re.vat.toString()), value: re.vat.toString()
+              ),
+              ExcelT.LitGrid(text: StyleT.krw(re.totalPrice.toString()),width: 80, center: true),
+            ]
         ),
         SizedBox(height: 6,),
-        Container(
-          height: 28,
-          decoration: StyleT.inkStyleNone(color: Colors.transparent),
-          child: Row(
-              children: [
-                ButtonT.IconText(
-                    icon: Icons.cancel,
-                    text: "매출 제거",
-                    onTap: () {
-                      re.state = "DEL";
-                      setState();
-                    }
-                ),
-              ]
-          ),
+        InputWidget.Lit(context, "$index::메모",
+          lavel: "메모", expand: true,
+          setState: setState, index: index,
+          onEdited: (i, data) { re.memo  = data ?? ''; },
+          text: re.memo,
+        ),
+        SizedBox(height: 6,),
+        ListBoxT.Rows(
+          spacing: 6,
+            children: [
+              ButtonT.IconText(
+                icon: Icons.add_box,
+                text: "품목 직접 선택",
+                onTap: () async {
+                  Item? tmp  = await DialogT.selectItem(context);
+                  if(tmp != null) re.item = tmp.id;
+                  setState();
+                },
+              ),
+              ButtonT.IconText(
+                  icon: Icons.delete,
+                  text: "매출 제거",
+                  onTap: () {
+                    re.state = "DEL";
+                    setState();
+                  }
+              ),
+            ]
         ),
       ],
     );
@@ -395,87 +391,80 @@ class CompRE {
 
     Item? item = SystemT.getItem(re.item);
 
-    var w = Column(
+    var w = ListBoxT.Columns(
+      spacingStartEnd: 6,
       children: [
-        Container(
-          height: 28,
-          decoration: StyleT.inkStyleNone(color: Colors.transparent),
-          child: Row(
-              children: [
-                ExcelT.LitGrid(text: "${index ?? '-'}" ,width: 32),
-                ExcelT.LitInput(context, "$index::매출일자", width: 100, index: index,
-                  setState: setState, textSize: 10,
+        Row(
+            children: [
+              ExcelT.LitGrid(text: "${index ?? '-'}" ,width: 32),
+              ExcelT.LitInput(context, "$index::매출일자", width: 100, index: index,
+                setState: setState, textSize: 10,
+                onEdited: (i, data) {
+                  var date = DateTime.tryParse(data.toString().replaceAll("/", "")) ?? DateTime.now();
+                  re.revenueAt = date.microsecondsSinceEpoch;
+                },
+                text: StyleT.dateInputFormatAtEpoch(re.revenueAt.toString()),
+              ),
+              ExcelT.LitInput(
+                context, "key::re.item.userInput",
+                expand: true,
+                text: item == null ? re.item : item.name,
+                index: index, width: 100,
+                onEdited: (i, data) async {
+                  re.item = data;
+                },
+                setState: setState,
+              ),
+              ButtonT.IconText(
+                icon: Icons.search,
+                onTap: () async {
+                  Item? selectItem = await DialogT.selectItem(context);
+                  if(selectItem != null) {
+                    re.item = selectItem.id;
+                    print(re.item);
+                    print(selectItem.name);
+                  }
+                  setState();
+                },
+                text: '품목선택',
+              ),
+              ExcelT.LitGrid(text: item == null ? '-' : item.unit,width: 50),
+              ExcelT.LitInput(context, "$index::re.count", width: 80, index: index,
+                setState: setState,
+                onEdited: (i, data) { re.count = int.tryParse(data) ?? 0; },
+                text: StyleT.krw(re.count.toString()), value: re.count.toString(),
+              ),
+              ExcelT.LitInput(context, "$index::re.unitPrice", width: 80, index: index,
+                  setState: setState,
+                  onEdited: (i, data) => re.unitPrice = int.tryParse(data) ?? 0,
+                  text: StyleT.krw(re.unitPrice.toString()), value: re.unitPrice.toString()
+              ),
+              ExcelT.LitInput(context, "$index::re.supplyPrice", width: 80, index: index,
+                  setState: setState,
                   onEdited: (i, data) {
-                    var date = DateTime.tryParse(data.toString().replaceAll("/", "")) ?? DateTime.now();
-                    re.revenueAt = date.microsecondsSinceEpoch;
-                  },
-                  text: StyleT.dateInputFormatAtEpoch(re.revenueAt.toString()),
-                ),
-                ExcelT.LitInput(
-                  context, "key::re.item.userInput",
-                  expand: true,
-                  text: item == null ? re.item : item.name,
-                  index: index, width: 100,
-                  onEdited: (i, data) async {
-                    re.item = data;
-                  },
+                    re.supplyPrice = int.tryParse(data) ?? 0;
+                    re.fixedSup = true;
+                  }, text: StyleT.krw(re.supplyPrice.toString()), value: re.supplyPrice.toString()
+              ),
+              ExcelT.LitInput(context, "$index::re.vat", width: 80, index: index,
                   setState: setState,
-                ),
-                ButtonT.IconText(
-                  icon: Icons.search,
-                  onTap: () async {
-                    Item? selectItem = await DialogT.selectItem(context);
-                    if(selectItem != null) {
-                      re.item = selectItem.id;
-                      print(re.item);
-                      print(selectItem.name);
-                    }
-                    setState();
-                  },
-                  text: '품목선택',
-                ),
-                ExcelT.LitGrid(text: item == null ? '-' : item.unit,width: 50),
-                ExcelT.LitInput(context, "$index::re.count", width: 80, index: index,
-                  setState: setState,
-                  onEdited: (i, data) { re.count = int.tryParse(data) ?? 0; },
-                  text: StyleT.krw(re.count.toString()), value: re.count.toString(),
-                ),
-                ExcelT.LitInput(context, "$index::re.unitPrice", width: 80, index: index,
-                    setState: setState,
-                    onEdited: (i, data) => re.unitPrice = int.tryParse(data) ?? 0,
-                    text: StyleT.krw(re.unitPrice.toString()), value: re.unitPrice.toString()
-                ),
-                ExcelT.LitInput(context, "$index::re.supplyPrice", width: 80, index: index,
-                    setState: setState,
-                    onEdited: (i, data) {
-                      re.supplyPrice = int.tryParse(data) ?? 0;
-                      re.fixedSup = true;
-                    }, text: StyleT.krw(re.supplyPrice.toString()), value: re.supplyPrice.toString()
-                ),
-                ExcelT.LitInput(context, "$index::re.vat", width: 80, index: index,
-                    setState: setState,
-                    onEdited: (i, data) {
-                      re.vat = int.tryParse(data) ?? 0;
-                      re.fixedVat = true;
-                    }, text: StyleT.krw(re.vat.toString()), value: re.vat.toString()
-                ),
-                ExcelT.LitGrid(text: StyleT.krw(re.totalPrice.toString()),width: 80, center: true),
-              ]
-          ),
+                  onEdited: (i, data) {
+                    re.vat = int.tryParse(data) ?? 0;
+                    re.fixedVat = true;
+                  }, text: StyleT.krw(re.vat.toString()), value: re.vat.toString()
+              ),
+              ExcelT.LitGrid(text: StyleT.krw(re.totalPrice.toString()),width: 80, center: true),
+            ]
         ),
-        Container(
-          height: 28,
-          decoration: StyleT.inkStyleNone(color: Colors.transparent),
-          child: Row(
-              children: [
-                ExcelT.Grid(text: "메모", width: 80, ),
-                ExcelT.LitInput(context, "$index::메모", width: 200, index: index,
-                  setState: setState, expand: true, textSize: 10,
-                  onEdited: (i, data) { re.memo  = data ?? ''; },
-                  text: re.memo,
-                ),
-              ]
-          ),
+        Row(
+            children: [
+              ExcelT.Grid(text: "메모", width: 80, ),
+              ExcelT.LitInput(context, "$index::메모", width: 200, index: index,
+                setState: setState, expand: true, textSize: 10,
+                onEdited: (i, data) { re.memo  = data ?? ''; },
+                text: re.memo,
+              ),
+            ]
         ),
       ],
     );

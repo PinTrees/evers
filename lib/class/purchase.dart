@@ -67,7 +67,7 @@ class Purchase {
     count = json['count'] ?? 0;
     unitPrice = json['unitPrice'] ?? 0;
     supplyPrice = json['supplyPrice'] ?? 0;
-    //vat = json['vat'] ?? 0;
+    vat = json['vat'] ?? 0;
     totalPrice = json['totalPrice'] ?? 0;
     paymentAt = json['paymentAt'] ?? 0;
     purchaseAt = json['purchaseAt'] ?? 0;
@@ -93,7 +93,7 @@ class Purchase {
       'count': count,
       'unitPrice': unitPrice,
       'supplyPrice': supplyPrice,
-      //'vat': vat,
+      'vat': vat,
       'totalPrice': totalPrice,
       'paymentAt': paymentAt,
       'purchaseAt': purchaseAt,
@@ -151,24 +151,21 @@ class Purchase {
 
 
 
+  /// 이 함수는 현재 매입목록에 대한 과거 변경기록정보를 요청하고 결과를 반환합니다.
   dynamic getHistory() async {
     List<Purchase> history = [];
-   /* await FirebaseFirestore.instance.collection('purchase/${id}/history').in.get().then((value) {
-      if(value.docs == null) return;
-      print(value.docs.length);
-
-      *//*for(var a in value.docs) {
-        if(a.data() == null) continue;
-        var map = a.data() as Map;
-
-        var ts = ItemTS.fromDatabase(map);
-        ts.id = a.id;
-        itemTs_list.add(ts);
-      }*//*
-    });*/
+    await FirebaseFirestore.instance.collection('purchase/${id}/history').limit(10).get().then((value) {
+      if(value.docs.isEmpty) return;
+      value.docs.forEach((e) {
+        if(!e.exists) return;
+        if(e.data() == null) return;
+        history.add(Purchase.fromDatabase(e.data() as Map));
+      });
+    });
     return history;
   }
 
+  /// 이 함수는 데이터베이스에서 신규 매입정보에 대한 유일한 문서Key를 요청하고 자신의 값에 할당합니다.
   dynamic createUid() async {
     var dateIdDay = DateStyle.dateYearMD(purchaseAt);
     var dateIdMonth = DateStyle.dateYearMM(purchaseAt);
@@ -203,6 +200,10 @@ class Purchase {
     );
   }
 
+  /// 이 함수는 현재 매입정보를 데이터베이스에 저장하고 결과를 반환합니다.
+  /// 신규 생성 또는 기존문서 변경모두 해당 함수를 통해 이루어져야 합니다.
+  /// 기존문서가 존재할 경우 History 문서로 이동하는 시스템이 구현되어 있습니다.
+  ///
   Future<bool> update({ Map<String, Uint8List>? files, ItemTS? itemTs}) async {
     var create = false;
     var result = false;

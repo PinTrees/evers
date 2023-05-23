@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/class/widget/list.dart';
@@ -50,13 +49,12 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
   Customer? cs;
   var isContractLinking = false;
 
+  List<Purchase> history = [];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.parent.title = '수납 개별 상세정보 수정창';
-
     var jsonString = jsonEncode(widget.pu.toJson());
     var json = jsonDecode(jsonString);
     pu = Purchase.fromDatabase(json);
@@ -67,6 +65,7 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
   void initAsync() async {
     if (pu.csUid != '') cs = await DatabaseM.getCustomerDoc(pu.csUid);
     if (pu.ctUid != '') { ct = await DatabaseM.getContractDoc(pu.ctUid); isContractLinking = true;  }
+    history = await pu.getHistory(); 
 
     setState(() {});
   }
@@ -81,12 +80,11 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
     widgetsPu.add(CompPU.tableHeaderEditor());
     widgetsPu.add(CompPU.tableUIEditor(context, pu,
       fileByteList: fileByteList, cs: cs,
-      setState: () { setState(() {}); },
+      setState: () { pu.init(); setState(() {}); },
     ));
 
     /// 매입 수정 UI
     var widgetPU = Column(children: widgetsPu,);
-
 
     var customerWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,6 +149,46 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
       },
     );
 
+    var vatWidget = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextT.SubTitle(text: "부가세 설정"),
+        SizedBox(height: dividHeight,),
+        ListBoxT.Rows(
+            spacing: 6,
+            children: [
+              for(var v in [0, 1])
+                ButtonT.IconText(
+                    icon: pu.vatType == v ? Icons.check_box : Icons.check_box_outline_blank,
+                    text: ['포함', "미포함"][v],
+                    onTap: () {
+                      pu.vatType = v;
+                      pu.init();
+                      setState(() {});
+                    }
+                ),
+              ButtonT.IconText(
+                  icon: Icons.auto_mode,
+                  text: "부가세 및 공급가액 자동계산",
+                  onTap: () {
+                    pu.fixedVat = pu.fixedSup = false;
+                    pu.init();
+                    setState(() {});
+                  }
+              )
+            ]
+        )
+      ],
+    );
+
+    List<Widget> historyWidgetList = [];
+    int index = 1;
+    history.forEach((e) {
+      historyWidgetList.add(CompPU.tableUIHistory(context, e, cs: cs, index: index++));
+      historyWidgetList.add(WidgetT.dividHorizontal(size: 0.35));
+    });
+    var historyWidget = Column(  children: historyWidgetList, );
+    
     return Container(
       width: 1280,
       child: Column(
@@ -171,11 +209,16 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
                 ListBoxT.Rows( spacing: 6, children: [fileEditeWidget,deleteWidget ],),
 
                 SizedBox(height: dividHeight * 4,),
+                vatWidget,
+
+                SizedBox(height: dividHeight * 4,),
                 TextT.SubTitle(text: '변경 기록', more: "현재 매입정보에 대한 수정기록이 표시됩니다."),
                 SizedBox(height: dividHeight,),
+                historyWidget,
               ],
             ),
           ),
+
           /// action
           buildAction(),
         ],
@@ -194,6 +237,8 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
               if(!alt) {  WidgetT.showSnackBar(context, text: '취소됨'); return; }
 
               WidgetT.loadingBottomSheet(context,);
+
+              print(pu.toJson());
 
               var result = await pu.update(files: fileByteList);
               if(!result) WidgetT.showSnackBar(context, text: 'Error');

@@ -44,7 +44,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
   var _headerSize = 28.0;
   /// 창 테두리 라운드 가중치
   var _borderRadius = 8.0;
-  var _strok = 1.4;
+  var _strok = 0.7;
   var _strokColor = Colors.grey;
 
   @override

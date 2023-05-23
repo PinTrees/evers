@@ -167,17 +167,15 @@ class ViewContract extends StatelessWidget {
   dynamic buildCustomerView(BuildContext context) async {
     List<Widget> widgets = [];
 
-    if(csList.length < 1) csList = await DatabaseM.getCustomer();
+    if(csList.isEmpty) csList = await DatabaseM.getCustomer();
 
     List<Widget> widgetsCs = [];
+    int index = 1;
     var data = sort ? csSortList : csList;
-    for(int i = 0; i < data.length; i++) {
-      var cs = data[i];
-      Widget w = SizedBox();
-
-      w = CompCS.tableUIMain(context, cs,
+    for(var cs in data) {
+      var w = CompCS.tableUIMain(context, cs,
         refresh: FunT.setStateMain,
-        index: i + 1,
+        index: index++,
       );
       widgetsCs.add(w);
       widgetsCs.add(WidgetT.dividHorizontal(size: 0.35));
@@ -208,11 +206,9 @@ class ViewContract extends StatelessWidget {
     if(ctList.isEmpty) ctList = await DatabaseM.getContract();
 
     var data = sort ? ctSortList : ctList;
-
     int index = 1;
     for(var ct in data) {
       var cs = await SystemT.getCS(ct.csUid);
-
       widgets.add(CompContract.tableUIMain(context, ct, cs, index: index++));
       widgets.add(WidgetT.dividHorizontal(size: 0.35));
     }

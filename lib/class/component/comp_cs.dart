@@ -95,24 +95,6 @@ class CompCS {
 
                     }
                 ),
-                ButtonT.IconText(
-                  icon: Icons.open_in_new_sharp,
-                  text: '기존창',
-                  onTap: () async {
-                    await DialogCS.showCustomerDialog(context, org: cs);
-                  },
-                ),
-                ButtonT.Icon(
-                    color: Colors.transparent,
-                    icon: Icons.delete,
-                    onTap: () async {
-                      var alt = await DialogT.showAlertDl(context, text: '"${cs.businessName}" 거래처를 데이터베이스에서 삭제하시겠습니까?');
-                      if (!alt) return;
-
-                      await DatabaseM.deleteCustomer(cs);
-                      if (refresh != null) await refresh();
-                    }
-                ),
               ]
           ),
         ));

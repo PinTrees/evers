@@ -65,7 +65,7 @@ class ViewRePu extends StatelessWidget {
   List<TS> tsList = [];
   List<TS> tsSortList = [];
 
-  /// 검색
+  /// 검색 상태 변수
   bool sort = false;
 
   var currentView = '매입';
@@ -628,7 +628,6 @@ class ViewRePu extends StatelessWidget {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: widgets,);
   }
-
 
   Widget build(context) {
     return Container();
