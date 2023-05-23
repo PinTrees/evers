@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:evers/class/component/comp_re.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
+import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/style.dart';
 import 'package:file_picker/file_picker.dart';
@@ -152,30 +153,20 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextT.SubTitle(text: "메모",),
-        SizedBox(height: dividHeight,),
-        Container(
-          decoration: StyleT.inkStyle(stroke: 0.7, color: Colors.transparent),
-          child: Row(
-            children: [
-              Expanded(
-                child: WidgetTF.textTitInput(
-                  context, "${widget.parent.key}::sch::메모", height: 64, isMultiLine: true,
-                  onEdite: (i, data) { schedule.memo = data; },
-                  text: schedule.memo,
-                ),
-              ),
-            ],
-          )
+        InputWidget.Lit(context, "${widget.parent.key}::sch::메모",
+          lavel: "메모", expand: true, isMultiLine: true,
+          setState: () { setState(() {}); },
+          onEdited: (i, data) { schedule.memo = data; },
+          text: schedule.memo,
         ),
         SizedBox(height: dividHeight,),
-        ExcelT.LabelInput(
+        InputWidget.Lit(
           context, "${widget.parent.key}::sch::작성자",
-          labelWidth: 100, width: 150, label: "작성자", labelSize: 14,
+          width: 150, lavel: "작성자",
           setState: () { setState(() {}); },
           onEdited: (i, data) { schedule.writer = data; },
           text: schedule.writer,
-        )
+        ),
       ],
     );
 

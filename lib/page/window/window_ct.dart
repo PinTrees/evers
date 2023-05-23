@@ -610,7 +610,8 @@ class _WindowCTState extends State<WindowCT> {
 
 
   Widget buildAction() {
-    var revenueSaveWidget = ButtonT.ActionLegacy("신규 매출 등록",
+    var revenueSaveWidget = ButtonT.Action(
+      context, "신규 매출 등록",
       expend: true,
       icon: Icons.output, backgroundColor: Colors.blue.withOpacity(0.5),
       onTap: () async {
@@ -623,6 +624,14 @@ class _WindowCTState extends State<WindowCT> {
       icon: Icons.schedule, backgroundColor: Colors.redAccent.withOpacity(0.5),
       onTap: () async {
         UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct,));
+      },
+    );
+    var purchaseItemSaveWidget = ButtonT.Action(
+      context, "신규 품목 매입 등록",
+      expend: true,
+      icon: Icons.icecream_sharp, backgroundColor: Colors.redAccent.withOpacity(0.35),
+      onTap: () async {
+        UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct, isItemPurchase: true,));
       },
     );
     var scheduleSaveWidget = ButtonT.Action(
@@ -650,7 +659,7 @@ class _WindowCTState extends State<WindowCT> {
 
     return Column(
       children: [
-        Row( children: [ revenueSaveWidget, purchaseSaveWidget, scheduleSaveWidget ],  ),
+        Row( children: [ revenueSaveWidget, purchaseSaveWidget, purchaseItemSaveWidget, scheduleSaveWidget ],  ),
         Row(
           children: [
             saveWidget,

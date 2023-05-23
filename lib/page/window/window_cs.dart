@@ -519,8 +519,7 @@ class _WindowCSState extends State<WindowCS> {
               expend: true,
               icon: Icons.output, backgroundColor: Colors.blue.withOpacity(0.5),
               onTap: () async {
-                var result = await DialogRE.showCreateRe(context);
-                if(result != null) return;
+                WidgetT.showSnackBar(context, text: "매출정보는 계약정보를 비워둘 수 없습니다. 계약화면에서 추가해주세요.");
               },
             ),
             ButtonT.ActionLegacy("신규 매입 등록",

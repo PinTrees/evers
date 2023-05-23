@@ -558,21 +558,33 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
       ],
     );
 
-    Widget contractWidget =  Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextT.SubTitle(text: "계약 정보"),
-        TextT.Lit(text: ct == null ? '-' : "${ct!.csName} / ${ct!.ctName}" ),
-        SizedBox(height: dividHeight,),
-        ButtonT.IconText(
-            icon: Icons.change_circle, text: "계약 검색",
-            onTap: () async {
-              ct = await DialogT.selectCt(context);
-              setState(() {});
-            }
-        ),
-      ],
-    );
+    Widget contractWidget = SizedBox();
+    if(widget.ct != null) {
+      contractWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextT.SubTitle(text: "계약 정보"),
+          TextT.Lit(text: "${ct!.csName} / ${ct!.ctName}"),
+        ],
+      );
+    }
+    else {
+      contractWidget =  Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextT.SubTitle(text: "계약 정보"),
+          TextT.Lit(text: ct == null ? '-' : "${ct!.csName} / ${ct!.ctName}" ),
+          SizedBox(height: dividHeight,),
+          ButtonT.IconText(
+              icon: Icons.change_circle, text: "계약 검색",
+              onTap: () async {
+                ct = await DialogT.selectCt(context);
+                setState(() {});
+              }
+          ),
+        ],
+      );
+    }
 
     List<Widget> purchaseWidgets = [];
     for(int i = 0; i < pus.length; i++) {

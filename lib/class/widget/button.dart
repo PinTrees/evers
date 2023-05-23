@@ -322,7 +322,7 @@ class ButtonT extends StatelessWidget {
             child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 WidgetT.iconMini(icon ?? Icons.add_box),
-                TextT.Lit(text: text, size: 14, color: StyleT.titleColor),
+                TextT.Lit(text: text, size: 12, color: StyleT.titleColor, bold: true),
                 SizedBox(width: 6,),
               ],
             )
