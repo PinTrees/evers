@@ -251,11 +251,8 @@ class DialogCT extends StatelessWidget {
                                         onEdite: (i, data) async {
                                         if(ct.csName == data) return;
                                         ct.csName = data;
-                                        var cs_list = await SystemT.searchCSMeta(data);
-
-                                        Customer? cs = await DialogCS.selectCS(context, cs_list);
+                                        Customer? cs = await DialogT.selectCS(context);
                                         FunT.setStateD = () { setStateS(() {}); };
-
                                         if(cs != null) {
                                           ct.csUid = cs.id;
                                           currentCs = cs;

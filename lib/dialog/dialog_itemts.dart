@@ -5,6 +5,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/system/state.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_ct.dart';
 import 'package:evers/ui/dialog_item.dart';
 import 'package:evers/ui/ex.dart';
@@ -1174,8 +1175,8 @@ class DialogItemTrans extends StatelessWidget {
                                           context: context,
                                           text: (cs == null) ? 'ㅡ' : cs!.businessName,
                                           onTap: () async {
-                                            var result = await DialogCS.showCustomerDialog(context, org: cs);
-                                            if(result != null) return;
+                                            if(cs == null) return;
+                                            UIState.OpenNewWindow(context, WindowCS(org_cs: cs));
                                           }
                                       ),
                                       WidgetT.text(' / '),

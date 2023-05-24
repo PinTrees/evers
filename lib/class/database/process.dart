@@ -7,6 +7,7 @@ import 'package:evers/class/widget/button.dart';
 import 'package:evers/dialog/dialog_itemInventory.dart';
 import 'package:evers/helper/dialog.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/ui/cs.dart';
 import 'package:evers/ui/ux.dart';
 import 'package:flutter/material.dart';
@@ -312,10 +313,7 @@ class ProcessItem {
                   if(context == null || cs == null) return;
                   if(UIState.current == UIType.dialog_customer) { WidgetT.showSnackBar(context, text: 'UI Error (Screen duplicate prevention error)'); return; }
 
-                  var result = await DialogCS.showCustomerDialog(context, org: cs);
-                  if(result != null)
-                    if(setState != null) setState();
-                  else {}
+                  UIState.OpenNewWindow(context, WindowCS(org_cs: cs));
                 },
               ),
               ExcelT.LitGrid(text: item.name, width: 200, center: true, expand: true),

@@ -73,8 +73,7 @@ class CompTS {
                     if(cs == null) { return; }
                     if(cs.businessName == '') { return; }
 
-                    /// 윈도우로 변경
-                    await DialogCS.showCustomerDialog(context, org: cs);
+                    UIState.OpenNewWindow(context, WindowCS(org_cs: cs,));
                     if(refresh != null) await refresh();
                   }
               ),
