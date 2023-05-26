@@ -136,9 +136,10 @@ class InputWidget {
 
   static Widget DropButton({String text='', List<dynamic>? dropMenus, Map<dynamic, dynamic>? dropMenuMaps,
     double? width, Function(int, dynamic)? onEdite,
+    Function(int, dynamic)? onEditeValue,
     Function? setState,
     int? index, String? label, double? labelWidth,}) {
-    if(dropMenuMaps != null) {
+    if(dropMenuMaps != null && dropMenus == null) {
       dropMenus = dropMenuMaps.values.toList();
     }
     if(setState == null) return SizedBox();
@@ -180,16 +181,16 @@ class InputWidget {
                 for(int i =0; i < dropMenuMaps.values.length; i++) {
                   if(dropMenuMaps.values.elementAt(i) == value) {
                     data = dropMenuMaps.keys.elementAt(i);
+                    if(onEditeValue != null) await onEditeValue(index ?? 0, dropMenuMaps.values.elementAt(i));
+                    else if(onEdite != null) await onEdite(index ?? 0, data);
                     break;
                   }
                 }
-                if(onEdite != null) await onEdite(index ?? 0, data);
                 await setState();
-                return;
+              } else {
+                if(onEdite != null) await onEdite(index ?? 0, value);
+                await setState();
               }
-
-              if(onEdite != null) await onEdite(index ?? 0, value);
-              await setState();
             },
             itemHeight: 28,
             itemPadding: const EdgeInsets.only(left: 16, right: 16),

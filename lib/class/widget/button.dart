@@ -20,6 +20,10 @@ class ButtonT extends StatelessWidget {
   static Map<String, TextEditingController> textInputs = {};
   static Map<String, bool> isActive = {};
 
+
+  static var disableTextColor =  new Color(0xff777777);
+  static var activeTextColor = new Color(0xffd7d7d7);
+
   static Widget Icon({IconData? icon, Function? onTap,
     Widget? leaging,
     Color? color,
@@ -240,6 +244,35 @@ class ButtonT extends StatelessWidget {
               WidgetT.iconNormal(icon,  size: 36),
               WidgetT.text(text, size: 12),
               SizedBox(width: 6,),
+            ],
+          ),
+        ));
+  }
+
+
+
+
+  /// 이 함수는 메인화면의 탭메뉴 위젯을 반환합니다.
+  static Widget TitleTabMenu(String text, IconData icon, {
+    double? width,
+    bool accent=false,
+    Function? onTap,
+    Function? setState,
+  }) {
+
+    var accentColor = Colors.grey.withOpacity(0.3);
+
+    return TextButton(
+        onPressed: () async {
+          if(onTap != null) onTap();
+        },
+        style: StyleT.buttonStyleNone(padding: 0, round: 6, color: accent ? accentColor : Colors.transparent),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(6, 6, 12, 6),
+          child: Row( mainAxisSize: MainAxisSize.min,
+            children: [
+              WidgetT.iconMini(icon, color:StyleT.titleColor.withOpacity(0.7)),
+              TextT.Lit(text: text, color: StyleT.titleColor, bold: true, size: 12),
             ],
           ),
         ));

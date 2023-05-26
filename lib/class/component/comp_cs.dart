@@ -5,13 +5,13 @@ import 'package:evers/class/purchase.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/helper/firebaseCore.dart';
+import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../dialog/dialog_itemInventory.dart';
 import '../../helper/aes.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
@@ -73,7 +73,9 @@ class CompCS {
                 ExcelT.LitGrid(text: cs.representative, width: 100, center: true),
                 ExcelT.LitGrid(text: cs.companyPhoneNumber, width: 100, center: true),
                 ExcelT.LitGrid(text: cs.phoneNumber, width: 100, center: true),
-                ButtonT.IconText(
+
+
+                /*ButtonT.IconText(
                     color: Colors.transparent,
                     icon: Icons.input, text: "매입",
                     onTap: () async {
@@ -94,7 +96,7 @@ class CompCS {
                       await DialogCS.showPUrRevTs(context, cs);
 
                     }
-                ),
+                ),*/
               ]
           ),
         ));
@@ -650,11 +652,7 @@ class CompCS {
                     var itemTs = await DatabaseM.getItemTrans(pu.id);
                     if(itemTs == null) return;
 
-                    var result = await DialogItemInven.showInfo(context, org: itemTs);
-                    if(result == null) {}
-                    else {}
-
-                    if(setState != null) setState();
+                    UIState.OpenNewWindow(context, WindowItemTS(itemTS: itemTs, refresh: () { if(refresh!= null) refresh(); }));
                   },
                 )
                     : SizedBox(),

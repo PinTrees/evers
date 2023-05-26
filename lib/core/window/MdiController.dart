@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
 import 'package:evers/page/window/window_factory.dart';
+import 'package:evers/page/window/window_process_create.dart';
+import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_re_create.dart';
@@ -50,6 +52,8 @@ class MdiController{
     if(widget is WindowReCreateWithCt) resizableWindow.title = '매출 정보 생성창 (계약)';
     if(widget is WindowUserCreate) resizableWindow.title = '계정 신규 생성창';
     if(widget is WindowUserEditor) resizableWindow.title = '계정 정보 수정창';
+    if(widget is WindowItemTS) resizableWindow.title = "매입품목 공정 관리창";
+    if(widget is WindowProcessOutputCreate) resizableWindow.title = "신규 가공공정 생성창";
   }
 
   ResizableWindow createWindow(BuildContext context, { double? pw, double? ph, }) {

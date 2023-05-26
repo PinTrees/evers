@@ -1,7 +1,10 @@
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/class/widget/messege.dart';
 import 'package:evers/class/widget/text.dart';
+import 'package:evers/helper/pdfx.dart';
 import 'package:evers/page/window/window_ct.dart';
+import 'package:evers/page/window/window_process_create.dart';
 import 'package:flutter/material.dart';
 
 import '../../helper/dialog.dart';
@@ -13,6 +16,7 @@ import '../../ui/ux.dart';
 import '../Customer.dart';
 import '../contract.dart';
 import '../database/item.dart';
+import '../database/process.dart';
 import '../system.dart';
 import '../system/state.dart';
 
@@ -131,6 +135,122 @@ class CompItem {
               ]
           ),
         ));
+    return w;
+  }
+}
+
+
+
+
+class CompItemTS {
+  static dynamic tableHeader() {
+    return WidgetUI.titleRowNone(['매입일자', '품목', '단위', '수량', '단가', '메모', '저장위치', ],
+        [ 150, 200, 50, 100, 100, 999, 200, 150, 200, 0],lite: true, background: true );
+  }
+
+
+  static dynamic tableUI(
+      BuildContext context,
+      ItemTS itemTs, {
+        Function? setState,
+        Function? refresh,
+        Function? onTap,
+  }) {
+    Item? item = SystemT.getItem(itemTs.itemUid);
+    if(item == null) return const SizedBox();
+    if(item.id == '') return const SizedBox();
+    if(setState == null) return const SizedBox();
+
+    List<Widget> fileWidgetList = [];
+
+    itemTs.filesMap.forEach((key, value) {
+      var w = ButtonT.IconText(
+          text: key, icon: Icons.cloud,
+        onTap: () {
+          PdfManager.OpenPdf(value, key);
+        },
+        leaging: ButtonT.Icon(
+          icon: Icons.delete,
+          onTap: () {
+            Messege.toReturn(context, '개발중', false);
+            setState();
+          }
+        )
+      );
+      fileWidgetList.add(w);
+    });
+
+    Widget fileWidget = Wrap( runSpacing: 6, spacing: 6,children: fileWidgetList,);
+
+    var w = Column(
+      children: [
+        Container( height: 28,
+          child: Row(
+              children: [
+                ExcelT.LitGrid(text: StyleT.dateInputFormatAtEpoch(itemTs.date.toString()), width: 150, center: true),
+                ExcelT.LitGrid(text: SystemT.getItemName(itemTs.itemUid), width: 200, center: true),
+                ExcelT.LitGrid(text: item.unit, width: 50),
+                ExcelT.LitGrid(text: StyleT.krwInt(itemTs.amount.toInt()), width: 100, center: true),
+                ExcelT.LitGrid(text: StyleT.krwInt(itemTs.unitPrice), width: 100, center: true),
+                ExcelT.LitGrid(text: itemTs.memo, width: 200, expand: true, center: true),
+                ExcelT.LitGrid(text: itemTs.storageLC, width: 200, expand: true),
+              ]
+          ),
+        ),
+        Container(
+          height: 28 + 6,
+          child: Row(
+              children: [
+                TextT.Lit(text: "첨부파일", width: 100, size: 12, color: StyleT.titleColor, bold: true),
+                Expanded(
+                    child: Container( padding: EdgeInsets.all(6), child: fileWidget),
+                ),
+              ]
+          ),
+        ),
+      ],
+    );
+    return w;
+  }
+
+
+
+  static dynamic tableUIOutput(
+      BuildContext context,
+      ItemTS itemTs,
+      double usedCount, {
+        Function? setState,
+        Function? refresh,
+      }) {
+    Item? item = SystemT.getItem(itemTs.itemUid);
+    if(item == null) return const SizedBox();
+    if(item.id == '') return const SizedBox();
+    if(setState == null) return const SizedBox();
+    if(refresh == null) return const SizedBox();
+
+    var w = InkWell(
+      onTap: () async {
+        var process = ProcessItem.fromItemTS(itemTs);
+        process.id = itemTs.id;
+        process.amount = (itemTs.amount - usedCount);
+        process.itUid = itemTs.itemUid;
+
+        UIState.OpenNewWindow(context, WindowProcessOutputCreate(process: process, refresh: refresh));
+      },
+      child: Container(
+        height: 28,
+        child: Row(
+          children: [
+            ExcelT.LitGrid(text: "-", width: 28),
+            ExcelT.LitGrid(text: item.name + '(원물)', width: 200, center: true),
+            ExcelT.LitGrid(text: '미가공', width: 100, center: true),
+            ExcelT.LitGrid(text: '완료', width: 100, center: true),
+            ExcelT.LitGrid(text: StyleT.krwInt((itemTs.amount - usedCount).toInt()), width: 200, center: true),
+          ],
+        ),
+      ),
+    );
+
     return w;
   }
 }

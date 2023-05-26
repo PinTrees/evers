@@ -7,6 +7,7 @@ import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/schedule.dart';
 import 'package:evers/class/system/state.dart';
 import 'package:evers/class/widget/button.dart';
+import 'package:evers/class/widget/page.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/datetime.dart';
 import 'package:evers/helper/firebaseCore.dart';
@@ -319,36 +320,11 @@ class ViewSchedule extends StatelessWidget {
       ));
     }
 
-    var main = Column (
-      children: [
-        if(topWidget != null) topWidget,
-        Expanded(
-          child: Row(
-            children: [
-              if(infoWidget != null) infoWidget,
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    titleWidget,
-                    WidgetT.dividHorizontal(size: 1.4),
-                    Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.all(12),
-                        children: [
-                          Column(children: childrenW,),
-                          SizedBox(height: 18,),
-                        ],
-                      ),
-                    ),
-                    bottomWidget,
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    var main = PageWidget.Main(
+      topWidget: topWidget,
+      infoWidget: infoWidget,
+      titleWidget: titleWidget,
+      children: childrenW,
     );
     return main;
   }

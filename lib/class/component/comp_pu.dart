@@ -7,13 +7,13 @@ import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/helper/firebaseCore.dart';
+import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../dialog/dialog_itemInventory.dart';
 import '../../helper/aes.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
@@ -649,11 +649,7 @@ class CompPU {
                   onTap: () async {
                     var itemTs = await DatabaseM.getItemTrans(pu.id);
                     if(itemTs == null) return;
-
-                    var result = await DialogItemInven.showInfo(context, org: itemTs);
-                    if(result == null) {}
-                    else {}
-
+                    UIState.OpenNewWindow(context, WindowItemTS(itemTS: itemTs, refresh: () { if(refresh != null) refresh(); }));
                     if(setState != null) setState();
                   },
                 )

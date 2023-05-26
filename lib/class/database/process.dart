@@ -1,18 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:evers/class/purchase.dart';
-import 'package:evers/class/system/state.dart';
-import 'package:evers/class/widget/button.dart';
-import 'package:evers/dialog/dialog_itemInventory.dart';
-import 'package:evers/helper/dialog.dart';
 import 'package:evers/helper/style.dart';
-import 'package:evers/page/window/window_cs.dart';
-import 'package:evers/ui/cs.dart';
-import 'package:evers/ui/ux.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-
 import '../../helper/firebaseCore.dart';
 import '../../helper/interfaceUI.dart';
 import '../Customer.dart';
@@ -27,7 +16,7 @@ import 'item.dart';
 
 
 
-/// 품목 거래 이동 입출 현황 기록 클래스
+/// 품목 작업 이동 기록 데이터 클래스
 ///
 /// @Create YM
 /// @Update YM 23.04.10
@@ -242,134 +231,5 @@ class ProcessItem {
 
 
   dynamic delete() async {
-  }
-
-  static Widget onTableHeader() {
-    return WidgetUI.titleRowNone(['순번', '거래처', '품목명', '가공공정', '상태', '작업시작 수량', '작업완료 수량', '작업중인 수량', '가공일', ''],
-        [ 28, 999, 999, 100, 50, 80, 80, 80, 150, 150], background: true, lite: true);
-  }
-  Widget OnTableUI( { BuildContext? context, Customer? cs, Item? item, Function? onTap, Function? setState,
-    double? usedAmount,
-  } ) {
-    if(item == null) {
-      return Container(
-        height: 28,
-        child: TextT.Lit(text: '품목정보는 NULL일 수 없습니다.'),
-      );
-    }
-
-    if(isOutput) {
-      return InkWell(
-        onTap: () async {
-          if(onTap != null) onTap();
-          if(setState != null) setState();
-        },
-        child: Container(
-          height: 28,
-          child: Row(
-            children: [
-              ExcelT.LitGrid(text: "-", width: 28),
-              ExcelT.LitGrid(text: item == null ? 'NULL' : item.name, width: 200, center: true),
-              ExcelT.LitGrid(text: MetaT.processType[type] ?? 'NULL', width: 100, center: true),
-              ExcelT.LitGrid(text: '가공가능', width: 100, center: true),
-              ExcelT.LitGrid(text: StyleT.krwInt((amount).toInt()), width: 200, center: true),
-              ExcelT.LitGrid(text: DateStyle.dateYearMonthDayHipen(date), width: 150, center: true),
-              ButtonT.IconText(
-                text: "수정",
-                color: Colors.transparent,
-                onTap: () async {
-                  if(context == null) return;
-
-                  WidgetT.showSnackBar(context, text: '개발중');
-
-                  if(setState != null) setState();
-                },
-                icon: Icons.create,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-    else {
-      var amountM = amount - ((usedAmount == null) ? 0 : usedAmount!.abs());
-
-      return InkWell(
-        onTap: () async {
-          if(onTap != null) onTap();
-          if(setState != null) setState();
-        },
-        child: Container(
-          height: 28,
-          child: Row(
-            children: [
-              ExcelT.LitGrid(text: "-", width: 28),
-              TextT.OnTap(
-                context: context,
-                text: cs == null ? 'NUll' : cs.businessName,
-                width: 200,
-                expand: true,
-                onTap: () async {
-                  if(context == null || cs == null) return;
-                  if(UIState.current == UIType.dialog_customer) { WidgetT.showSnackBar(context, text: 'UI Error (Screen duplicate prevention error)'); return; }
-
-                  UIState.OpenNewWindow(context, WindowCS(org_cs: cs));
-                },
-              ),
-              ExcelT.LitGrid(text: item.name, width: 200, center: true, expand: true),
-              ExcelT.LitGrid(text: MetaT.processType[type] ?? 'NULL', width: 100, center: true),
-              ExcelT.LitGrid(text: amountM <= 0 ? "완료" : isDone ? "완료" : '가공중', width: 50, center: true),
-              ExcelT.LitGrid(text: StyleT.krwInt(amount.toInt()) + item.unit, width: 80, center: true),
-              ExcelT.LitGrid(text: StyleT.krwInt(((usedAmount == null) ? 0 : usedAmount!.abs()).toInt()) + item.unit, width: 80, center: true),
-              ExcelT.LitGrid(text: StyleT.krwInt((amount - ((usedAmount == null) ? 0 : usedAmount!.abs())).toInt()) + item.unit, width: 80, center: true),
-
-              ExcelT.LitGrid(text: DateStyle.dateYearMonthDayHipen(date), width: 150, center: true),
-              ButtonT.IconText(
-                text: "수정",
-                color: Colors.transparent,
-                onTap: () async {
-                  if(context == null) return;
-
-                  WidgetT.loadingBottomSheet(context);
-                  await update();
-                  Navigator.pop(context);
-
-                  if(setState != null) setState();
-                },
-                icon: Icons.create,
-              ),
-              !isDone ? ButtonT.IconText(
-                icon: Icons.done,
-                text: "작업 완료하기",
-                color: Colors.transparent,
-                onTap: () async {
-                  if(context == null) return;
-
-                  /// 현재 작업은 완료로 변경
-                  /// 작업 완료 물품을 추가
-                  /// 작업완료 물품 입력폼을 추가후 해당목록을 업데이트할떄 모든 문서에대한 트랜잭션을 구현
-                  /// 추후 직접 입력으로 변경
-
-                  /// 작업완료대상의 품목정보 재구성 - 가공완료수량 리밋 수정
-                  var parentProcess = ProcessItem.fromDatabase(this.toJson());
-
-                  var result = await DialogItemInven.createOutputItem(context, process: parentProcess);
-                  if(result == null) await WidgetT.showSnackBar(context, text: "Database Error");
-                  else await WidgetT.showSnackBar(context, text: "저장됨");
-
-                  if(setState != null) setState();
-                },
-              )
-                  : ButtonT.IconText(
-                icon: Icons.check_box,
-                text: "완료된    작업",
-                color: Colors.transparent,
-                onTap: () async {},
-              )
-            ],
-          ),
-        ),
-      );
-    }
   }
 }

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/widget/page.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_revenue.dart';
@@ -15,25 +16,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-import '../class/Customer.dart';
-import '../class/contract.dart';
-import '../class/purchase.dart';
-import '../class/revenue.dart';
-import '../class/schedule.dart';
-import '../class/system.dart';
-import '../class/transaction.dart';
-import '../helper/dialog.dart';
-import '../helper/firebaseCore.dart';
-import '../helper/interfaceUI.dart';
-import '../helper/pdfx.dart';
-import 'cs.dart';
-import 'dialog_contract.dart';
-import 'dl.dart';
+import '../../class/Customer.dart';
+import '../../class/contract.dart';
+import '../../class/purchase.dart';
+import '../../class/revenue.dart';
+import '../../class/schedule.dart';
+import '../../class/system.dart';
+import '../../class/transaction.dart';
+import '../../class/widget/list.dart';
+import '../../helper/dialog.dart';
+import '../../helper/firebaseCore.dart';
+import '../../helper/interfaceUI.dart';
+import '../../helper/pdfx.dart';
+import '../../ui/cs.dart';
+import '../../ui/dialog_contract.dart';
+import '../../ui/dl.dart';
 import 'package:http/http.dart' as http;
 
-import 'ux.dart';
+import '../../ui/ux.dart';
 
-class ViewDelete extends StatelessWidget {
+class ViewSetting extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var st_sc_vt = ScrollController();
   var st_sc_hr = ScrollController();
@@ -86,8 +88,27 @@ class ViewDelete extends StatelessWidget {
 
     List<Widget> childrenW = [];
 
-    childrenW.add(WidgetT.title('매입 삭제 목록', size: 18));
-    childrenW.add(SizedBox(height: divideHeight,));
+    if(menu == "휴지통") {
+      childrenW.add(buildDeleteView(context));
+    }
+
+    var main = PageWidget.Main(
+      topWidget: topWidget,
+      infoWidget: infoWidget,
+      children: childrenW,
+    );
+
+    Navigator.pop(context!);
+    return main;
+  }
+
+
+
+  dynamic buildDeleteView(BuildContext context) {
+    List<Widget> widgets = [];
+
+    widgets.add(WidgetT.title('매입 삭제 목록', size: 18));
+    widgets.add(SizedBox(height: divideHeight,));
     for(var pur in pur_list) {
       var w = InkWell(
         onTap: () {
@@ -102,10 +123,10 @@ class ViewDelete extends StatelessWidget {
           ),
         ),
       );
-      childrenW.add(w);
-      childrenW.add(WidgetT.dividHorizontal(size: 0.35));
+      widgets.add(w);
+      widgets.add(WidgetT.dividHorizontal(size: 0.35));
     }
-    childrenW.add(InkWell(
+    widgets.add(InkWell(
       onTap: () async {
         var data = await DatabaseM.getPurchaseDelete(startAt: pur_list.last.id);
         pur_list.addAll(data);
@@ -121,10 +142,10 @@ class ViewDelete extends StatelessWidget {
       ),
     ),);
 
-    childrenW.add(SizedBox(height: divideHeight * 8,));
+    widgets.add(SizedBox(height: divideHeight * 8,));
 
-    childrenW.add(WidgetT.title('매출 삭제 목록', size: 18));
-    childrenW.add(SizedBox(height: divideHeight,));
+    widgets.add(WidgetT.title('매출 삭제 목록', size: 18));
+    widgets.add(SizedBox(height: divideHeight,));
     for(var rev in rev_list) {
       var w = InkWell(
         onTap: () {
@@ -139,10 +160,10 @@ class ViewDelete extends StatelessWidget {
           ),
         ),
       );
-      childrenW.add(w);
-      childrenW.add(WidgetT.dividHorizontal(size: 0.35));
+      widgets.add(w);
+      widgets.add(WidgetT.dividHorizontal(size: 0.35));
     }
-    childrenW.add(InkWell(
+    widgets.add(InkWell(
       onTap: () async {
         var data = await DatabaseM.getRevDelete(startAt: rev_list.last.id);
         rev_list.addAll(data);
@@ -158,10 +179,10 @@ class ViewDelete extends StatelessWidget {
       ),
     ),);
 
-    childrenW.add(SizedBox(height: divideHeight * 8,));
+    widgets.add(SizedBox(height: divideHeight * 8,));
 
-    childrenW.add(WidgetT.title('거래처 삭제 목록', size: 18));
-    childrenW.add(SizedBox(height: divideHeight,));
+    widgets.add(WidgetT.title('거래처 삭제 목록', size: 18));
+    widgets.add(SizedBox(height: divideHeight,));
     for(var cs in cs_list) {
       var w = InkWell(
         onTap: () {
@@ -222,8 +243,8 @@ class ViewDelete extends StatelessWidget {
 
                   var ret = true;
                   for(TS data in dataList) {
-                     var a = await data.delete();
-                     if(!a) ret = a;
+                    var a = await data.delete();
+                    if(!a) ret = a;
                   }
 
                   Navigator.pop(context);
@@ -244,10 +265,10 @@ class ViewDelete extends StatelessWidget {
           ),
         ),
       );
-      childrenW.add(w);
-      childrenW.add(WidgetT.dividHorizontal(size: 0.35));
+      widgets.add(w);
+      widgets.add(WidgetT.dividHorizontal(size: 0.35));
     }
-    childrenW.add(InkWell(
+    widgets.add(InkWell(
       onTap: () async {
         //var data = await FireStoreT.getRevDelete(startAt: rev_list.last.id);
         //rev_list.addAll(data);
@@ -263,38 +284,11 @@ class ViewDelete extends StatelessWidget {
       ),
     ),);
 
-    var main = Column(
-      children: [
-        if(topWidget != null) topWidget,
-        Expanded(
-          child: Row(
-            children: [
-              if(infoWidget != null) infoWidget,
-              Expanded(
-                child: Column(
-                  children: [
-                    WidgetT.dividHorizontal(size: 0.7),
-                    Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.all(12),
-                        children: [
-                          SizedBox(height: divideHeight,),
-                          Column(crossAxisAlignment: CrossAxisAlignment.start, children: childrenW,),
-                          SizedBox(height: 18,),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-    Navigator.pop(context!);
-    return main;
+
+    return ListBoxT.Columns(children: widgets,);
   }
+
+
 
   Widget build(context) {
     return Container();

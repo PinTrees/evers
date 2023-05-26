@@ -5,6 +5,7 @@ import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/system/records.dart';
+import 'package:evers/class/widget/page.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
@@ -15,32 +16,32 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 
-import '../class/Customer.dart';
-import '../class/contract.dart';
-import '../class/purchase.dart';
-import '../class/revenue.dart';
-import '../class/schedule.dart';
-import '../class/system.dart';
-import '../class/system/search.dart';
-import '../class/system/state.dart';
-import '../class/transaction.dart';
-import '../class/widget/button.dart';
-import '../class/widget/textInput.dart';
-import '../helper/dialog.dart';
-import '../helper/firebaseCore.dart';
-import '../helper/interfaceUI.dart';
-import '../helper/pdfx.dart';
-import '../page/window/window_ts.dart';
-import '../system/system_date.dart';
-import 'cs.dart';
-import 'dialog_contract.dart';
-import 'dl.dart';
+import '../../class/Customer.dart';
+import '../../class/contract.dart';
+import '../../class/purchase.dart';
+import '../../class/revenue.dart';
+import '../../class/schedule.dart';
+import '../../class/system.dart';
+import '../../class/system/search.dart';
+import '../../class/system/state.dart';
+import '../../class/transaction.dart';
+import '../../class/widget/button.dart';
+import '../../class/widget/textInput.dart';
+import '../../helper/dialog.dart';
+import '../../helper/firebaseCore.dart';
+import '../../helper/interfaceUI.dart';
+import '../../helper/pdfx.dart';
+import '../window/window_ts.dart';
+import '../../system/system_date.dart';
+import '../../ui/cs.dart';
+import '../../ui/dialog_contract.dart';
+import '../../ui/dl.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
-import 'ux.dart';
+import '../../ui/ux.dart';
 import 'dart:js' as js;
 import 'dart:html' as html;
 
@@ -1235,25 +1236,20 @@ class ViewPayment extends StatelessWidget {
       childrenW.add(tsW);
       childrenW.add(SizedBox(height: divideHeight * 3,));
 
-      bottomWidget = Column(
-        children: [
-          WidgetT.dividHorizontal(size: 1),
-          InkWell(
-              onTap: () {
+      bottomWidget =  InkWell(
+          onTap: () {
 
-              },
-              child: Container( height: 48,
-                child: Row(
-                    children: [
-                      WidgetT.excelGrid(text: '합계', width: 148.7, label: ''),
-                      WidgetT.excelGrid(text: StyleT.krwInt(allP), width: 250, label: '총 매출금액'),
-                      WidgetT.excelGrid( width: 250, label: '총 미수금액', text: StyleT.krwInt(allPdP),),
-                      WidgetT.excelGrid(text: StyleT.krwInt(allP - allPdP), width: 250, label: '총 미수금'),
-                    ]
-                ),
-              )
-          ),
-        ],
+          },
+          child: Container( height: 48,
+            child: Row(
+                children: [
+                  WidgetT.excelGrid(text: '합계', width: 148.7, label: ''),
+                  WidgetT.excelGrid(text: StyleT.krwInt(allP), width: 250, label: '총 매출금액'),
+                  WidgetT.excelGrid( width: 250, label: '총 미수금액', text: StyleT.krwInt(allPdP),),
+                  WidgetT.excelGrid(text: StyleT.krwInt(allP - allPdP), width: 250, label: '총 미수금'),
+                ]
+            ),
+          )
       );
     }
     else if(menu == '미지급현황') {
@@ -1284,66 +1280,40 @@ class ViewPayment extends StatelessWidget {
       childrenW.add(tsW);
       childrenW.add(SizedBox(height: divideHeight * 3,));
 
-      bottomWidget = Column(
-        children: [
-          WidgetT.dividHorizontal(size: 1),
-          InkWell(
-              onTap: () {
+      bottomWidget = InkWell(
+          onTap: () {
 
-              },
-              child: Container( height: 48,
-                child: Row(
-                    children: [
-                      WidgetT.excelGrid(text: '합계', width: 148.7, label: ''),
-                      WidgetT.excelGrid(text: StyleT.krwInt(allP), width: 250, label: '총 매입금액'),
-                      WidgetT.excelGrid( width: 250, label: '총 지급금액', text: StyleT.krwInt(allPdP),),
-                      WidgetT.excelGrid(text: StyleT.krwInt(allP - allPdP), width: 250, label: '총 미지급금액'),
-                    ]
-                ),
-              )
-          ),
-        ],
+          },
+          child: Container( height: 48,
+            child: Row(
+                children: [
+                  WidgetT.excelGrid(text: '합계', width: 148.7, label: ''),
+                  WidgetT.excelGrid(text: StyleT.krwInt(allP), width: 250, label: '총 매입금액'),
+                  WidgetT.excelGrid( width: 250, label: '총 지급금액', text: StyleT.krwInt(allPdP),),
+                  WidgetT.excelGrid(text: StyleT.krwInt(allP - allPdP), width: 250, label: '총 미지급금액'),
+                ]
+            ),
+          )
       );
     }
 
-    var main = Column(
-      children: [
-        if(topWidget != null) topWidget,
-        Expanded(
-          child: Row(
-            children: [
-              if(infoWidget != null) infoWidget,
-              Expanded(
-                child: Column(
-                  children: [
-                    titleMenu,
-                    if(menu == '금전출납현황' && currentMenu == '목록') TS.OnTableHeaderMain(),
-                    if(menu == '금전출납현황' && currentMenu == '금전출납부')
-                      Container( padding: EdgeInsets.fromLTRB(divideHeight, 0, divideHeight, divideHeight),
-                        child: WidgetUI.titleRowNone([ '순번', '계좌', '잔고', '전일잔고', '변동금', '수입', '지출', ],
-                            [ 32, 200, 100, 100, 100, 100, 100, 100  ]),
-                      ),
-                    if(menu == '미지급현황') CompTS.tableHeaderPaymentPU(),
-
-                    WidgetT.dividHorizontal(size: 0.7),
-                    Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.all(12),
-                        children: [
-                          Column(children: childrenW,),
-                          SizedBox(height: 18,),
-                        ],
-                      ),
-                    ),
-                    WidgetT.dividHorizontal(size: 0.7),
-                    bottomWidget,
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    var main = PageWidget.Main(
+      topWidget: topWidget,
+      infoWidget: infoWidget,
+      titleWidget: Column(
+        children: [
+          titleMenu,
+          if(menu == '금전출납현황' && currentMenu == '목록') TS.OnTableHeaderMain(),
+          if(menu == '금전출납현황' && currentMenu == '금전출납부')
+            Container( padding: EdgeInsets.fromLTRB(divideHeight, 0, divideHeight, divideHeight),
+              child: WidgetUI.titleRowNone([ '순번', '계좌', '잔고', '전일잔고', '변동금', '수입', '지출', ],
+                  [ 32, 200, 100, 100, 100, 100, 100, 100  ]),
+            ),
+          if(menu == '미지급현황') CompTS.tableHeaderPaymentPU(),
+        ],
+      ),
+      children: childrenW,
+      bottomWidget: bottomWidget,
     );
     return main;
   }

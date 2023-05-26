@@ -14,30 +14,12 @@ class PageWidget {
     Widget? topWidget,
     Widget? infoWidget,
     Widget? titleWidget,
+    Widget? bottomWidget,
     Function? onPageDocument,
     BuildContext? context,
   }) {
     var w = Column(
       children: [
-        Stack(
-          children: [
-            topWidget ?? SizedBox(),
-            Positioned(
-              top: 0, bottom: 0,
-              right: 0,
-              child: ButtonT.IconText(
-                  icon: Icons.open_in_new_sharp,
-                  text: "페이지 문서로 이동",
-                  color: Colors.transparent, textColor: Colors.white.withOpacity(0.7),
-                  onTap: () async {
-                    if(onPageDocument != null) onPageDocument();
-                    /*var url = Uri.base.toString().split('/work').first + '/documents/customer';
-                    await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self',);*/
-                  }
-              ),
-            )
-          ],
-        ),
         Expanded(
           child: Row(
             children: [
@@ -45,10 +27,36 @@ class PageWidget {
               Expanded(
                 child: Column(
                   children: [
-                    titleWidget ?? SizedBox(),
+                    SizedBox(height: 6 * 2,),
+                    Stack(
+                      children: [
+                        Row(
+                          children: [
+                            topWidget ?? SizedBox(),
+                            SizedBox(width: 6,),
+                          ],
+                        ),
+                        Positioned(
+                          top: 0, bottom: 0,
+                          right: 0,
+                          child: ButtonT.IconText(
+                              icon: Icons.open_in_new_sharp,
+                              text: "페이지 문서로 이동",
+                              color: Colors.transparent, textColor: Colors.white.withOpacity(0.7),
+                              onTap: () async {
+                                if(onPageDocument != null) onPageDocument();
+                                /*var url = Uri.base.toString().split('/work').first + '/documents/customer';
+                    await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self',);*/
+                              }
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(height: 6 * 2,),
+
+                    titleWidget ?? const SizedBox(),
                     if(titleWidget != null)
                       WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.35)),
-
                     Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -67,6 +75,11 @@ class PageWidget {
                         ],
                       ),
                     ),
+
+
+                    if(titleWidget != null)
+                      WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.35)),
+                    bottomWidget ?? const SizedBox(),
                   ],
                 ),
               ),

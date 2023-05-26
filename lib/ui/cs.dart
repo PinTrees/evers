@@ -38,6 +38,7 @@ import 'ex.dart';
 import 'ip.dart';
 import 'ux.dart';
 
+/*
 
 /// 레거시 코드입니다.
 /// 모두 제거예정이며 다른창으로 마이그레이션 되어야 합니다.
@@ -294,7 +295,8 @@ class DialogCS extends StatelessWidget {
                         ),
                         WidgetT.excelGrid( width: 28, label: '${i + 1}',),
                         WidgetT.excelInput(context, '$i::c매출일자', width: 100,
-                          /*onEdite: (i, data) async {
+                          */
+/*onEdite: (i, data) async {
                             if(StyleT.dateFormatAtEpoch(revenue.revenueAt.toString()) == StyleT.dateFormatAtEpoch(StyleT.dateEpoch(data).toString())) {
                               return;
                             }
@@ -312,7 +314,8 @@ class DialogCS extends StatelessWidget {
                               await FireStoreT.updateRevenue(revenue, org: org);
                             }
                             isPop = false;
-                          },*/
+                          },*//*
+
                           text: StyleT.dateInputFormatAtEpoch(revenue.revenueAt.toString()),
                         ),
                         WidgetT.excelGrid( width: 150 + 28 * 2, text: itemName,),
@@ -430,7 +433,7 @@ class DialogCS extends StatelessWidget {
     if(aa == null) aa = false;
     return aa;
   }
- 
+
 
   /// 고객 매입 관리화면
   /// 매입 정렬 완료
@@ -942,7 +945,8 @@ class DialogCS extends StatelessWidget {
                             WidgetT.excelGrid( width: 28, label: '${i + 1}',),
                             //WidgetT.dividViertical(height: 28),
                             WidgetT.excelInput(context, '$i::c매출일자', width: 100,
-                              /*onEdite: (i, data) async {
+                              */
+/*onEdite: (i, data) async {
                                 if(StyleT.dateFormatAtEpoch(revenue.revenueAt.toString()) == StyleT.dateFormatAtEpoch(StyleT.dateEpoch(data).toString())) {
                                   return;
                                 }
@@ -960,7 +964,8 @@ class DialogCS extends StatelessWidget {
                                   await FireStoreT.updateRevenue(revenue, org: org);
                                 }
                                 isPop = false;
-                              },*/
+                              },*//*
+
                               text: StyleT.dateInputFormatAtEpoch(revenue.revenueAt.toString()),
                             ),
                             //WidgetT.dividViertical(height: 28),
@@ -1334,3 +1339,4 @@ class DialogCS extends StatelessWidget {
     return Container();
   }
 }
+*/

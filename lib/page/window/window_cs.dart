@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_contract.dart';
+import 'package:evers/class/component/comp_process.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/widget/excel.dart';
@@ -192,13 +193,13 @@ class _WindowCSState extends State<WindowCS> {
 
     List<Widget> processingWidgets = [];
     for(var prs in processingList) {
-      Item? item = SystemT.getItem(prs.itUid);
-      processingWidgets.add(prs.OnTableUI(
-        context: context,
+      var w = CompProcess.tableUI(
+          context, prs, usedAmount[prs.id] ?? 0,
         cs: cs,
-        item: item,
-        usedAmount: usedAmount[prs.id] ?? 0.0,
-      ));
+        setState: () { setState(() {}); },
+        refresh: () { initAsync(); }
+      );
+      processingWidgets.add(w);
       processingWidgets.add(WidgetT.dividHorizontal(size: 0.35));
     }
 
@@ -474,7 +475,7 @@ class _WindowCSState extends State<WindowCS> {
 
                     TextT.Title(text: '생산관리 - 공정관리',),
                     SizedBox(height: dividHeight,),
-                    ProcessItem.onTableHeader(),
+                    CompProcess.tableHeader(),
                     Column(children: processingWidgets,),
                     SizedBox(height: dividHeight * 8,),
 

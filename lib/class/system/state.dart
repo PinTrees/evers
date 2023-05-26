@@ -5,6 +5,8 @@ import 'package:evers/class/system.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
+import 'package:evers/page/window/window_process_create.dart';
+import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_re_create.dart';
@@ -58,6 +60,9 @@ class UIState {
     if(window is WindowUserCreate) width = 800;
     if(window is WindowCS || window is WindowCsCreate) width = 1200;
     if(window is WindowCT || window is WindowCT) width = 1200;
+    if(window is WindowItemTS) width = 1000;
+    if(window is WindowProcessOutputCreate) width = 1000;
+
     if(window is WindowPUCreate || window is WindowPUEditor || window is WindowPUCreateWithCS) width = 1000;
     if(window is WindowReCreate || window is WindowReEditor || window is WindowReCreateWithCt) width = 1000;
 
@@ -69,6 +74,7 @@ class UIState {
     if(window is WindowCT) isFixedHeight = true;
     if(window is WindowCS) isFixedHeight = true;
     if(window is WindowCsCreate) isFixedHeight = true;
+    if(window is WindowItemTS) isFixedHeight = false;
     //if(window is WindowSchCreate) isFixedHeight = true;
 
     mdiController!.addWindow(context, widget: window, resizableWindow: parent, fixedHeight: isFixedHeight);
