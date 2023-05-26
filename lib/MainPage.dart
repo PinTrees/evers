@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      WidgetT.titleT('타이틀 문구 입력 자리', size: 88, bold: true, color: Colors.white),
+                      WidgetT.titleT('동결건조 전문기업 (주)에버스', size: 88, bold: true, color: Colors.white),
                       WidgetT.titleT('서브 타이틀 문구 입력 자리', size: 32, bold: false, color: Colors.white),
                     ],
                   ),
