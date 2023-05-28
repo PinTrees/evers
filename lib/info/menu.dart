@@ -1,7 +1,3 @@
-
-
-
-
 import 'package:flutter/material.dart';
 
 import '../class/user.dart';
@@ -12,7 +8,7 @@ import '../class/user.dart';
 
 
 
-
+/// ERP 메인 메뉴 목록입니다.
 enum MainMenuInfo {
   /// pathName, displayName and menuKey, IconData
   home("home", '홈', Icons.home, [ SubMenuInfo.schedule ]),
@@ -50,22 +46,7 @@ enum MainMenuInfo {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/// ERP 메인메뉴 1차 하위메뉴 목록입니다.
 enum SubMenuInfo {
   /// pathName, displayName and menuKey, IconData
 
@@ -126,12 +107,7 @@ enum SubMenuInfo {
 }
 
 
-
-
-
-
-
-
+/// ERP 좌측 네비게이션 메뉴 목록입니다.
 enum NavigationMenuInfo {
   /// pathName, displayName and menuKey, IconData
   factoryPaper("1", SubMenuInfo.factoryPaper, Icons.insert_page_break, []),
@@ -162,6 +138,63 @@ enum NavigationMenuInfo {
   }
 }
 
+
+
+
+
+
+/// 홈페이지 메인 메뉴 목록입니다.
+enum HomeMainMenu {
+  home("home", "홈", Icons.new_label_rounded, []),
+  info("info", '소개', Icons.insert_drive_file_outlined, [ HomeSubMenu.greetings, HomeSubMenu.history ]),
+  technology("technology", '동결건조', Icons.pages_sharp, [ HomeSubMenu.freezeDrying, ]),
+  product("product", "제품", Icons.production_quantity_limits, [ HomeSubMenu.meogkkun ]),
+  store("store", "판매 사이트", Icons.storefront_outlined, [ HomeSubMenu.store, HomeSubMenu.naverStore]);
+
+  const HomeMainMenu(this.code, this.displayName, this.icon, this.subMenus);
+  final String code;
+  final String displayName;
+  final IconData icon;
+  final List<HomeSubMenu> subMenus;
+
+  factory HomeMainMenu.getByCode(String code){
+    return HomeMainMenu.values.firstWhere((value)
+    => value.code == code,
+        orElse: () => HomeMainMenu.info
+    );
+  }
+}
+
+
+/// 홈페이지 메인메뉴의 1차 하위메뉴 목록입니다.
+enum HomeSubMenu {
+  /// 소개
+  greetings("greetings", '인사말', Icons.waving_hand, [ ]),
+  history("history", '걸어온 길', Icons.history_edu, [ ]),
+
+  /// 동결건조기술
+  freezeDrying("freezeDrying", '동결건조기술', Icons.biotech, [ ]),
+
+  /// 제품
+  meogkkun("meogkkun", "나는먹꾼", Icons.tapas, []),
+
+  /// 판매사이트
+  store("store", '판매사이트', Icons.store, [ ]),
+  naverStore("naverStore", "스마트스토어", Icons.shopping_bag_outlined, [ ]);
+
+  const HomeSubMenu(this.code, this.displayName, this.icon, this.subMenus);
+  final String code;
+  final String displayName;
+  final IconData icon;
+  final List<SubMenuInfo> subMenus;
+
+  factory HomeSubMenu.getByCode(String code){
+    return HomeSubMenu.values.firstWhere((value)
+    => value.code == code,
+        orElse: () => HomeSubMenu.greetings
+    );
+  }
+}
 
 
 

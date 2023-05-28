@@ -85,6 +85,7 @@ class ButtonT extends StatelessWidget {
   static Widget IconText({ String? text, IconData? icon, Function? onTap,
     bool bold=false,
     Color? color,
+    double? width,
     EdgeInsets? padding,
     Widget? leaging,
     Color? textColor, }) {
@@ -105,9 +106,47 @@ class ButtonT extends StatelessWidget {
         ),
       ),
     );
+    if(padding != null) return Container(
+      padding: padding,
+      child: w,
+    );
+    return w;
+  }
+
+
+
+
+
+  /// 이 함수는 메인화면의 타이틀 버튼위젯입니다.
+  static Widget Title({ String? text, IconData? icon, Function? onTap,
+    bool bold=false,
+    Color? color,
+    EdgeInsets? padding,
+    Widget? leaging,
+    Color? textColor, }) {
+    var w = InkWell(
+      onTap: () async {
+        if(onTap != null) return await onTap();
+      },
+      child: Container(
+        color: color ?? Colors.transparent,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(width: 6,),
+            //WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28),
+            TextT.Lit(text: text ?? '-', size: 16, color: StyleT.titleColor, bold: true),
+            const SizedBox(width: 6,),
+            if(leaging != null) leaging,
+          ],
+        ),
+      ),
+    );
+
     if(padding != null) return Container( padding: padding,  child: w, );
     return w;
   }
+
 
 
 
@@ -147,6 +186,7 @@ class ButtonT extends StatelessWidget {
     double? size,
     double? height,
     double? width,
+    double? textSize,
     bool bold=false,
     bool expand=false,
     Color? color,
@@ -161,7 +201,7 @@ class ButtonT extends StatelessWidget {
         color: color ?? Colors.grey.withOpacity(0.25),
         alignment: Alignment.center,
         width: size ?? width, height: size ?? height ?? 28,
-        child: TextT.Lit(text: text ?? '텍스트 입력', size: 12, color: textColor, bold: bold),
+        child: TextT.Lit(text: text ?? '텍스트 입력', size: textSize ?? 12, color: textColor, bold: bold),
       ),
     );
 

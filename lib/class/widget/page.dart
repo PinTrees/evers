@@ -91,4 +91,25 @@ class PageWidget {
 
     return w;
   }
+
+
+
+
+  static Widget Home({
+    List<Widget>? children,
+    Widget? bottomWidget,
+  }) {
+    return ListView(
+      children: [
+        Column(
+          children: [
+            const SizedBox(height: 68,),
+
+            if(children != null) for(var w in children) w,
+            bottomWidget ?? const SizedBox(),
+          ],
+        )
+      ],
+    );
+  }
 }
