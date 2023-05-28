@@ -3,6 +3,7 @@ import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/page.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/dialog.dart';
+import 'package:evers/page/view/home/view_freezedrying.dart';
 import 'package:evers/page/view/home/view_greetings.dart';
 import 'package:evers/page/view/home/view_history.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -205,6 +206,16 @@ class _HomePageState extends State<HomePage> {
         return PageWidget.Home(
             children: [
               ViewHistory(),
+            ],
+            bottomWidget: bottomWidget
+        );
+      }
+    }
+    else if(currentMenu == HomeMainMenu.technology) {
+      if(currentSubMenu == HomeSubMenu.freezeDrying) {
+        return PageWidget.Home(
+            children: [
+              ViewFreezeDrying(),
             ],
             bottomWidget: bottomWidget
         );
