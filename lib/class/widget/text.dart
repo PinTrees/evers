@@ -112,10 +112,11 @@ class TextT extends StatelessWidget {
     String? text,
     String? more,
     double? width,
+    Color? color,
     bool expand=false}) {
     Widget w = Text(
       text ?? '',
-      style: TextStyle(color: StyleT.titleColor, fontSize: 14, fontWeight: FontWeight.w900),
+      style: TextStyle(color: color ?? StyleT.titleColor, fontSize: 14, fontWeight: FontWeight.w900),
     );
 
     if(more != null) w = Row( children: [ w, const SizedBox(width: 6 * 3,), Lit(text: more), ],);

@@ -104,7 +104,6 @@ class PageWidget {
         Column(
           children: [
             const SizedBox(height: 68,),
-
             if(children != null) for(var w in children) w,
             bottomWidget ?? const SizedBox(),
           ],
