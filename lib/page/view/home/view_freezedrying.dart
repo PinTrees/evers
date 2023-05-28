@@ -129,23 +129,33 @@ class _ViewFreezeDryingState extends State<ViewFreezeDrying> {
           SizedBox(height: 6 * 8,),
           Container(
             padding: EdgeInsets.only(left: 128, right: 128),
-            child: TextT.Lit(text: infoText2, color: StyleT.textColor, size: 16, bold: false),
+            child: TextT.Lit(text: infoText3_1, color: StyleT.textColor, size: 16, bold: false),
           ),
-
+          SizedBox(height: 6 * 4,),
           Container(
-            padding: EdgeInsets.only(left: 128, right: 128),
+            padding: EdgeInsets.only(left: 128,  right: 128,),
             height: 380, width: double.maxFinite,
-            child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/234321234.jpg', fit: BoxFit.cover),
+            child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/aaa_bbb.png', fit: BoxFit.contain),
+          ),
+          SizedBox(height: 6 * 4,),
+          Container(
+            padding: EdgeInsets.only(left: 128, right: 128),
+            child: TextT.Lit(text: infoText3_2, color: StyleT.textColor, size: 16, bold: false),
           ),
 
+
+
+
+         /* SizedBox(height: 6 * 24,),
+          TextT.Lit(text: "동결건조의 단계", color: Colors.black, size: 26, bold: true),
+          SizedBox(height: 6 * 8,),
           Container(
             padding: EdgeInsets.only(left: 128, right: 128),
             child: TextT.Lit(text: infoText2, color: StyleT.textColor, size: 16, bold: false),
-          ),
+          ),*/
+
 
           SizedBox(height: 64,),
-
-
         ],
       ),
     );
