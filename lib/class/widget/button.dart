@@ -86,6 +86,7 @@ class ButtonT extends StatelessWidget {
     bool bold=false,
     Color? color,
     double? width,
+    double? textSize,
     EdgeInsets? padding,
     Widget? leaging,
     Color? textColor, }) {
@@ -99,7 +100,7 @@ class ButtonT extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28),
-            TextT.Lit(text: text ?? '텍스트 입력', size: 12, color: textColor, bold: bold),
+            TextT.Lit(text: text ?? '텍스트 입력', size: textSize ?? 12, color: textColor, bold: bold),
             SizedBox(width: 6,),
             if(leaging != null) leaging,
           ],

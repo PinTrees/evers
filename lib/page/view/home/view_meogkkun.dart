@@ -25,12 +25,26 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 
+class Product {
+  var name = "";
+  var iconUrl = "";
+  var price = 0;
+  
+  Product(String name, String iconUrl, int price) {
+    this.name = name;
+    this.iconUrl = 'https://raw.githubusercontent.com/PinTrees/evers/main/sever/' + iconUrl + '.jpg';
+    this.price = price;
+  }
+}
+
+
 class ViewMeogkkun extends StatefulWidget {
   ViewMeogkkun() { }
 
   @override
   _ViewMeogkkunState createState() => _ViewMeogkkunState();
 }
+
 
 class _ViewMeogkkunState extends State<ViewMeogkkun> {
   var dividHeight = 6.0;
@@ -54,6 +68,7 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
   "\n\n또한, 동결건조 과정에서는 물의 결정화 형태도 중요합니다. 물의 결정화 형태는 물 분자들이 어떻게 배열되느냐에 따라서 제품의 품질에 영향을 미칩니다. 일반적으로, 빙결할 때는 물 분자들이 얼음의 결정구조를 형성합니다. 이러한 얼음의 결정구조는 제품 내부에서 고체상태의 물이 분포하는 방식과 관련이 있습니다."
   "\n\n동결건조는 높은 품질의 건조 식품을 생산하기 위한 중요한 기술입니다. 이러한 기술은 물의 증발로 인한 제품 내부의 구조 변화를 최소화하여 제품의 품질을 유지할 수 있습니다. 동결건조 과정에서는 냉동기 내부의 온도와 압력, 그리고 삼중점과 물의 결정화 형태 등이 중요한 역할을 합니다. 이러한 요소들을 적절하게 제어하여 높은 품질의 건조 식품을 생산할 수 있습니다. 따라서, 삼중점과 동결건조의 원리를 이해하고 이를 적용하여 실제 제조 과정에서 적절하게 활용하는 것이 중요합니다.";
 
+  List<Product> productList = [];
 
   @override
   void initState() {
@@ -63,6 +78,14 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
   }
 
   void initAsync() async {
+
+    productList.add(new Product("알싸한 맛 나는 먹꾼", "905f83adb557ef5e2a9b47fff133a97a", 6000));
+    productList.add(new Product("핫불닭맛 나는 먹꾼", "70e942b4199a3f13cd8e259c9422d0c0", 6000));
+    productList.add(new Product("스위트콘 맛 나는 먹꾼", "f7ed1ab86b8cc673a61b2ddee68f838e", 6000));
+    productList.add(new Product("담백한 맛 나는 먹꾼", "86ab96a9c1b146d01872691e0beb9029", 6000));
+    productList.add(new Product("단짠맛 나는 먹꾼", "e4a48bca29c5f9898cedd6c043eed7b8", 6000));
+    productList.add(new Product("건강한맛 나는 먹꾼", "5de28516f84d4f669e4c80625cb4b3e7", 6000));
+
     setState(() {});
   }
 
@@ -81,12 +104,12 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
               Expanded(
                   child: Container(
                     height: 380, width: double.maxFinite,
-                    child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/234321234.jpg', fit: BoxFit.cover),
+                    child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/df405229-585f-4a6c-9d9a-1ebf33cde99c.png', fit: BoxFit.cover),
                   )
               )
             ]
         ),
-        Positioned(
+        /*Positioned(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -95,7 +118,7 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
               TextT.Lit(text: "최첨단 기술 및 설비", color: Colors.white, size: 28),
             ],
           ),
-        )
+        )*/
       ],
     );
 
@@ -105,56 +128,52 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(height: 64,),
-          TextT.Lit(text: "동결건조기술", color: Colors.black, bold: true, size: 38),
+          TextT.Lit(text: "우리의 제품", color: Colors.black, bold: true, size: 38),
           SizedBox(height: 6 * 12,),
-          TextT.Lit(text: "동결건조 기술 소개", color: Colors.black, size: 26, bold: true),
-          SizedBox(height: 6 * 8,),
-          Container(
-            padding: EdgeInsets.only(left: 128, right: 128),
-            child: TextT.Lit(text: infoText, color: StyleT.textColor, size: 16, bold: false),
+          TextT.Lit(text: "동결건조로 더욱 바삭한 먹태 모음", color: Colors.black, size: 26, bold: true),
+
+          ListBoxT.Wraps(
+            padding: EdgeInsets.all(6 * 8),
+            spacing: 6 * 4,
+            children: [
+              for(var p in productList)
+                InkWell(
+                  onTap: () async {
+                    await launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Material(
+                        elevation: 0,
+                        borderRadius: BorderRadius.all(Radius.circular(0)),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.all(Radius.circular(0)),
+                          child: Container(
+                            width: 300, height: 300,
+                            color: Colors.grey.withOpacity(0.3),
+                            padding: EdgeInsets.all(1.4),
+                            child:CachedNetworkImage(imageUrl: p.iconUrl, fit: BoxFit.cover),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.all(6 * 2),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            TextT.Lit(text: p.name, size: 18, color: Colors.black, bold: true),
+                            SizedBox(height: 3 * 1,),
+                            TextT.Lit(text: StyleT.krwInt(p.price) + "원", size: 16, color: Colors.blue, bold: true),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 6,),
+                    ],
+                  ),
+                )
+            ]
           ),
-
-          SizedBox(height: 6 * 24,),
-
-          TextT.Lit(text: "용융점과 동결건조의 원리", color: Colors.black, size: 26, bold: true),
-          SizedBox(height: 6 * 8,),
-          Container(
-            padding: EdgeInsets.only(left: 128, right: 128),
-            child: TextT.Lit(text: infoText2, color: StyleT.textColor, size: 16, bold: false),
-          ),
-
-          SizedBox(height: 6 * 24,),
-
-          TextT.Lit(text: "삼중점의 개념", color: Colors.black, size: 26, bold: true),
-          SizedBox(height: 6 * 8,),
-          Container(
-            padding: EdgeInsets.only(left: 128, right: 128),
-            child: TextT.Lit(text: infoText3_1, color: StyleT.textColor, size: 16, bold: false),
-          ),
-          SizedBox(height: 6 * 4,),
-          Container(
-            padding: EdgeInsets.only(left: 128,  right: 128,),
-            height: 380, width: double.maxFinite,
-            child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/aaa_bbb.png', fit: BoxFit.contain),
-          ),
-          SizedBox(height: 6 * 4,),
-          Container(
-            padding: EdgeInsets.only(left: 128, right: 128),
-            child: TextT.Lit(text: infoText3_2, color: StyleT.textColor, size: 16, bold: false),
-          ),
-
-
-
-
-         /* SizedBox(height: 6 * 24,),
-          TextT.Lit(text: "동결건조의 단계", color: Colors.black, size: 26, bold: true),
-          SizedBox(height: 6 * 8,),
-          Container(
-            padding: EdgeInsets.only(left: 128, right: 128),
-            child: TextT.Lit(text: infoText2, color: StyleT.textColor, size: 16, bold: false),
-          ),*/
-
-
           SizedBox(height: 64,),
         ],
       ),

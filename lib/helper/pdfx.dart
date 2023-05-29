@@ -146,7 +146,6 @@ class PDFX extends StatelessWidget {
 }
 
 class WidgetP extends StatelessWidget {
-
   static Map<String, TextEditingController> textInputs = {};
   static Map<String, bool> isActive = {};
 

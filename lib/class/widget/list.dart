@@ -108,6 +108,49 @@ class ListBoxT extends StatelessWidget {
     if(expand) w = Expanded( child: w );
     return w;
   }
+
+
+
+  /// 이 함수는 Widget.Wrap 의 래핑클래스 입니다.
+  /// spacing 값과 spacing 위젯은 함께 사용될 수 없습니다.
+  static Widget Wraps({ BuildContext? context,
+    List<Widget>? children,
+    MainAxisAlignment? mainAxisAlignment,
+    CrossAxisAlignment? crossAxisAlignment,
+    double? width,
+    double? spacing,
+    double? spacingStartEnd,
+    Widget? spacingWidget,
+    EdgeInsets? padding,
+    bool expand=false,
+  }) {
+    if(children == null) return SizedBox();
+    List<Widget> widgets = [];
+
+
+    /// 사용자 정의 위젯의 반복 추가자입니다.
+    if(spacingWidget != null) {
+      children.forEach((e) { widgets.add(e); widgets.add(spacingWidget); });
+      if(!widgets.isEmpty) widgets.removeLast();
+    }
+    /// 사용자 정의 위젯의 반복 추가자입니다.
+    else if(spacingStartEnd != null) {
+      widgets.add(SizedBox(height: spacingStartEnd,));
+      children.forEach((e) { widgets.add(e); widgets.add(SizedBox(height: spacingStartEnd,)); });
+    }
+    else widgets = children;
+
+
+    Widget w = Wrap(
+      spacing: spacing ?? 0, runSpacing: spacing ?? 0,
+      children: widgets,
+    );
+
+    if(padding != null) w = Padding(padding: padding, child: w,);
+    if(width != null)   w = SizedBox(width: width, child: w,);
+    if(expand) w = Expanded( child: w );
+    return w;
+  }
   Widget build(context) {
     return Container();
   }
