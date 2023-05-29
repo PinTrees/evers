@@ -23,6 +23,7 @@ import 'package:get/get.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 
 class ViewGreetings extends StatefulWidget {
@@ -35,6 +36,7 @@ class ViewGreetings extends StatefulWidget {
 class _ViewGreetingsState extends State<ViewGreetings> {
   var dividHeight = 6.0;
 
+  var _controller;
 
   var infoText = "안녕하세요"
   "\n\n에버스는 동결건조 전문 회사로서, 동결건조 식품 제조, 스낵류, 조미건어포 등을 제조하고 있습니다."
@@ -54,11 +56,16 @@ class _ViewGreetingsState extends State<ViewGreetings> {
     super.initState();
     initAsync();
   }
-
   void initAsync() async {
+    _controller = YoutubePlayerController.fromVideoId(
+      videoId: 'wGa_89i_nuU',
+      autoPlay: true,
+
+      params: const YoutubePlayerParams(showFullscreenButton: true, mute: true),
+    );
+
     setState(() {});
   }
-
 
 
 
@@ -118,7 +125,15 @@ class _ViewGreetingsState extends State<ViewGreetings> {
         mainAxisSize: MainAxisSize.min,
         children: [
           titleWidget,
-          greetingWidget
+          greetingWidget,
+
+          Padding(
+            padding: EdgeInsets.all(6 * 24),
+            child: YoutubePlayer(
+              controller: _controller,
+              aspectRatio: 16 / 9,
+            ),
+          ),
         ],
       ),
     );

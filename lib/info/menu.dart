@@ -147,6 +147,7 @@ enum NavigationMenuInfo {
 enum HomeMainMenu {
   home("home", "홈", Icons.new_label_rounded, []),
   info("info", '소개', Icons.insert_drive_file_outlined, [ HomeSubMenu.greetings, HomeSubMenu.history ]),
+  community("community", "소식", Icons.add_box, [ HomeSubMenu.news, HomeSubMenu.eversStore ]),
   technology("technology", '동결건조', Icons.pages_sharp, [ HomeSubMenu.freezeDrying, ]),
   product("product", "제품", Icons.production_quantity_limits, [ HomeSubMenu.meogkkun ]),
   store("store", "판매 사이트", Icons.storefront_outlined, [ HomeSubMenu.store, HomeSubMenu.naverStore]);
@@ -171,6 +172,10 @@ enum HomeSubMenu {
   /// 소개
   greetings("greetings", '인사말', Icons.waving_hand, [ ]),
   history("history", '걸어온 길', Icons.history_edu, [ ]),
+
+  /// 소식
+  news('news', "새소식", Icons.newspaper, []),
+  eversStore('story', "먹꾼 이야기", Icons.work_history_sharp, []),
 
   /// 동결건조기술
   freezeDrying("freezeDrying", '동결건조기술', Icons.biotech, [ ]),

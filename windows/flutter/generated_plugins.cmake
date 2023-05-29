@@ -8,6 +8,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_acrylic
   geolocator_windows
   local_notifier
+  pasteboard
   printing
   quick_notify
   url_launcher_windows

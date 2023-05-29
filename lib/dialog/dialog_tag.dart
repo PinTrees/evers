@@ -23,15 +23,10 @@ import '../class/widget/button.dart';
 import '../class/widget/excel.dart';
 import '../class/widget/text.dart';
 import '../helper/dialog.dart';
-import '../helper/firebaseCore.dart';
 import '../helper/interfaceUI.dart';
-import '../helper/pdfx.dart';
-import '../class/database/item.dart';
 
 import 'package:http/http.dart' as http;
 
-import '../ui/cs.dart';
-import '../ui/dialog_contract.dart';
 import '../ui/dl.dart';
 import '../ui/ux.dart';
 

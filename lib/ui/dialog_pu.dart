@@ -1,19 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:evers/class/component/comp_pu.dart';
-import 'package:evers/class/widget/button.dart';
-import 'package:evers/class/widget/excel.dart';
-import 'package:evers/class/widget/text.dart';
-import 'package:evers/helper/function.dart';
-import 'package:evers/helper/style.dart';
-import 'package:evers/page/window/window_ct.dart';
-import 'package:evers/ui/cs.dart';
-import 'package:evers/ui/dialog_contract.dart';
-import 'package:evers/ui/ux.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

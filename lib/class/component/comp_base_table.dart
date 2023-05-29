@@ -9,14 +9,6 @@ import '../../helper/interfaceUI.dart';
 import '../../helper/style.dart';
 import '../../page/window/window_cs.dart';
 import '../../page/window/window_ct.dart';
-import '../../ui/cs.dart';
-import '../../ui/ux.dart';
-import '../Customer.dart';
-import '../contract.dart';
-import '../system.dart';
-import '../system/state.dart';
-import '../transaction.dart';
-import '../widget/button.dart';
 import '../widget/text.dart';
 
 

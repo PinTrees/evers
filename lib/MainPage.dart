@@ -1,28 +1,21 @@
 import 'dart:html';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/page.dart';
 import 'package:evers/class/widget/text.dart';
-import 'package:evers/helper/dialog.dart';
 import 'package:evers/page/view/home/view_freezedrying.dart';
 import 'package:evers/page/view/home/view_greetings.dart';
 import 'package:evers/page/view/home/view_history.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:evers/page/view/home/view_home.dart';
+import 'package:evers/page/view/home/view_news.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:go_router/go_router.dart';
-import 'package:seo/html/seo_widget.dart';
-import 'package:seo_renderer/renderers/image_renderer/image_renderer_web.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'class/widget/button.dart';
 import 'helper/interfaceUI.dart';
-import 'helper/router.dart';
 import 'helper/style.dart';
 import 'info/menu.dart';
 import 'page/view/home/view_meogkkun.dart';
-import 'route/navigator2.dart';
 
 class HomePage extends StatefulWidget{
   const HomePage({super.key,});
@@ -61,42 +54,11 @@ class _HomePageState extends State<HomePage> {
     );
 
     if(currentMenu == HomeMainMenu.home) {
-      return ListView(
-        children: [
-          Column(
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Row(
-                      children: [
-                        Expanded(
-                            child: Container(
-                              height: 900, width: double.maxFinite,
-                              child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/DSC02914.JPG.jpg', fit: BoxFit.cover),
-                            )
-                        )
-                      ]
-                  ),
-                  Positioned(
-                    left: 128,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        WidgetT.titleT('동결건조로 완성한 신선한 맛', size: 50, bold: true, color: Colors.white),
-                        Container(
-                          width: 500,
-                          child: WidgetT.titleT('오랫동안 연구를 통해 개발한 동결건조 기술을 건강하고 신선한 원재료와 접목시켰습니다.', size: 28, bold: false, color: Colors.white),
-                        )
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              bottomWidget,
-            ],
-          )
-        ],
+      return PageWidget.Home(
+          children: [
+            ViewHome(),
+          ],
+          bottomWidget: bottomWidget
       );
     }
     else if(currentMenu == HomeMainMenu.info) {
@@ -109,6 +71,24 @@ class _HomePageState extends State<HomePage> {
         );
       }
       else if(currentSubMenu == HomeSubMenu.history) {
+        return PageWidget.Home(
+            children: [
+              ViewHistory(),
+            ],
+            bottomWidget: bottomWidget
+        );
+      }
+    }
+    else if(currentMenu == HomeMainMenu.community) {
+      if(currentSubMenu == HomeSubMenu.news) {
+        return PageWidget.Home(
+            children: [
+              ViewNews(),
+            ],
+            bottomWidget: bottomWidget
+        );
+      }
+      else if(currentSubMenu == HomeSubMenu.eversStore) {
         return PageWidget.Home(
             children: [
               ViewHistory(),

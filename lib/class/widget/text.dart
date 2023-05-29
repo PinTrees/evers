@@ -57,11 +57,13 @@ class TextT extends StatelessWidget {
     double? width,
     double? size,
     Color? color,
+    int? maxLine,
     bool bold=false,
     Alignment? alignment,
     bool expand=false,}) {
     var w = Text(
         text ?? '',
+        maxLines: maxLine,
         style: TextStyle(color: color ?? StyleT.textColor, fontSize: size ?? 10, fontWeight: bold ? FontWeight.w900 : FontWeight.w500),
     );
 

@@ -11,6 +11,7 @@
 #include <flutter_acrylic/flutter_acrylic_plugin.h>
 #include <geolocator_windows/geolocator_windows.h>
 #include <local_notifier/local_notifier_plugin.h>
+#include <pasteboard/pasteboard_plugin.h>
 #include <printing/printing_plugin.h>
 #include <quick_notify/quick_notify_plugin.h>
 #include <url_launcher_windows/url_launcher_windows.h>
@@ -26,6 +27,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("GeolocatorWindows"));
   LocalNotifierPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("LocalNotifierPlugin"));
+  PasteboardPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("PasteboardPlugin"));
   PrintingPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("PrintingPlugin"));
   QuickNotifyPluginRegisterWithRegistrar(

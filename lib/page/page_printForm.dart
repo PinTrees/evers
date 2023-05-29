@@ -40,7 +40,6 @@ import '../class/purchase.dart';
 import '../class/revenue.dart';
 import '../class/transaction.dart';
 import '../class/widget/excel.dart';
-import '../ui/cs.dart';
 import '../ui/dialog_revenue.dart';
 
 

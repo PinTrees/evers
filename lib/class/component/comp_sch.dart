@@ -13,7 +13,6 @@ import '../../helper/pdfx.dart';
 import '../../helper/style.dart';
 import '../../page/window/window_cs.dart';
 import '../../page/window/window_ct.dart';
-import '../../ui/cs.dart';
 import '../../ui/ux.dart';
 import '../Customer.dart';
 import '../contract.dart';

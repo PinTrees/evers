@@ -214,7 +214,7 @@ class WidgetTF extends StatelessWidget {
   }
 
   static InputDecoration textInputDecoration({ String? hintText, double round=0.0, Color? backColor, double? textSize}) {
-    return  InputDecoration(
+    return InputDecoration(
       enabledBorder: OutlineInputBorder( borderRadius: BorderRadius.circular(0), borderSide: BorderSide(color: Colors.transparent, width: 0) ), //BorderSide(color: StyleT.disableColor.withOpacity(0.7), width: 0)),
       focusedBorder: OutlineInputBorder( borderRadius: BorderRadius.circular(0), borderSide: BorderSide(color: Colors.transparent, width: 0)), //BorderSide(color: StyleT.accentColor, width: 0),),
       filled: true,

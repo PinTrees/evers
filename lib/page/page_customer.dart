@@ -31,7 +31,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../class/Customer.dart';
 import '../class/purchase.dart';
 import '../class/transaction.dart';
-import '../ui/cs.dart';
 import '../ui/dialog_revenue.dart';
 
 

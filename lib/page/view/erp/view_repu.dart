@@ -44,10 +44,6 @@ import '../../../helper/firebaseCore.dart';
 import '../../../helper/interfaceUI.dart';
 import '../../../helper/pdfx.dart';
 import '../../window/window_ct.dart';
-import '../../../ui/cs.dart';
-import '../../../ui/dialog_contract.dart';
-import '../../../ui/dialog_pu.dart';
-import '../../../ui/dl.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../ui/ux.dart';

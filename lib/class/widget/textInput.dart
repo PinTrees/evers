@@ -2,6 +2,7 @@
 
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/ip.dart';
@@ -233,10 +234,14 @@ class InputWidget {
     int? index,
     Function(int, dynamic)? onEdited,
     Function? setState,
+    bool edite=false,
+
     String? text,
+    bool bold=false,
     String? lavel,
     String? value,
     Color? textColor,
+    Color? color,
     double? widthLavel,
     double? width,
     double? height, double? textSize,
@@ -250,6 +255,8 @@ class InputWidget {
 
     if(setState == null) return SizedBox();
 
+    var textStyle = TextStyle(color: textColor ?? StyleT.textColor.withOpacity(0.9), fontSize: textSize ?? 12, fontWeight: bold ? FontWeight.w900 : FontWeight.normal);
+
     Widget inputWidget = SizedBox();
     if(isActive[key] == true) {
       inputWidget = IntrinsicWidth(
@@ -257,13 +264,13 @@ class InputWidget {
           borderRadius: BorderRadius.all(Radius.circular(8)),
           child: Container(
             width: width,
-            color: Colors.grey.withOpacity(0.15),
+            color: color ?? Colors.grey.withOpacity(0.15),
             child: TextFormField(
               autofocus: false,
               cursorColor: new Color(0xff009fdf).withOpacity(0.7),
               cursorWidth: 2.0,
               cursorRadius: Radius.elliptical(4, 4),
-              style: TextStyle(color: StyleT.textColor.withOpacity(0.9), fontSize: textSize ?? 12, fontWeight: FontWeight.normal),
+              style: textStyle,
               maxLines: isMultiLine ? null : 1,
               textInputAction: isMultiLine ? TextInputAction.newline : TextInputAction.search,
               keyboardType: isMultiLine ? TextInputType.multiline : TextInputType.none,
@@ -272,7 +279,16 @@ class InputWidget {
                 if(onEdited != null) onEdited(index ?? 0, textInputs[key]!.text);
                 await setState();
               },
-              decoration: WidgetTF.textInputDecoration( hintText: hint ?? '...', round: 4),
+              decoration: InputDecoration(
+                enabledBorder: OutlineInputBorder( borderRadius: BorderRadius.circular(0), borderSide: BorderSide(color: Colors.transparent, width: 0) ), //BorderSide(color: StyleT.disableColor.withOpacity(0.7), width: 0)),
+                focusedBorder: OutlineInputBorder( borderRadius: BorderRadius.circular(0), borderSide: BorderSide(color: Colors.transparent, width: 0)), //BorderSide(color: StyleT.accentColor, width: 0),),
+                filled: true,
+                isDense: true,
+                fillColor: Colors.transparent, //backColor ?? StyleT.accentColor.withOpacity(0.07),
+                hintText: hint ?? '',
+                hintStyle: textStyle,
+                contentPadding: EdgeInsets.fromLTRB(12, 12, 12, 12),
+              ),
               controller: textInputs[key],
             ),
           ),
@@ -298,6 +314,16 @@ class InputWidget {
         if(lavel != null) TextT.Lit(text: lavel, width: widthLavel ?? 100, color: StyleT.titleColor, size: 12, bold: true),
         if(lavel != null) SizedBox(width: 6,),
         inputWidget,
+        if(edite) InkWell(
+          onTap: () {
+            isActive[key] = true;
+            setState();
+          },
+          child: Container(
+            height: height, width: height,
+            child: Icon(Icons.create),
+          ),
+        )
       ],
     );
 

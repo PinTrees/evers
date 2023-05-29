@@ -14,10 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/intl.dart';
 
-import '../helper/dialog.dart';
-import '../helper/firebaseCore.dart';
-import '../helper/interfaceUI.dart';
-import '../ui/cs.dart';
 import '../ui/ux.dart';
 import 'Customer.dart';
 import 'contract.dart';

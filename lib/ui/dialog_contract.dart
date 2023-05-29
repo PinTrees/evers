@@ -29,8 +29,6 @@ import '../class/widget/button.dart';
 import '../helper/aes.dart';
 import '../helper/dialog.dart';
 import '../helper/interfaceUI.dart';
-import '../system/printform.dart';
-import 'cs.dart';
 import 'dl.dart';
 import 'ex.dart';
 import 'ip.dart';
