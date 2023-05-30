@@ -172,7 +172,7 @@ class _DocumentPageState extends State<DocumentPage> {
                   children: [
                     Text('Evers ERP Documents'),
                     SizedBox(width: dividSize * 4,),
-                    ButtonT.Icon(
+                    ButtonT.Icont(
                       icon: Icons.search,
                       onTap: () {
                         WidgetT.showSnackBar(context, text: "개발중");

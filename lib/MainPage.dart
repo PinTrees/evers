@@ -28,6 +28,8 @@ class _HomePageState extends State<HomePage> {
   HomeMainMenu currentMenu = HomeMainMenu.home;
   HomeSubMenu currentSubMenu = HomeSubMenu.greetings;
 
+  Widget drawer = SizedBox();
+
   @override
   void initState() {
     // TODO: implement initState
@@ -159,10 +161,10 @@ class _HomePageState extends State<HomePage> {
             children: menuWidgets,
           ),
           SizedBox(height: 6 * 8,),
-          ListBoxT.Rows(
-            spacing: 6 * 12,
+          ListBoxT.Wraps(
+            spacing: 6 * 12, colSpacing: 6,
             children: [
-              ButtonT.Text(text: "개인정보 처리방침", textSize: 16, bold: true, color: Colors.transparent, textColor: Colors.indigo,
+              ButtonT.IconText(text: "개인정보 처리방침", icon: Icons.info, textSize: 16, bold: true, color: Colors.transparent, textColor: Colors.indigo,
                 onTap: () {
                   launchUrl( Uri.parse("https://eversfood.cafe24.com/member/privacy.html"),   webOnlyWindowName: true ? '_blank' : '_self', );
                 }
@@ -192,7 +194,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
   Widget buildBottomBar() {
-
     Container(
       height: 256,
       width:  double.maxFinite,
@@ -331,7 +332,7 @@ class _HomePageState extends State<HomePage> {
           ListBoxT.Rows( spacing: 6 * 10, children: mainWidgets ),
           Expanded(child: SizedBox()),
           SizedBox(width: 128,),
-          ButtonT.Icon(
+          ButtonT.Icont(
               icon: Icons.search,
               onTap: () {
 
@@ -340,6 +341,180 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+
+  Widget buildMainMenuMobile() {
+    List<Widget> mainWidgets = [];
+    for(var m in HomeMainMenu.values) {
+      if(m.subMenus.isEmpty) continue;
+      mainWidgets.add( ButtonT.Title(
+          text: m.displayName,
+          onTap: () {
+            if(m == HomeMainMenu.store) {
+              currentMenu = HomeMainMenu.product;
+              currentSubMenu = currentMenu.subMenus.first;
+              setState(() {});
+              return;
+            }
+
+            currentMenu = m;
+            currentSubMenu = m.subMenus.first;
+            setState(() {});
+          }
+      ),);
+    }
+
+
+    var homeWidget = InkWell(
+        onTap: () {
+          currentMenu = HomeMainMenu.home;
+          currentSubMenu = HomeSubMenu.greetings;
+          setState(() {});
+        },
+        child: Container(height: 38, child: Image(image: AssetImage('assets/icon_hor.png') ),));
+
+    return Container(
+      color: Colors.white,
+      height: 68,
+      padding: EdgeInsets.all(6),
+      alignment: Alignment.centerLeft,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ButtonT.Icont(
+            icon: Icons.menu,
+            onTap: () {
+
+              List<Widget> menuWidgets = [];
+              for(var m in HomeMainMenu.values) {
+                if(m.subMenus.isEmpty) continue;
+                List<Widget> subMenuWidgets = [];
+                subMenuWidgets.add(ButtonT.Text(text: m.displayName, textSize: 16, bold: true, color: Colors.transparent));
+                subMenuWidgets.add(SizedBox(height: 6,));
+                for(var s in m.subMenus) {
+                  subMenuWidgets.add(ButtonT.Text(text: s.displayName, textSize: 14, bold: true, color: Colors.transparent, textColor: StyleT.textColor.withOpacity(0.5),
+                      onTap: () {
+                        if(s == HomeSubMenu.store) {
+                          launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+                        } else if(s == HomeSubMenu.naverStore) {
+                          launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+                        } else {
+                          currentMenu = m;
+                          currentSubMenu = s;
+                        }
+
+                        drawer = SizedBox();
+                        setState(() {});
+                      }
+                  ));
+                }
+                menuWidgets.add(Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: subMenuWidgets,));
+              }
+
+              drawer = Row(
+                children: [
+                  Container(
+                    width: 400,
+                    color: Colors.white,
+                    child: ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        Container(
+                          height: 68,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              ButtonT.LitIcon(
+                                Icons.close, size: 32,
+                                onTap: () {
+                                  drawer = SizedBox();
+                                  setState(() {});
+                                }
+                              ),
+                              homeWidget,
+
+                              SizedBox(width: 48,),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 6 * 4,),
+
+                        ListBoxT.Columns(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          spacing: 6 * 4,
+                          children: menuWidgets,
+                        )
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        drawer = SizedBox();
+                        setState(() {});
+                      },
+                      child: Container(
+                        height: double.maxFinite,
+                        color: Colors.black.withOpacity(0.5),
+                      ),
+                    ),
+                  )
+                ],
+              );
+              setState(() {});
+            }
+          ),
+          Expanded(child: SizedBox()),
+          homeWidget,
+          Expanded(child: SizedBox()),
+          ButtonT.Icont(
+              icon: Icons.search,
+              onTap: () {
+
+              }
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget buildTitleBar() {
+    if (MediaQuery.of(context).size.width < 800) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          buildMainMenuMobile(),
+          Container(color: Colors.white, child: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),),
+          //if (isMouseOver) buildSubMenu(),
+        ],
+      );
+    }
+    else {
+      return MouseRegion(
+        onHover: (event) {
+          isMouseOver = true;
+          setState(() {});
+        },
+        onExit: (event) {
+          isMouseOver = false;
+          setState(() {});
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            buildMainMenu(),
+            Container(
+              color: Colors.white,
+              child: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),),
+            if (isMouseOver) buildSubMenu(),
+          ],
+        ),
+      );
+    }
   }
 
   bool isMouseOver = false;
@@ -351,27 +526,12 @@ class _HomePageState extends State<HomePage> {
           main(),
           Positioned(
             top: 0, left: 0, right: 0,
-            child: MouseRegion(
-              onHover: (event) {
-                isMouseOver = true;
-                setState(() {});
-              },
-              onExit: (event) {
-                isMouseOver = false;
-                setState(() {});
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  buildMainMenu(),
-                  Container(
-                    color: Colors.white,
-                    child: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),),
-                  if (isMouseOver) buildSubMenu(),
-                ],
-              ),
-            ),
+            child: buildTitleBar(),
           ),
+          Positioned(
+            top: 0, left: 0, bottom: 0, right: 0,
+            child: drawer,
+          )
         ],
       ),
     );

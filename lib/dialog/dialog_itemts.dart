@@ -899,7 +899,7 @@ class DialogItemTrans extends StatelessWidget {
                                   it.itemUid = data;
                                 },
                                 text: SystemT.getItemName(it.itemUid), value: SystemT.getItemName(it.itemUid)),
-                            ButtonT.Icon(
+                            ButtonT.Icont(
                               icon: Icons.add_box,
                               onTap: () async {
                                 Item? item = await DialogT.selectItem(context);

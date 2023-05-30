@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/component/comp_contract.dart';
 import 'package:evers/class/component/comp_process.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/system.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
@@ -16,20 +18,26 @@ import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/interfaceUI.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/view/home/view_article.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/ui/dialog_item.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:get/get.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:quill_html_editor/quill_html_editor.dart';
 import 'package:url_launcher/url_launcher.dart';
-//import 'package:flutter_quill/flutter_quill.dart' hide Text;
+
+import 'package:flutter_quill/flutter_quill.dart' hide Text;
+
 import '../../../class/database/article.dart';
 import '../../../ui/dl.dart';
 
@@ -46,7 +54,6 @@ class ViewNews extends StatefulWidget {
 class _ViewNewsState extends State<ViewNews> {
   var dividHeight = 6.0;
 
-
   Map<String, Widget> thumbnail = {};
   List<Article> articles = [];
 
@@ -56,7 +63,6 @@ class _ViewNewsState extends State<ViewNews> {
     super.initState();
     initAsync();
   }
-
   void initAsync() async {
     CollectionReference coll = await FirebaseFirestore.instance.collection('contents/news/article');
     await coll.orderBy('createAt', descending: true).limit(20).get().then((value) async {
@@ -71,7 +77,6 @@ class _ViewNewsState extends State<ViewNews> {
 
     setState(() {});
   }
-
 
 
 
@@ -91,16 +96,7 @@ class _ViewNewsState extends State<ViewNews> {
               )
             ]
         ),
-        /*Positioned(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              TextT.Lit(text: "우리의 기술", color: Colors.white, bold: true, size: 20),
-              SizedBox(height: 6 * 4,),
-              TextT.Lit(text: "최첨단 기술 및 설비", color: Colors.white, size: 28),
-            ],
-          ),
-        )*/
+
       ],
     );
 
@@ -110,7 +106,7 @@ class _ViewNewsState extends State<ViewNews> {
       newsArticleWidgetList.add(
         InkWell(
           onTap: () {
-
+            Navigator.push(context, MaterialPageRoute(builder: (ss) => ViewArticle(article: e)));
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,7 +114,9 @@ class _ViewNewsState extends State<ViewNews> {
               Container(width: 350, height: 200,
                 padding: EdgeInsets.all(1.4),
                 color: Colors.grey.withOpacity(0.3),
-                child: CachedNetworkImage(imageUrl: e.thumbnail == '' ?  : e.thumbnail, fit: BoxFit.cover,),
+                child: e.thumbnail == '' ?
+                Padding(padding: EdgeInsets.all(48),  child: CachedNetworkImage(imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor.png", fit: BoxFit.contain,))
+                 : CachedNetworkImage(imageUrl: e.thumbnail, fit: BoxFit.cover,),
               ),
               SizedBox(height: 6 * 2,),
               Container(
@@ -151,24 +149,26 @@ class _ViewNewsState extends State<ViewNews> {
             children: newsArticleWidgetList,
           ),
           SizedBox(height: 64,),
-          ButtonT.IconText(
-              icon: Icons.add_box, text: "공지사항 추가",
-              onTap: () {
-                showCreatePage(context);
-              }
-          ),
-
         ],
       ),
     );
 
+
+    var createArticleWidget = ButtonT.IconText(
+        icon: Icons.add_box, text: "공지사항 추가",
+        onTap: () {
+          showCreatePage(context);
+        }
+    );
 
     return Container(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           titleWidget,
-          newsArticleWidget
+          newsArticleWidget,
+          if(FirebaseAuth.instance.currentUser != null)
+            createArticleWidget,
         ],
       ),
     );
@@ -176,32 +176,20 @@ class _ViewNewsState extends State<ViewNews> {
 
 
 
+
+
+
+
   dynamic showCreatePage(BuildContext context, { String? type }) async {
     Article article = Article.fromDatabase({});
-    var titleEnable = true;
-
     late QuillEditorController controller;
-    final customToolBarList = [
-      ToolBarStyle.bold,
-      ToolBarStyle.italic,
-      ToolBarStyle.align,
-      ToolBarStyle.color,
-      ToolBarStyle.background,
-      ToolBarStyle.listBullet,
-      ToolBarStyle.listOrdered,
-      ToolBarStyle.clean,
-      //ToolBarStyle.addTable,
-      //ToolBarStyle.editTable,
-    ];
 
     var backgroundColor = Colors.white70;
     var editorTextStyle = const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.normal);
     var hintTextStyle = const TextStyle(fontSize: 18, color: Colors.black12, fontWeight: FontWeight.normal);
 
     controller = QuillEditorController();
-    controller.onTextChanged((text) {
-      debugPrint('listening to $text');
-    });
+    controller.onTextChanged((text) { /*debugPrint('listening to $text');*/ } );
 
     var editor = QuillHtmlEditor(
         text: "내용을 입력하세요.",
@@ -215,20 +203,7 @@ class _ViewNewsState extends State<ViewNews> {
         padding: const EdgeInsets.only(left: 10, top: 5),
         hintTextPadding: EdgeInsets.zero,
         backgroundColor: backgroundColor,
-
-        onSelectionChanged: (sel) {
-          titleEnable = false;
-        },
-        onTextChanged: (text) {
-          titleEnable = false;
-          print("cassdaaaaaaaaaaaaaaa");
-        },
-        onFocusChanged: (focus) {
-          controller.isEnable = focus;
-          titleEnable = false;
-        },
     );
-
     var toolbar = ToolBar(
       toolBarColor: Colors.cyan.shade50,
       activeIconColor: Colors.green,
@@ -240,6 +215,7 @@ class _ViewNewsState extends State<ViewNews> {
         InkWell(onTap: () {}, child: const Icon(Icons.add_circle)),
       ],
     );
+    var www = MediaQuery.of(context).size.width * 0.9;
 
     bool? aa = await showDialog(
         context: context,
@@ -248,11 +224,8 @@ class _ViewNewsState extends State<ViewNews> {
         builder: (BuildContext context) {
           return  StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateS) {
-
-
               var titleInputWidget = InputWidget.Lit(context, "ascdasdcasdc",
-                color: Colors.white, edite: true,
-                textSize: 38, width: 1280, height: 68, expand: true, bold: true, textColor: Colors.black,
+                color: Colors.white, textSize: 36, width: 1280, height: 68, expand: true, bold: true, textColor: Colors.black,
                 setState: () { setStateS(() {}); },
                 onEdited: (i, data) {
                   article.title = data;
@@ -264,7 +237,6 @@ class _ViewNewsState extends State<ViewNews> {
               return AlertDialog(
                 backgroundColor: StyleT.white.withOpacity(1),
                 elevation: 36,
-                //scrollable: false,
                 shape: RoundedRectangleBorder(
                     side: BorderSide(color: Colors.grey.shade700, width: 0.01),
                     borderRadius: BorderRadius.circular(0)),
@@ -272,40 +244,37 @@ class _ViewNewsState extends State<ViewNews> {
                 contentPadding: EdgeInsets.zero,
                 title: WidgetDT.dlTitle(context, title: '새 공지사항 작성', ),
                 content: Container(
-                  padding: EdgeInsets.all(0),
-                  width: 1280,
+                  padding: EdgeInsets.all(18),
+                  height: MediaQuery.of(context).size.height - 300,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       titleInputWidget,
                       WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),
                       toolbar,
-                      Expanded(child: editor),
-                      //Container(height: 720, child: editor),
-                      Container(
-                        height: 42,
-                        child: ButtonT.Action(context, "저장",
-                            icon: Icons.save,
-                            //altText: "새 글을 등록하시겠습니까?",
-                            onTap: () async {
-                              String? htmlText = await controller.getText();
-                              if(htmlText == null) return Messege.toReturn(context, "내용은 비워둘 수 없습니다.", false);
-
-                              article.desc = await controller.getPlainText();
-                              article.createAt = DateTime.now().microsecondsSinceEpoch;
-                              article.type = "news";
-                              await article.update(data: htmlText);
-
-                              print(htmlText);
-                              Navigator.pop(context);
-                            }
-                        ),
-                      )
+                      Expanded(child: Container(width: www, child: editor)),
                     ],
                   ),
                 ),
                 actionsPadding: EdgeInsets.zero,
+                actions: [
+                  ButtonT.Action(context, "저장",
+                      icon: Icons.save,
+                      //altText: "새 글을 등록하시겠습니까?",
+                      onTap: () async {
+                        String? htmlText = await controller.getText();
+                        if(htmlText == null) return Messege.toReturn(context, "내용은 비워둘 수 없습니다.", false);
+
+                        article.version = "flutter_quill:6.1.0";
+                        article.desc = await controller.getPlainText();
+                        article.createAt = DateTime.now().microsecondsSinceEpoch;
+                        article.type = "news";
+                        await article.update(data: htmlText);
+
+                        print(htmlText);
+                        Navigator.pop(context);
+                      }
+                  ),
+                ],
               );
             },
           );

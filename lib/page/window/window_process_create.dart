@@ -44,10 +44,10 @@ class WindowProcessCreate extends WindowBaseMDI {
   WindowProcessCreate({ required this.process, required this.refresh,}) { }
 
   @override
-  _WindowProcessOutputCreateState createState() => _WindowProcessOutputCreateState();
+  _WindowProcessCreateState createState() => _WindowProcessCreateState();
 }
 
-class _WindowProcessCreateState extends State<WindowProcessOutputCreate> {
+class _WindowProcessCreateState extends State<WindowProcessCreate> {
   var dividHeight = 6.0;
 
   Contract ct = Contract.fromDatabase({});
@@ -287,14 +287,14 @@ class _WindowProcessOutputCreateState extends State<WindowProcessOutputCreate> {
 
     var processInputWidget = ListBoxT.Columns(
         children: [
-          TextT.Title(text: '현재 가공품',),
+          TextT.SubTitle(text: '현재 가공품',),
           TextT.Lit(text: '${item!.name} (${ MetaT.itemGroup[item!.group] ?? '-' })',),
           SizedBox(height: dividHeight * 2,),
-          TextT.Title(text: '현재 가공공정',),
+          TextT.SubTitle(text: '현재 가공공정',),
           TextT.Lit(text: MetaT.processType[widget.process.type],),
           SizedBox(height: dividHeight * 2,),
 
-          TextT.Title(text: '공정완료 수량 및 품목 입력',),
+          TextT.SubTitle(text: '공정완료 수량 및 품목 입력',),
           TextT.Lit(text: '해당 가공공정을 일부 또는 전체를 종료하고 공정이 완료된 신규 품목을 선택하여 생산된 수량을 작성하고 재고에 반영합니다.',),
           TextT.Lit(text: '공정은 일부 완료가 가능합니다. 일부완료 시, 사용된 작업물 수량을 전체 투입수량의 비율에 맞게 조절하여 입력합니다.',),
           TextT.Lit(text: '\n완성된 품목 수량은 가공완료된 품목의 결과물 수량입니다.',),
@@ -303,7 +303,8 @@ class _WindowProcessOutputCreateState extends State<WindowProcessOutputCreate> {
           Column(children: [
             CompProcess.tableHeaderOutputCreate(),
             CompProcess.tableUIOutputCreate(
-                context, inputProcess, widget.process, usedAmount, startAmount,
+                context, inputProcess, widget.process,
+              usedLimitAmount: startAmount,
               refresh: () { widget.refresh(); },
               setState: () { setState(() {}); }
             )
@@ -337,7 +338,8 @@ class _WindowProcessOutputCreateState extends State<WindowProcessOutputCreate> {
 
   Widget buildAction() {
     var exitWidget = ButtonT.Action(
-      context, "공정 완전 종료",
+      context, "공정 완전 종료", icon: Icons.exit_to_app,
+      backgroundColor: Colors.red.withOpacity(0.5),
       init: () {
         if(widget.process.amount > 0.001) return Messege.toReturn(context, "남은 작업물 수량이 0보다 클경우 공정을 종료할 수 없습니다.", false);
         return true;
@@ -345,35 +347,53 @@ class _WindowProcessOutputCreateState extends State<WindowProcessOutputCreate> {
         altText: "공정을 완전히 종료하시겠습니까?",
         setState: () { setState(() {}); },
       onTap: () async {
+        /// 해당 생산공정이 종료되었음을 기록합니다.
         var result = await widget.process.updateOnlyIsDone();
+
+        /// 생산공정을 통해 생산된 생산품 정보를 저장합니다.
+        /// 해당 분기는 사용자가 생산품이 존재한다고 입력한 경우에만 실행됩니다.
+        if(inputProcess.amount > 0
+        && inputProcess.itUid != ''
+        && inputProcess.usedAmount > 0) {
+          inputProcess.prUid = widget.process.id;
+          inputProcess.rpUid = widget.process.rpUid;
+          inputProcess.isOutput = true;
+          result = await inputProcess.update();
+        }
+
+        /// 데이터베이스 기록 결과
         if(!result) WidgetT.showSnackBar(context, text: 'The request to write to the server for path "/purchase/:pid/item-process/:psid" failed.');
         else WidgetT.showSnackBar(context, text: '저장됨');
 
+        /// 현재 윈도우 종료
         widget.refresh();
         widget.parent.onCloseButtonClicked!();
       }
     );
+
+
     var saveWidget = ButtonT.Action(
-        context, "신규 공정 추가",
+        context, "공정 완료 추가", icon: Icons.save,
       setState: () { setState(() {}); },
       init: () {
         if(inputProcess.amount <= 0) return Messege.toReturn(context, '가공완료수량은 0일 수 없습니다.', false);
         if(inputProcess.itUid == '') return Messege.toReturn(context, '가공완료품목은 비워둘 수 없습니다.', false);
-        if(usedAmount.abs() <= 0) return Messege.toReturn(context, '가공사용수량은 0일 수 없습니다.', false);
+        if(inputProcess.usedAmount <= 0) return Messege.toReturn(context, '가공사용수량은 0일 수 없습니다.', false);
         return true;
       },
         altText: "공정을 완료하시겠습니까?",
       onTap: () async {
-        /// 최상위 부모 매입정보 상속
+        /// 생산공정을 통해 생산된 생산품 정보를 저장합니다.
         inputProcess.prUid = widget.process.id;
         inputProcess.rpUid = widget.process.rpUid;
         inputProcess.isOutput = true;
-        inputProcess.usedAmount = usedAmount;
-
         var result = await inputProcess.update();
+
+        /// 데이터베이스 쓰기 결과
         if(!result) WidgetT.showSnackBar(context, text: 'The request to write to the server for path "/purchase/:pid/item-process/:psid" failed.');
         else WidgetT.showSnackBar(context, text: '저장됨');
 
+        /// 현재 윈도우 종료
         widget.refresh();
         widget.parent.onCloseButtonClicked!();
       }

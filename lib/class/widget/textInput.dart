@@ -137,7 +137,6 @@ class InputWidget {
 
   static Widget DropButton({String text='', List<dynamic>? dropMenus, Map<dynamic, dynamic>? dropMenuMaps,
     double? width, Function(int, dynamic)? onEdite,
-    Function(int, dynamic)? onEditeValue,
     Function? setState,
     int? index, String? label, double? labelWidth,}) {
     if(dropMenuMaps != null && dropMenus == null) {
@@ -182,14 +181,105 @@ class InputWidget {
                 for(int i =0; i < dropMenuMaps.values.length; i++) {
                   if(dropMenuMaps.values.elementAt(i) == value) {
                     data = dropMenuMaps.keys.elementAt(i);
-                    if(onEditeValue != null) await onEditeValue(index ?? 0, dropMenuMaps.values.elementAt(i));
-                    else if(onEdite != null) await onEdite(index ?? 0, data);
+                    if(onEdite != null) await onEdite(index ?? 0, data);
                     break;
                   }
                 }
                 await setState();
               } else {
                 if(onEdite != null) await onEdite(index ?? 0, value);
+                await setState();
+              }
+            },
+            itemHeight: 28,
+            itemPadding: const EdgeInsets.only(left: 16, right: 16),
+            dropdownWidth: width,
+            dropdownPadding: const EdgeInsets.symmetric(vertical: 6),
+            dropdownDecoration: BoxDecoration(
+              border: Border.all(
+                width: 1.7,
+                color: Colors.grey.withOpacity(0.5),
+              ),
+              borderRadius: BorderRadius.circular(0),
+              color: Colors.white.withOpacity(0.95),
+            ),
+            dropdownElevation: 0,
+            offset: const Offset(0, 0),
+          ),
+        ),
+      ),
+    );
+
+    if(label != null) {
+      return Row(
+        children: [
+          if(label != null) TextT.Lit(text: label, width: labelWidth ?? 100, color: StyleT.titleColor, size: 12, bold: true),
+          if(label != null) SizedBox(width: 6,),
+          w,
+        ],
+      );
+    }
+    return w;
+  }
+
+
+
+
+  static Widget DropButtonT<T>({String text='',
+    required Map<dynamic, T> dropMenuMaps,
+    required String Function(T) labelText,
+
+    double? width, Function(int, dynamic)? onEditeKey,
+    Function(int, T)? onEditeValue,
+    Function? setState,
+    int? index, String? label, double? labelWidth,}) {
+
+    if(setState == null) return SizedBox();
+
+    var w = TextButton(
+      onFocusChange: (f) async {
+        if(f) isActive.clear();
+      },
+      onPressed: null,
+      style: StyleT.buttonStyleOutline(padding: 0, round: 6, elevation: 3, color: Colors.white, strock: 1.4, strokColor: Colors.grey.withOpacity(0.35)),
+      child: SizedBox(
+        height: 28, width: width,
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton2(
+            focusColor: Colors.transparent,
+            focusNode: FocusNode(),
+            autofocus: false,
+            customButton: Container(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(child: SizedBox()),
+                  Text('${text ?? '' }', style: StyleT.titleStyle(),),
+                  Expanded(child: SizedBox()),
+                ],
+              ),
+            ),
+            items: dropMenuMaps!.values.map((item) => DropdownMenuItem<dynamic>(
+              value: item,
+              child: Text(
+                labelText(item),
+                style: StyleT.titleStyle(),
+                overflow: TextOverflow.ellipsis,
+              ),
+            )).toList(),
+            onChanged: (value) async {
+              if(dropMenuMaps != null) {
+                if(onEditeValue != null) await onEditeValue(index ?? 0, value);
+                else if(onEditeKey != null) {
+                 for(var k in dropMenuMaps.keys)
+                   if(dropMenuMaps[k] == value)  {
+                     await onEditeKey(index ?? 0, k);
+                     break;
+                   }
+                }
+                await setState();
+              } else {
+                if(onEditeKey != null) await onEditeKey(index ?? 0, value);
                 await setState();
               }
             },
@@ -234,7 +324,6 @@ class InputWidget {
     int? index,
     Function(int, dynamic)? onEdited,
     Function? setState,
-    bool edite=false,
 
     String? text,
     bool bold=false,
@@ -314,16 +403,6 @@ class InputWidget {
         if(lavel != null) TextT.Lit(text: lavel, width: widthLavel ?? 100, color: StyleT.titleColor, size: 12, bold: true),
         if(lavel != null) SizedBox(width: 6,),
         inputWidget,
-        if(edite) InkWell(
-          onTap: () {
-            isActive[key] = true;
-            setState();
-          },
-          child: Container(
-            height: height, width: height,
-            child: Icon(Icons.create),
-          ),
-        )
       ],
     );
 

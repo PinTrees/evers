@@ -115,10 +115,10 @@ class ListBoxT extends StatelessWidget {
   /// spacing 값과 spacing 위젯은 함께 사용될 수 없습니다.
   static Widget Wraps({ BuildContext? context,
     List<Widget>? children,
-    MainAxisAlignment? mainAxisAlignment,
-    CrossAxisAlignment? crossAxisAlignment,
     double? width,
     double? spacing,
+    double? colSpacing,
+
     double? spacingStartEnd,
     Widget? spacingWidget,
     EdgeInsets? padding,
@@ -142,7 +142,10 @@ class ListBoxT extends StatelessWidget {
 
 
     Widget w = Wrap(
-      spacing: spacing ?? 0, runSpacing: spacing ?? 0,
+      alignment: WrapAlignment.start,
+      crossAxisAlignment: WrapCrossAlignment.start,
+      runAlignment: WrapAlignment.start,
+      spacing: spacing ?? 0, runSpacing: colSpacing ?? spacing ?? 0,
       children: widgets,
     );
 

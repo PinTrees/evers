@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
-import 'package:evers/page/window/window_factory.dart';
+import 'package:evers/page/window/window_paper_product.dart';
 import 'package:evers/page/window/window_process_create.dart';
 import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/page/window/window_pu_create.dart';
@@ -18,6 +18,7 @@ import 'package:evers/page/window/window_user_create.dart';
 import 'package:flutter/material.dart';
 
 import '../../page/window/window_ct.dart';
+import '../../page/window/window_paper_factory.dart';
 import 'ResizableWindow.dart';
 
 
@@ -39,7 +40,10 @@ class MdiController{
     if(widget is WindowCS) resizableWindow.title = '거래처 개별 상세정보창';
     if(widget is WindowCsCreate) resizableWindow.title = "거래처 신규 생성창";
     if(widget is WindowTsCreate) resizableWindow.title = '수납 개별 상세정보창';
-    if(widget is WindowFactoryCreate) resizableWindow.title = '공장일보 생성창';
+
+    if(widget is WindowFactoryPaper) resizableWindow.title = '공장일보 생성창';
+    if(widget is WindowProductPaper) resizableWindow.title = "생산일보 생성창";
+
     if(widget is WindowCT) resizableWindow.title = '계약 개별 상세정보창';
     if(widget is WindowPUCreateWithCS) resizableWindow.title = '거래처 매입 입력창';
     if(widget is WindowPUCreate) resizableWindow.title = '매입 입력창';
@@ -53,7 +57,9 @@ class MdiController{
     if(widget is WindowUserCreate) resizableWindow.title = '계정 신규 생성창';
     if(widget is WindowUserEditor) resizableWindow.title = '계정 정보 수정창';
     if(widget is WindowItemTS) resizableWindow.title = "매입품목 공정 관리창";
-    if(widget is WindowProcessOutputCreate) resizableWindow.title = "신규 가공공정 생성창";
+
+    if(widget is WindowProcessOutputCreate) resizableWindow.title = "신규 생산품 생성창";
+    if(widget is WindowProcessCreate) resizableWindow.title = "신규 공정 생성창";
   }
 
   ResizableWindow createWindow(BuildContext context, { double? pw, double? ph, }) {

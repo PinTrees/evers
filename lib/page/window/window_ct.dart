@@ -134,7 +134,7 @@ class _WindowCTState extends State<WindowCT> {
     ledgerWidgets.add(Row(
         children: [
           Expanded(child: Ledger.onTableHeader()),
-          ButtonT.Icon( icon: Icons.refresh,
+          ButtonT.Icont( icon: Icons.refresh,
               onTap: () async {
                 WidgetT.loadingBottomSheet(context);
                 ledgerList = await DatabaseM.getLedgerRevenueList(ct.csUid);
@@ -319,7 +319,7 @@ class _WindowCTState extends State<WindowCT> {
                         var fileName = ct.contractFiles.keys.elementAt(i);
                         PdfManager.OpenPdf(downloadUrl, fileName);
                       },
-                      leaging: ButtonT.Icon(
+                      leaging: ButtonT.Icont(
                         icon: Icons.delete,
                         onTap: () {
                           setState(() {});
@@ -333,7 +333,7 @@ class _WindowCTState extends State<WindowCT> {
                       onTap: () async {
                         PDFX.showPDFtoDialog(context, data: ctFileByteList.values.elementAt(i), name: ctFileByteList.keys.elementAt(i));
                       },
-                      leaging: ButtonT.Icon(
+                      leaging: ButtonT.Icont(
                         icon: Icons.delete,
                         onTap: () {
                           ctFileByteList.remove(ctFileByteList.keys.elementAt(i));
@@ -362,7 +362,7 @@ class _WindowCTState extends State<WindowCT> {
                         var fileName = ct.getFileName(ct.filesMap.keys.elementAt(i));
                         PdfManager.OpenPdf(downloadUrl, fileName);
                       },
-                      leaging: ButtonT.Icon(
+                      leaging: ButtonT.Icont(
                         icon:Icons.delete,
                           onTap: () {
                             WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
@@ -377,7 +377,7 @@ class _WindowCTState extends State<WindowCT> {
                       onTap: () async {
                         PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
                       },
-                      leaging: ButtonT.Icon(
+                      leaging: ButtonT.Icont(
                         icon: Icons.delete,
                         onTap: () {
                           fileByteList.remove(fileByteList.keys.elementAt(i));

@@ -57,6 +57,8 @@ class _ViewHomeState extends State<ViewHome> {
 
   /// 이 함수는 매인 위젯 빌더입니다.
   Widget mainBuild() {
+    var padding = MediaQuery.of(context).size.width * 0.1;
+
     var titleWidget = Stack(
       alignment: Alignment.center,
       children: [

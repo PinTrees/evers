@@ -291,7 +291,7 @@ class DialogT extends StatelessWidget {
                                   controller: searchInput,
                                 ),
                               ),),
-                            ButtonT.Icon(
+                            ButtonT.Icont(
                               icon: Icons.search,
                               onTap: () async {
                                 contractSearch = await SystemT.searchCTMeta(searchInput.text,);
@@ -397,7 +397,7 @@ class DialogT extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            ButtonT.Icon(
+                            ButtonT.Icont(
                                 icon: Icons.search,
                                 onTap: () async {
                                   if(searchInput.text == '') { WidgetT.showSnackBar(context, text: "검색어를 입력해 주세요."); return; }
@@ -506,7 +506,7 @@ class DialogT extends StatelessWidget {
                                   controller: searchInput,
                                 ),
                               ),),
-                            ButtonT.Icon(
+                            ButtonT.Icont(
                               icon: Icons.search,
                               onTap: () async {
                                 if(searchInput.text == "") { WidgetT.showSnackBar(context, text: "검색어를 입력해 주세요."); return; }

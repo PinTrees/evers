@@ -2,6 +2,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/database/process.dart';
 import 'package:evers/class/system/records.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/class/widget/slider.dart';
 import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/json.dart';
@@ -26,8 +27,8 @@ import '../widget/text.dart';
 
 class CompProcess {
   static Widget tableHeader() {
-    return WidgetUI.titleRowNone(['순번', '거래처', '품목명', '가공공정', '상태', '작업시작 수량', '작업완료 수량', '작업중인 수량', '가공일', ''],
-        [ 28, 999, 999, 100, 50, 80, 80, 80, 150, 150], background: true, lite: true);
+    return WidgetUI.titleRowNone(['순번', '거래처', '품목명', '가공공정', '상태', '작업 진행도', "수량", '가공일', ''],
+        [ 28, 999, 999, 100, 50, 80 * 3, 80, 150, 150], background: true, lite: true);
   }
 
   static Widget tableHeaderOutputCreate() {
@@ -40,6 +41,7 @@ class CompProcess {
     return WidgetUI.titleRowNone(['순번', '품목명', '가공공정', '상태', '가공가능수량'],
         [ 28, 200, 100, 100, 200], background: true, lite: true);
   }
+
 
 
 
@@ -62,7 +64,6 @@ class CompProcess {
     var w = InkWell(
       onTap: () async {
         if(onTap != null) onTap();
-        if(setState != null) setState();
       },
       child: Container(
         height: 28,
@@ -84,11 +85,14 @@ class CompProcess {
             ExcelT.LitGrid(text: item.name, width: 200, center: true, expand: true),
             ExcelT.LitGrid(text: MetaT.processType[process.type] ?? 'NULL', width: 100, center: true),
             ExcelT.LitGrid(text: amountM <= 0 ? "완료" : process.isDone ? "완료" : '가공중', width: 50, center: true),
-            ExcelT.LitGrid(text: StyleT.krwInt(process.amount.toInt()) + item.unit, width: 80, center: true),
-            ExcelT.LitGrid(text: StyleT.krwInt(((usedAmount == null) ? 0 : usedAmount!.abs()).toInt()) + item.unit, width: 80, center: true),
-            ExcelT.LitGrid(text: StyleT.krwInt((process.amount - ((usedAmount == null) ? 0 : usedAmount!.abs())).toInt()) + item.unit, width: 80, center: true),
 
+            SliderT.Lit(context, value: usedAmount, min: 0, max: process.amount,
+              width: 80 * 3,
+            ),
+
+            ExcelT.LitGrid(text: "${StyleT.krwInt(((usedAmount == null) ? 0 : usedAmount!.abs()).toInt()) + item.unit} / ${ StyleT.krwInt(process.amount.toInt()) + item.unit }", width: 80, center: true),
             ExcelT.LitGrid(text: DateStyle.dateYearMonthDayHipen(process.date), width: 150, center: true),
+
             ButtonT.IconText(
               text: "수정",
               color: Colors.transparent,
@@ -162,15 +166,15 @@ class CompProcess {
             text: DateStyle.dateYearMD(process.date),
             value: DateStyle.dateYearMD(process.date),
           ),
-          InputWidget.DropButton(
-            dropMenuMaps:  MetaT.processType,
-            dropMenus: MetaT.processType.keys.toList(),
+          InputWidget.DropButtonT<dynamic>(
+            labelText: (value) { return value; },
+            dropMenuMaps: MetaT.processType,
             width: 250,
             setState: setState,
-            onEdite: (i, data) {
+            onEditeKey: (i, data) {
               process.type = data;
             },
-            text: (MetaT.processType[process.type] == null) ?
+            text: MetaT.processType[process.type] == null ?
             '선택안됨' : MetaT.processType[process.type].toString(),
           ),
           ExcelT.LitInput(context, 'process.amount', width: 250,
@@ -204,9 +208,8 @@ class CompProcess {
   static Widget tableUIOutputCreate(
       BuildContext context,
       ProcessItem inputProcess,
-      ProcessItem process,
-      double usedAmount,
-      double startAmount, {
+      ProcessItem process, {
+        required double usedLimitAmount,
         Customer? cs,
         Function? setState,
         Function? refresh,
@@ -216,8 +219,8 @@ class CompProcess {
     if(item == null) return SizedBox();
     if(setState == null) return const SizedBox();
     if(refresh == null) return const SizedBox();
-    //if(!process.isOutput) return const SizedBox();
 
+    Item? inputItem = SystemT.getItem(inputProcess.itUid);
 
     var itemNameList = [];
     SystemT.itemMaps.values.forEach((e) {
@@ -241,32 +244,34 @@ class CompProcess {
           ExcelT.LitInput(context, 'out.process.out.amount', width: 100,
             onEdited: (i, data) {
               inputProcess.amount = double.tryParse(data) ?? 0;
-              if(inputProcess.amount > process.amount)
-                inputProcess.amount = process.amount;
             },
             setState: setState,
-            text: inputProcess.amount.toString(), value: inputProcess.amount.toString(),
+            text: StyleT.krwInt(inputProcess.amount.toInt()), value: inputProcess.amount.toString(),
           ),
 
           /// 품목선택 드롭다운 메뉴
-          InputWidget.DropButton(
+          InputWidget.DropButtonT<Item>(
             width: 250,
-            dropMenus: itemNameList,
+            labelText: (item) { return item.name; },
             dropMenuMaps: SystemT.itemMaps,
             setState: setState,
             onEditeValue: (i, value) {
-              inputProcess.itUid = item.id;
+              inputProcess.itUid = value.id;
             },
-            text: SystemT.itemMaps[inputProcess.itUid] == null ? '선택안됨': SystemT.itemMaps[inputProcess.itUid]!.name
+            text: inputItem == null ? '선택안됨': inputItem!.name
           ),
 
           ExcelT.LitInput(context, 'process.use.amount', width: 100,
             onEdited: (i, data) {
-              usedAmount = double.tryParse(data) ?? 0;
-              process.amount = startAmount - usedAmount.abs();
+              var usedAmount = double.tryParse(data) ?? 0;
+
+              if(usedAmount.abs() > usedLimitAmount) usedAmount = usedLimitAmount;
+
+              process.amount = usedLimitAmount - usedAmount;
+              inputProcess.usedAmount = usedAmount;
             },
             setState: setState,
-            text: usedAmount.abs().toString(), value: usedAmount.abs().toString(),
+            text: StyleT.krwInt(inputProcess.usedAmount.toInt()), value: inputProcess.usedAmount.toString(),
           ),
           ExcelT.LitGrid(text: StyleT.krwInt(process.amount.toInt()), width: 250, center: true),
         ],
@@ -303,7 +308,7 @@ class CompProcess {
         var inputProcess = ProcessItem.fromItemTS(itemTs);
         inputProcess.amount = (process.amount - usedAmount);
         inputProcess.itUid = process.itUid;
-        UIState.OpenNewWindow(context, WindowProcessOutputCreate(process: inputProcess, refresh: refresh));
+        UIState.OpenNewWindow(context, WindowProcessCreate(process: inputProcess, refresh: refresh));
       },
       child: Container(
         height: 28,
@@ -386,7 +391,7 @@ class CompProcess {
               ExcelT.LitGrid(text: SystemT.getAccountName(ts.account) ?? '-', width: 100, center: true),
               ExcelT.LitGrid(text: ts.memo, width: 100, center: true, expand: true),
 
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.delete,
                   onTap: () async {
                     if(context == null) return;

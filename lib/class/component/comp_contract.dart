@@ -109,7 +109,7 @@ class CompContract {
                 ExcelT.LitGrid(text: ct.ctName, width: 250, center: true, bold: true),
                 ExcelT.LitGrid(text: ct.manager, width: 150, center: true),
                 ExcelT.LitGrid(text: ct.managerPhoneNumber, width: 150, center: true, expand: true),
-                ButtonT.Icon(
+                ButtonT.Icont(
                   icon: Icons.delete,
                   onTap: () async {
                     var alt = await DialogT.showAlertDl(context, text: '"${ct.ctName}" 계약을 데이터베이스에서 삭제하시겠습니까?');

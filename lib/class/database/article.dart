@@ -16,6 +16,10 @@ import 'item.dart';
 
 
 
+/*enum ArticleQuillVersion {
+
+};*/
+
 
 /// 품목 작업 이동 기록 데이터 클래스
 ///
@@ -25,6 +29,8 @@ import 'item.dart';
 class Article {
   var id = '';
   var state = '';
+  var version='';
+
   var type = '';
 
   var title = '';
@@ -41,6 +47,7 @@ class Article {
     id = json['id'] ?? '';
     state = json['state'] ?? '';
     type = json['type'] ?? '';
+    version = json['version'] ?? '';
 
     title = json["title"] ?? "";
     desc = json["desc"] ?? "";
@@ -57,6 +64,7 @@ class Article {
       'id' : id,
       'state' : state,       // D,
       'type' : type,       // P 매입, R 매출, F 동결,
+      'version': version,
 
       "title": title,
       "desc": desc,

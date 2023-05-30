@@ -121,7 +121,7 @@ class CompItem {
                 ExcelT.LitGrid(text: ct.ctName, width: 250, center: true, bold: true),
                 ExcelT.LitGrid(text: ct.manager, width: 150, center: true),
                 ExcelT.LitGrid(text: ct.managerPhoneNumber, width: 150, center: true, expand: true),
-                ButtonT.Icon(
+                ButtonT.Icont(
                   icon: Icons.delete,
                   onTap: () async {
                     var alt = await DialogT.showAlertDl(context, text: '"${ct.ctName}" 계약을 데이터베이스에서 삭제하시겠습니까?');
@@ -169,7 +169,7 @@ class CompItemTS {
         onTap: () {
           PdfManager.OpenPdf(value, key);
         },
-        leaging: ButtonT.Icon(
+        leaging: ButtonT.Icont(
           icon: Icons.delete,
           onTap: () {
             Messege.toReturn(context, '개발중', false);
@@ -235,7 +235,7 @@ class CompItemTS {
         process.amount = (itemTs.amount - usedCount);
         process.itUid = itemTs.itemUid;
 
-        UIState.OpenNewWindow(context, WindowProcessOutputCreate(process: process, refresh: refresh));
+        UIState.OpenNewWindow(context, WindowProcessCreate(process: process, refresh: refresh));
       },
       child: Container(
         height: 28,

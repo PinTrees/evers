@@ -5,6 +5,7 @@ import 'package:evers/class/system.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
+import 'package:evers/page/window/window_paper_product.dart';
 import 'package:evers/page/window/window_process_create.dart';
 import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/page/window/window_pu_create.dart';
@@ -23,6 +24,7 @@ import 'package:intl/intl.dart';
 import '../../core/window/MdiController.dart';
 import '../../core/window/window_base.dart';
 import '../../page/window/window_ct.dart';
+import '../../page/window/window_paper_factory.dart';
 
 /// 화면 타입
 enum UIType {
@@ -61,7 +63,11 @@ class UIState {
     if(window is WindowCS || window is WindowCsCreate) width = 1200;
     if(window is WindowCT || window is WindowCT) width = 1200;
     if(window is WindowItemTS) width = 1000;
-    if(window is WindowProcessOutputCreate) width = 1000;
+
+    if(window is WindowProcessOutputCreate || window is WindowProcessCreate) width = 1000;
+
+    /// 공장일보 및 생산일보 창 사이즈
+    if(window is WindowFactoryPaper || window is WindowProductPaper) width = 800;
 
     if(window is WindowPUCreate || window is WindowPUEditor || window is WindowPUCreateWithCS) width = 1000;
     if(window is WindowReCreate || window is WindowReEditor || window is WindowReCreateWithCt) width = 1000;
@@ -75,7 +81,7 @@ class UIState {
     if(window is WindowCS) isFixedHeight = true;
     if(window is WindowCsCreate) isFixedHeight = true;
     if(window is WindowItemTS) isFixedHeight = false;
-    //if(window is WindowSchCreate) isFixedHeight = true;
+    //if(window is WindowFactoryCreate) isFixedHeight = true;
 
     mdiController!.addWindow(context, widget: window, resizableWindow: parent, fixedHeight: isFixedHeight);
   }

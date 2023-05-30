@@ -83,7 +83,7 @@ class CompTS {
               ExcelT.LitGrid(text: SystemT.getAccountName(ts.account) ?? '-', width: 100, center: true),
               ExcelT.LitGrid(text: ts.memo, width: 100, center: true, expand: true),
 
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.create,
                   onTap: () async {
                     if(refresh == null) { WidgetT.showSnackBar(context, text: 'refresh state is not nullable'); return; }
@@ -92,7 +92,7 @@ class CompTS {
                     UIState.OpenNewWindow(context, WindowTSEditor(ts: ts, cs: cs, refresh: refresh));
                   }
               ),
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.delete,
                   onTap: () async {
                     if(context == null) return;
@@ -165,7 +165,7 @@ class CompTS {
               ExcelT.LitGrid(text: SystemT.getAccountName(ts.account) ?? '-', width: 100, center: true),
               ExcelT.LitGrid(text: ts.memo, width: 100, center: true, expand: true),
 
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.delete,
                   onTap: () async {
                     if(context == null) return;
@@ -303,7 +303,7 @@ class CompTS {
                 onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
                 setState: setState,
                 text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
-              ButtonT.Icon(
+              ButtonT.Icont(
                 icon: Icons.cancel,
                 onTap: () async {
                   ts.type = 'DEL';

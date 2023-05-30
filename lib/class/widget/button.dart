@@ -24,9 +24,10 @@ class ButtonT extends StatelessWidget {
   static var disableTextColor =  new Color(0xff777777);
   static var activeTextColor = new Color(0xffd7d7d7);
 
-  static Widget Icon({IconData? icon, Function? onTap,
+  static Widget Icont({IconData? icon, Function? onTap,
     Widget? leaging,
     Color? color,
+    double? size,
     Color? background
   }) {
     if(leaging != null) {
@@ -41,7 +42,7 @@ class ButtonT extends StatelessWidget {
         color: background,
         child: Row(
           children: [
-            WidgetT.iconMini(icon ?? Icons.question_mark, size: 24, boxSize: 28, color: color),
+            WidgetT.iconMini(icon ?? Icons.question_mark, size: size ?? 24, boxSize: 28, color: color),
           ],
         ),
       ),
@@ -51,6 +52,37 @@ class ButtonT extends StatelessWidget {
     return w;
   }
 
+
+
+  static Widget LitIcon(IconData icon, { Function? onTap,
+    Widget? leaging,
+    Color? color,
+    double? size,
+    Color? background
+  }) {
+    if(leaging != null) {
+    }
+    var w = InkWell(
+      onTap: () async {
+        if(onTap != null) return await onTap();
+      },
+      child: Container(
+        color: background,
+        padding: EdgeInsets.all(6),
+        child: Row(
+          children: [
+            Icon(icon, size: size ?? 16, color: color ?? StyleT.iconColor,),
+          ],
+        ),
+      ),
+    );
+
+
+    return w;
+  }
+  
+  
+  
 
   static Widget IconAction(BuildContext context, IconData? icon, {Function? onTap,
     String? altText,

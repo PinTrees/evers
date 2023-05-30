@@ -73,6 +73,9 @@ class _ViewGreetingsState extends State<ViewGreetings> {
 
   /// 이 함수는 매인 위젯 빌더입니다.
   Widget mainBuild() {
+    var padding = MediaQuery.of(context).size.width * 0.1;
+
+
     var titleWidget = Stack(
       alignment: Alignment.center,
       children: [
@@ -98,8 +101,6 @@ class _ViewGreetingsState extends State<ViewGreetings> {
         )
       ],
     );
-
-
     var greetingWidget = Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -109,8 +110,10 @@ class _ViewGreetingsState extends State<ViewGreetings> {
           SizedBox(height: 6 * 12,),
           TextT.Lit(text: "동결건조로 완성한 신선한 맛", color: Colors.black, size: 26, bold: true),
           SizedBox(height: 6 * 8,),
+
+
           Container(
-            padding: EdgeInsets.only(left: 128, right: 128),
+            padding: EdgeInsets.only(left: padding, right: padding),
             child: TextT.Lit(text: infoText, color: StyleT.textColor, size: 16, bold: false),
           ),
           SizedBox(height: 64,),

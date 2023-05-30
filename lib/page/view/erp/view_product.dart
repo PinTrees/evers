@@ -53,11 +53,11 @@ class ViewFactory extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var divideHeight = 6.0;
 
-  List<FactoryD> factory_list = [];
-  List<ProductD> product_list = [];
   List<ItemTS> itemTs_list = [];
   List<ItemTS> itemProductList = [];
+
   List<ProcessItem> processList = [];
+  List<ProcessItem> processAllList = [];
 
   bool sort = false;
   bool query = false;
@@ -74,13 +74,12 @@ class ViewFactory extends StatelessWidget {
   }
   String menu = '';
 
-  void search(String search) async {
+ /* void search(String search) async {
     if(search == '') {
       sort = false;
       pur_query = '';
       query = false;
-      factory_list.clear();
-      product_list.clear();
+
 
       FunT.setStateMain();
       return;
@@ -88,30 +87,24 @@ class ViewFactory extends StatelessWidget {
 
     sort = true; query = false;
     if(menu == '매입매출관리') {
-  /*    if (currentView == '매입') {
-        crRpmenuRp = ''; pur_query = '';
-        pur_sort_list = await SystemT.searchPuMeta(search,);
-      }
-      else if (currentView == '매출') {
-        crRpmenuRp = ''; pur_query = '';
-        rev__sort_list = await SystemT.searchReMeta(search,);
-      }*/
     }
     else if(menu == '수납관리') {
-      //ts_sort_list = await SystemT.searchTSMeta(searchInput.text,);
     }
 
     FunT.setStateMain();
   }
+  */
+
+
   void query_init() {
     sort = false; query = true;
-    factory_list.clear();
-    product_list.clear();
   }
   void clear() async {
-    product_list.clear();
-    factory_list.clear();
-    await FunT.setStateMain();
+    itemProductList.clear();
+    processAllList.clear();
+    processingAmount.clear();
+    processOutputAmount.clear();
+    usedAmount.clear();
   }
 
   var menuStyle = StyleT.buttonStyleNone(round: 8, elevation: 0, padding: 0, color: Colors.blueAccent.withOpacity(0.15), );
@@ -125,9 +118,15 @@ class ViewFactory extends StatelessWidget {
 
   Map<String, double> usedAmount = {};
 
+  /// 추후 날짜별 저장및 조회가 가능하도록 셜계해야 합니다.
+  /// 현재 작업완료를 통해 완료된 모든 작업물들의 합계를 기록합니다.
+  Map<String, double> processOutputAmount = {};
+
+  /// itemUid, amount - 현재 작업이 진행중인 품목 수량을 기록합니다.
+  Map<String, double> processingAmount = {};
+
+
   /// Main Widget Build Function
-  ///
-  /// (***) 공장일보 및 생산일보 분리 필요
   dynamic mainView(BuildContext context, String menu, { Widget? topWidget, Widget? infoWidget, bool refresh=false  }) async {
     if(this.menu != menu) {
       sort = false; searchInput.text = '';
@@ -137,542 +136,45 @@ class ViewFactory extends StatelessWidget {
       query = false; sort = false;
       pur_query = '';
 
-      itemProductList = await DatabaseM.getItemTranListProduct();
-      processList = await DatabaseM.getProcessItemGroupList();
+      if(menu == "생산관리") {
+        itemProductList = await DatabaseM.getItemTranListProduct();
+        /// 추후 날짜별 목록 스냅샷에서 로드하는 형태로 변경이 필요합니다.
+        processAllList = await DatabaseM.getProcessItemGroupList(all: true);
 
-      for(var pr in processList) {
-        List<ProcessItem> outputList = await DatabaseM.getProcessItemGroupByPrUid(pr.id);
-        var amount = 0.0;
-        outputList.forEach((e) { amount += e.usedAmount.abs(); });
-        usedAmount[pr.id] = amount;
+        processList.clear();
+        for(var pr in processAllList) {
+          /// 공정이 끝나지 않았을 경우 - 일반적으로 100개 미만일 것입니다.
+          if(!pr.isDone && !pr.isOutput && pr.itUid != '') {
+            processList.add(pr);
+            List<ProcessItem> outputList = await DatabaseM.getProcessItemGroupByPrUid(pr.id);
+            var used = 0.0;
+
+            /// 해당 공정과 연결되어 있는 생산완료 공정을 확인하여 소모한 공정량을 산출
+            outputList.forEach((e) { used += e.usedAmount.abs(); });
+            usedAmount[pr.id] = used;
+
+            /// 현재 작업중인 품목수량 산출
+            /// 특정 공정에 대한 현재 작업중인 수량 산출 공식 : 공정중인 수량 = 공정시작 수량 - 사용수량
+            /// 특정 품목에 대한 작업중인 수량 산출 공식 : (공정중인 수량 = 공정시작 수량 - 사용수량 ) ^ n
+            if(processingAmount.containsKey(pr.itUid)) processingAmount[pr.itUid] = processingAmount[pr.itUid]! + usedAmount[pr.id]!;
+            else processingAmount[pr.itUid] = pr.amount - usedAmount[pr.id]!;
+          }
+
+          /// 공정이 종료되었을 경우 - 일반적으로 매우 많은 데이터가 누적될 것입니다. - 100000개
+          else {
+            /// 생산량에 공정완료 수량을 산출
+            if(processOutputAmount.containsKey(pr.itUid)) processOutputAmount[pr.itUid] = processOutputAmount[pr.itUid]! + pr.amount;
+            else processOutputAmount[pr.itUid] = pr.amount;
+          }
+        }
+        await SystemT.initItemBalance();
       }
-      await SystemT.initItemBalance();
     }
 
     this.menu = menu;
 
     List<Widget> childrenW = [];
     Widget titleWidgetT = SizedBox();
-
-    var queryMenu = Column(
-      children: [
-        Container(
-          padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
-          child: Row(
-            children: [
-              for(var m in pur_sort_menu_date)
-                InkWell(
-                  onTap: () async {
-                    if(pur_query == m) return;
-                    pur_query = m;
-
-                    query_init();
-
-                    rpLastAt = DateTime.now();
-                    if(pur_query == pur_sort_menu_date[0]) {
-                      rpStartAt = DateTime.now().add(const Duration(days: -7));
-                    }
-                    else if(pur_query == pur_sort_menu_date[1]) {
-                      rpStartAt = DateTime.now().add(const Duration(days: -30));
-                    }
-                    else if(pur_query == pur_sort_menu_date[2]) {
-                      rpStartAt = DateTime.now().add(const Duration(days: -90));
-                    }
-
-                    FunT.setStateMain();
-                  },
-                  child: Container(
-                    height: 32,
-                    decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                    padding:menuPadding,
-                    child: WidgetT.text(m, size: 14, bold: true,
-                        color: (m == pur_query) ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                  ),
-                ),
-
-              SizedBox(width: divideHeight * 4,),
-
-              InkWell(
-                onTap: () async {
-                  var selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: rpStartAt, // 초깃값
-                    firstDate: DateTime(2018), // 시작일
-                    lastDate: DateTime(2030), // 마지막일
-                  );
-                  if(selectedDate != null) {
-                    if (selectedDate.microsecondsSinceEpoch < rpLastAt.microsecondsSinceEpoch) rpStartAt = selectedDate;
-                    pur_query = '';
-                  }
-                  FunT.setStateMain();
-                },
-                child: Container(
-                  height: 32,
-                  padding: EdgeInsets.all(divideHeight),
-                  alignment: Alignment.center,
-                  decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                  child:WidgetT.text(StyleT.dateFormat(rpStartAt), size: 14, bold: true,
-                      color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                ),
-              ),
-              WidgetT.text('~',  size: 14, color: StyleT.textColor.withOpacity(0.5)),
-              InkWell(
-                onTap: () async {
-                  var selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: rpLastAt, // 초깃값
-                    firstDate: DateTime(2018), // 시작일
-                    lastDate: DateTime(2030), // 마지막일
-                  );
-                  if(selectedDate != null) {
-                    rpLastAt = selectedDate;
-                    pur_query = '';
-                  }
-                  FunT.setStateMain();
-                },
-                child: Container(
-                  height: 32,
-                  padding: EdgeInsets.all(divideHeight),
-                  alignment: Alignment.center,
-                  decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                  child:WidgetT.text(StyleT.dateFormat(rpLastAt), size: 14, bold: true,
-                      color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                ),
-              ),
-              InkWell(
-                onTap: () async {
-                  pur_query = '기간검색';
-                  query_init();
-                  FunT.setStateMain();
-                },
-                child: Container(
-                  height: 32,
-                  decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                  padding: EdgeInsets.all(divideHeight),
-                  child: WidgetT.text('기간검색', size: 14, bold: true,
-                      color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                ),
-              ),
-              SizedBox(width: divideHeight * 4,),
-              InkWell(
-                onTap: () async {
-                  pur_query = '';
-                  query = false;
-
-                  clear();
-
-                  FunT.setStateMain();
-                },
-                child: Container( height: 32,
-                  padding: menuPadding,
-                  child: WidgetT.text('검색초기화', size: 14, bold: true,
-                      color: StyleT.textColor.withOpacity(0.5)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-
-    /// 생산일보 - 공장일보 통합 관리
-    if(menu == '공장일보') {
-      if(factory_list.length < 1) factory_list = await DatabaseM.getFactory(
-          startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-          lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
-      );
-      childrenW.clear();
-      childrenW.add(
-          IntrinsicHeight(
-            child: Row(
-              children: [
-                Expanded(child: Container(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      WidgetT.title('원자재 사용량'),
-                    ],
-                  ),
-                )),
-                SizedBox(width: divideHeight * 4,),
-                Expanded(child: Container(
-                    child:Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          WidgetT.title('생산품 생산량'),
-                        ]
-                    )
-                )),
-              ],
-            ),
-          )
-      );
-
-      List<ItemFD> itemSv = [];
-      Map<String, dynamic> itemPu = {};
-
-      List<FactoryD> data = sort ? factory_list : factory_list;
-
-      for(var fd in data) {
-        var a = fd.itemSvPu.entries.map((entry) => ItemFD.fromDatabase({ 'id': entry.key, 'count': entry.value })).toList();
-        itemSv.addAll(a);
-      }
-      itemSv.forEach((e) {
-        if(itemPu[e.id] == null) itemPu[e.id] = 0;
-        itemPu[e.id] += e.count; });
-
-
-      List<Widget> widgetsItemPu = [];
-      widgetsItemPu.add(WidgetUI.titleRowNone([ '순번', '품목', '수량', '단가', '금액' ], [ 28, 150, 100, 100, 100]));
-      widgetsItemPu.add(WidgetT.dividHorizontal(size: 0.7));
-      for(int i = 0; i < itemPu.length; i++) {
-        var count = int.tryParse(itemPu.values.elementAt(i).toString()) ?? 0;
-        var item = SystemT.getItem(itemPu.keys.elementAt(i)) ?? Item.fromDatabase({});
-        var w =  InkWell(
-          child: Container(
-            height: 32,
-            child: Row(
-              children: [
-                WidgetEX.excelGrid(label: '${i + 1}', width: 28),
-                WidgetT.excelGrid( width: 150, text: item.name,),
-                WidgetT.excelGrid(width: 100, text: StyleT.krwInt(count) + item.unit,),
-                WidgetT.excelGrid(textLite: true, text: StyleT.krwInt(item.unitPrice), width: 100),
-                WidgetT.excelGrid(textLite: true, text: StyleT.krwInt(item.unitPrice * count) , width: 100),
-              ],
-            ),
-          ),
-        );
-        widgetsItemPu.add(w);
-        widgetsItemPu.add(WidgetT.dividHorizontal(size: 0.35));
-      }
-
-      childrenW.add(Row(
-        children: [
-          Expanded(child: Column(children: widgetsItemPu,)),
-          SizedBox(width: divideHeight * 4,),
-          Expanded(child: Column(children: widgetsItemPu,))
-        ],
-      ));
-      childrenW.add(SizedBox(height: divideHeight * 8,));
-
-
-      childrenW.add(WidgetT.title('공장일보 목록', size: 18),);
-      childrenW.add(queryMenu);
-      childrenW.add(WidgetT.dividHorizontal(size: 1.4));
-      for(int i = 0; i < data.length; i++) {
-        if(i >= data.length) break;
-        var fd = data[i];
-        Widget w = SizedBox();
-        w = Row(
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      await DialogIT.showFdInfo(context, org: fd);
-                      FunT.setStateMain();
-                    },
-                    child: Container(
-                      padding: EdgeInsets.only(bottom: divideHeight, top: divideHeight),
-                      child: IntrinsicHeight(
-                        child: Row( crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              WidgetT.excelGrid(label: '${fd.id}', width: 100, height: 28),
-                              SizedBox(width: divideHeight,),
-                              Expanded(child: WidgetT.excelGrid(textLite: true, alignment: Alignment.centerLeft, text: fd.memo.replaceAll('\n\n', '\n'),)),
-                            ]
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container( height: 32,
-                    child: Row(
-                        children: [
-                          WidgetT.excelGrid(label: '첨부파일', width: 100),
-                          SizedBox(width: divideHeight,),
-                          for(var f in fd.filesMap.keys)
-                            InkWell(
-                              onTap: () async {
-                                var downloadUrl = fd.filesMap[f];
-                                var fileName = f;
-                                PdfManager.OpenPdf(downloadUrl, fileName);
-                              },
-                              child: Container(
-                                height: 32, color: Colors.grey.withOpacity(0.15),
-                                child: Row(
-                                  children: [
-                                    WidgetT.iconMini(Icons.file_copy_rounded),
-                                    WidgetT.text(f),
-                                    SizedBox(width: divideHeight,),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ]
-                    ),
-                  ),
-                  SizedBox(height: divideHeight,),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () async {
-                //UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
-              },
-              child: WidgetT.iconMini(Icons.create, size: 28),
-            ),
-            InkWell(
-              onTap: () async {
-                if(!await DialogT.showAlertDl(context, text: '공장일보를 삭제하시겠습니까?')) {
-                  WidgetT.showSnackBar(context, text: '삭제 취소됨');
-                  return;
-                }
-                WidgetT.loadingBottomSheet(context, text: '삭제중');
-                await fd.delete();
-                Navigator.pop(context);
-
-                clear();
-
-                WidgetT.showSnackBar(context, text: '삭제됨');
-                FunT.setStateMain();
-              },
-              child: WidgetT.iconMini(Icons.delete, size: 28),
-            ),
-          ],
-        );
-        childrenW.add(w);
-        childrenW.add(WidgetT.dividHorizontal(size: 0.35));
-      }
-
-      if(!sort) {
-        childrenW.add(InkWell(
-          onTap: () async {
-            WidgetT.loadingBottomSheet(context, text: '로딩중');
-
-            var list = await DatabaseM.getFactory(
-              startAt: (factory_list.length > 0) ? factory_list.last.id : null,
-              startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-              lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
-            );
-            factory_list.addAll(list);
-
-            Navigator.pop(context);
-            await FunT.setStateMain();
-          },
-          child: Container(
-            height: 36,
-            child: Row(
-              children: [
-                WidgetT.iconMini(Icons.add_box, size: 36),
-                WidgetT.title('더보기'),
-              ],
-            ),
-          ),
-        ));
-      }
-    }
-    else if(menu == '생산일보') {
-      if(product_list.length < 1) product_list = await DatabaseM.getProductList(
-        startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-        lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
-      );
-
-      childrenW.clear();
-      childrenW.add(
-          IntrinsicHeight(
-            child: Row(
-              children: [
-                Expanded(child: Container(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      WidgetT.title('원자재 사용량'),
-                    ],
-                  ),
-                )),
-                SizedBox(width: divideHeight * 4,),
-                Expanded(child: Container(
-                    child:Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          WidgetT.title('생산품 생산량'),
-                        ]
-                    )
-                )),
-              ],
-            ),
-          )
-      );
-
-      List<ItemFD> itemSv = [];
-      Map<String, dynamic> itemPu = {};
-
-      List<ProductD> data = sort ? product_list : product_list;
-
-      for(var fd in data) {
-        var a = fd.itemSvPu.entries.map((entry) => ItemFD.fromDatabase({ 'id': entry.key, 'count': entry.value })).toList();
-        itemSv.addAll(a);
-      }
-      itemSv.forEach((e) {
-        if(itemPu[e.id] == null) itemPu[e.id] = 0;
-        itemPu[e.id] += e.count; });
-
-
-      List<Widget> widgetsItemPu = [];
-      widgetsItemPu.add(WidgetUI.titleRowNone([ '순번', '품목', '수량', '단가', '금액' ], [ 28, 150, 100, 100, 100]));
-      widgetsItemPu.add(WidgetT.dividHorizontal(size: 0.7));
-      for(int i = 0; i < itemPu.length; i++) {
-        var count = int.tryParse(itemPu.values.elementAt(i).toString()) ?? 0;
-        var item = SystemT.getItem(itemPu.keys.elementAt(i)) ?? Item.fromDatabase({});
-        var w =  InkWell(
-          child: Container(
-            height: 32,
-            child: Row(
-              children: [
-                WidgetEX.excelGrid(label: '${i + 1}', width: 28),
-                WidgetT.excelGrid( width: 150, text: item.name,),
-                WidgetT.excelGrid(width: 100, text: StyleT.krwInt(count) + item.unit,),
-                WidgetT.excelGrid(textLite: true, text: StyleT.krwInt(item.unitPrice), width: 100),
-                WidgetT.excelGrid(textLite: true, text: StyleT.krwInt(item.unitPrice * count) , width: 100),
-              ],
-            ),
-          ),
-        );
-        widgetsItemPu.add(w);
-        widgetsItemPu.add(WidgetT.dividHorizontal(size: 0.35));
-      }
-
-      childrenW.add(Row(
-        children: [
-          Expanded(child: Column(children: widgetsItemPu,)),
-          SizedBox(width: divideHeight * 4,),
-          Expanded(child: Column(children: widgetsItemPu,))
-        ],
-      ));
-      childrenW.add(SizedBox(height: divideHeight * 8,));
-
-      childrenW.add(WidgetT.title('생산일보 목록', size: 18),);
-      childrenW.add(queryMenu);
-      childrenW.add(WidgetT.dividHorizontal(size: 1.4));
-      for(int i = 0; i < data.length; i++) {
-        if(i >= data.length) break;
-        var fd = data[i];
-        Widget w = SizedBox();
-        w = Row(
-          children: [
-            Expanded(
-              child: Column(
-                children: [
-                  InkWell(
-                    onTap: () async {
-                      await DialogIT.showProductInfo(context, org: fd);
-                      FunT.setStateMain();
-                    },
-                    child: Container(
-                      padding: EdgeInsets.only(bottom: divideHeight, top: divideHeight),
-                      child: IntrinsicHeight(
-                        child: Row( crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              WidgetT.excelGrid(label: '${fd.id}', width: 100, height: 28),
-                              SizedBox(width: divideHeight,),
-                              Expanded(child: WidgetT.excelGrid(textLite: true, alignment: Alignment.centerLeft, text: fd.memo.replaceAll('\n\n', '\n'),)),
-                            ]
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container( height: 32,
-                    child: Row(
-                        children: [
-                          WidgetT.excelGrid(label: '첨부파일', width: 100),
-                          SizedBox(width: divideHeight,),
-                          for(var f in fd.filesMap.keys)
-                            InkWell(
-                              onTap: () async {
-                                var downloadUrl = fd.filesMap[f];
-                                var fileName = f;
-                                PdfManager.OpenPdf(downloadUrl, fileName);
-                                FunT.setStateMain();
-                              },
-                              child: Container(
-                                height: 32, color: Colors.grey.withOpacity(0.15),
-                                child: Row(
-                                  children: [
-                                    WidgetT.iconMini(Icons.file_copy_rounded),
-                                    WidgetT.text(f),
-                                    SizedBox(width: divideHeight,),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ]
-                    ),
-                  ),
-                  SizedBox(height: divideHeight,),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () async {
-                var data = await DialogIT.showProductInfo(context, org: fd);
-
-                if(data != null) clear();
-
-                FunT.setStateMain();
-              },
-              child: WidgetT.iconMini(Icons.create, size: 28),
-            ),
-            InkWell(
-              onTap: () async {
-                if(!await DialogT.showAlertDl(context, text: '공장일보를 삭제하시겠습니까?')) {
-                  WidgetT.showSnackBar(context, text: '삭제 취소됨');
-                  return;
-                }
-                WidgetT.loadingBottomSheet(context, text: '삭제중');
-                await fd.delete();
-                Navigator.pop(context);
-
-                clear();
-
-                WidgetT.showSnackBar(context, text: '삭제됨');
-                FunT.setStateMain();
-              },
-              child: WidgetT.iconMini(Icons.delete, size: 28),
-            ),
-          ],
-        );
-        childrenW.add(w);
-        childrenW.add(WidgetT.dividHorizontal(size: 0.35));
-      }
-
-      if(!sort) {
-        childrenW.add(InkWell(
-          onTap: () async {
-            WidgetT.loadingBottomSheet(context, text: '로딩중');
-
-            var list = await DatabaseM.getProductList(
-              startAt: (product_list.length > 0) ? product_list.last.id : null,
-              startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-              lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
-            );
-            product_list.addAll(list);
-
-            Navigator.pop(context);
-            await FunT.setStateMain();
-          },
-          child: Container(
-            height: 36,
-            child: Row(
-              children: [
-                WidgetT.iconMini(Icons.add_box, size: 36),
-                WidgetT.title('더보기'),
-              ],
-            ),
-          ),
-        ));
-      }
-    }
 
 
     if(menu == '품목관리') {
@@ -726,8 +228,6 @@ class ViewFactory extends StatelessWidget {
         childrenW.add(WidgetT.dividHorizontal(size: 0.35));
       }
     }
-
-
 
     else if(menu == "품목입출현황") {
       childrenW.add(Column(
@@ -814,8 +314,6 @@ class ViewFactory extends StatelessWidget {
       }
     }
 
-    /// (***) 함수화 필요
-    /// @AT - M
     else if(menu == '생산관리') {
       List<Widget> itemBalanceWidgets = [];
       itemBalanceWidgets.add(ItemTS.OnBalanceTableHeader());
@@ -828,24 +326,30 @@ class ViewFactory extends StatelessWidget {
               ExcelT.LitGrid(text: v.name, width: 200, center: true),
               ExcelT.LitGrid(text: MetaT.itemGroup[v.group] ?? '-', width: 150, center: true),
               ExcelT.LitGrid(text: StyleT.krwInt(SystemT.getItemBalance(k)) + v.unit, width: 100, center: true),
-              ExcelT.LitGrid(text: '-' + v.unit, width: 100, center: true),
+              ExcelT.LitGrid(text: StyleT.krwDouble(processingAmount[k]) + v.unit, width: 100, center: true),
+              ExcelT.LitGrid(text: StyleT.krwDouble(processOutputAmount[k]) + v.unit, width: 100, center: true),
             ],
           ),
         ));
         itemBalanceWidgets.add(WidgetT.dividHorizontal(size: 0.35));
       });
 
-
       List<Widget> processWidgets = [];
       processWidgets.add(CompProcess.tableHeader());
 
-      if(processList.length > 0) {
+
+      if(processList.isNotEmpty) {
         Purchase? pu = await DatabaseM.getPurchaseDoc(processList.first.rpUid);
         for(var e in processList) {
           var cs = await SystemT.getCS(pu == null ? e.csUid : pu.csUid);
           processWidgets.add(CompProcess.tableUI(
-            context, e, usedAmount[e.id] ?? 0.0, cs: cs,
-            setState: () { mainView(context, menu, refresh: true); },
+              context, e, usedAmount[e.id] ?? 0.0, cs: cs,
+              onTap: () async {
+                var itemTs = await DatabaseM.getItemTrans(e.rpUid);
+                UIState.OpenNewWindow(context, WindowItemTS(itemTS: itemTs, refresh: FunT.setRefreshMain));
+              },
+              setState: () { mainView(context, menu, refresh: true); },
+              refresh: FunT.setRefreshMain
           ));
           processWidgets.add(WidgetT.dividHorizontal(size: 0.35));
         }

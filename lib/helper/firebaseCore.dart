@@ -1581,7 +1581,10 @@ class DatabaseM {
   }
 
   static dynamic getContractDoc(String id) async {
+    if(id == '') return null;
+
     Contract data = Contract.fromDatabase({});
+
     CollectionReference coll = await FirebaseFirestore.instance.collection(
         'contract');
     await coll.doc(id).get().then((value) {
@@ -2324,12 +2327,11 @@ class DatabaseM {
 
   static dynamic getProcessItemGroupList({bool all = false}) async {
     List<ProcessItem> itemProcessList = [];
-
     var mainRoot = FirebaseFirestore.instance.collectionGroup('item-process');
 
     if (all) {
       await mainRoot.orderBy('date', descending: true).where(
-          'state', whereIn: [ '']).limit(50).get().then((value) {
+          'state', whereIn: [ '' ]).limit(100).get().then((value) {
         if (value.docs == null) return;
         print(value.docs.length);
 

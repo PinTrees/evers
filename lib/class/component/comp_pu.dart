@@ -203,7 +203,7 @@ class CompPU {
                   },
                   setState: setState,
                   text: SystemT.getItemName(pu.item), value: SystemT.getItemName(pu.item)),
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.open_in_new_sharp,
                   onTap: () async {
                     Item? item = await DialogT.selectItem(context);
@@ -278,7 +278,7 @@ class CompPU {
                 },
                 setState: setState,
                 text: StyleT.krwInt(pu.unitPrice), value: pu.unitPrice.toString(),),
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.link,
                   onTap: () async {
                     if(item == null) return;
@@ -332,7 +332,7 @@ class CompPU {
                             var fileName = pu.filesMap.keys.elementAt(i);
                             PdfManager.OpenPdf(downloadUrl, fileName);
                           },
-                          leaging: ButtonT.Icon(
+                          leaging: ButtonT.Icont(
                               icon: Icons.delete,
                               onTap: () async {
                                 WidgetT.showSnackBar(context, text: "개발중입니다.");
@@ -348,7 +348,7 @@ class CompPU {
                           onTap: () async {
                             PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
                           },
-                          leaging: ButtonT.Icon(
+                          leaging: ButtonT.Icont(
                               icon: Icons.delete,
                               onTap: () async {
                                 fileByteList.remove(fileByteList.keys.elementAt(i));
@@ -411,7 +411,7 @@ class CompPU {
               ),
 
 
-              ButtonT.Icon(
+              ButtonT.Icont(
                 icon: Icons.add_box,
                 onTap: () async {
                   Item? item = await DialogT.selectItem(context);
@@ -477,7 +477,7 @@ class CompPU {
                 onEdited: (i, data) { pu.unitPrice = int.tryParse(data) ?? 0;  },
                 text: StyleT.krwInt(pu.unitPrice), value: pu.unitPrice.toString(),
               ),
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.link,
                   onTap: () async {
                     if(item != null) pu.unitPrice = item.unitPrice;
@@ -522,7 +522,7 @@ class CompPU {
                     ButtonT.IconText(
                         icon : Icons.file_copy_rounded,
                         text: pu.filesMap.keys.elementAt(i),
-                        leaging: ButtonT.Icon(
+                        leaging: ButtonT.Icont(
                             icon: Icons.cancel,
                             onTap: () {
                               WidgetT.showSnackBar(context, text: "개발중");
@@ -539,7 +539,7 @@ class CompPU {
                     ButtonT.IconText(
                         icon : Icons.file_copy_rounded,
                         text: fileByteList.keys.elementAt(i),
-                        leaging: ButtonT.Icon(
+                        leaging: ButtonT.Icont(
                             icon: Icons.cancel,
                             onTap: () {
                               fileByteList!.remove(fileByteList.keys.elementAt(i ?? 0));
@@ -633,7 +633,7 @@ class CompPU {
                 ExcelT.LitGrid(center: true, width: 200, text: pu.memo, expand: true),
 
                 /// 수정
-                ButtonT.Icon(
+                ButtonT.Icont(
                   icon: Icons.create,
                   onTap: () async {
                     UIState.OpenNewWindow(context, WindowPUEditor(pu: pu, refresh: refresh ?? () {}));

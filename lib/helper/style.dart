@@ -350,6 +350,15 @@ class StyleT {
     return f.format(data);
   }
 
+
+  static String krwDouble(double? data) {
+    if(data == null) return '0';
+
+    var f = NumberFormat.simpleCurrency(locale: "ko_KR", name: "", decimalDigits: 0);
+    return f.format(data);
+  }
+
+
   static String intNumberF(int? date) {
     if(date == null) return ' - ';
     if(date == 0) return ' - ';

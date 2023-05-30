@@ -48,7 +48,7 @@ class WindowItemTS extends WindowBaseMDI {
 class _WindowItemTsState extends State<WindowItemTS> {
   var dividHeight = 6.0;
 
-  Contract ct = Contract.fromDatabase({});
+  Contract? ct;
   Customer cs = Customer.fromDatabase({});
 
   /// 해당 매입품목에 대한 전체 공정목록

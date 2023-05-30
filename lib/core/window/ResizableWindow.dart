@@ -177,7 +177,7 @@ class _ResizableWindowState extends State<ResizableWindow> {
             SizedBox(width: 12,),
             TextT.Lit(text: widget.title ?? '-', color: StyleT.titleColor, size: 12, bold: true),
             Expanded(child: SizedBox()),
-            ButtonT.Icon(
+            ButtonT.Icont(
               background: Colors.red.withOpacity(0.7),
               icon: Icons.close,
               onTap: (){

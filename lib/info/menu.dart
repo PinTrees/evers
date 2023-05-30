@@ -15,8 +15,11 @@ enum MainMenuInfo {
   customer("customer", '고객관리', Icons.gavel, [ SubMenuInfo.customer, SubMenuInfo.contract ]),
   revenuePurchase("revenuePurchase", "매입매출", Icons.input, [ SubMenuInfo.revenuePurchase, SubMenuInfo.payment ]),
   employee("employee", "인사급여", Icons.card_travel, [ SubMenuInfo.employee, SubMenuInfo.employeeM]),
-  product("product", "생산관리", Icons.production_quantity_limits, [ SubMenuInfo.factoryPaper, SubMenuInfo.productPaper, SubMenuInfo.itemManager,
-    SubMenuInfo.itemTrans, SubMenuInfo.itemBalance, SubMenuInfo.productManager ]),
+
+  product("product", "생산관리", Icons.production_quantity_limits,
+      [ SubMenuInfo.itemManager, SubMenuInfo.itemTrans, SubMenuInfo.itemBalance, SubMenuInfo.productManager ]),
+  paper("paper", "공장일보", Icons.production_quantity_limits, [ SubMenuInfo.factoryPaper, SubMenuInfo.productPaper ]),
+
   payment("payment", "금전출납부", Icons.monetization_on_sharp, [ SubMenuInfo.paymentSystem, SubMenuInfo.paymentRevenue, SubMenuInfo.paymentPurchase ]),
   userAccount("userAccount", "계정관리", Icons.verified_user, [ SubMenuInfo.userSetting ]),
   schedule("schedule", "일정관리", Icons.schedule, [ SubMenuInfo.schedule ]),

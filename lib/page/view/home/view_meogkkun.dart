@@ -79,12 +79,12 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
 
   void initAsync() async {
 
-    productList.add(new Product("알싸한 맛 나는 먹꾼", "905f83adb557ef5e2a9b47fff133a97a", 6000));
-    productList.add(new Product("핫불닭맛 나는 먹꾼", "70e942b4199a3f13cd8e259c9422d0c0", 6000));
-    productList.add(new Product("스위트콘 맛 나는 먹꾼", "f7ed1ab86b8cc673a61b2ddee68f838e", 6000));
-    productList.add(new Product("담백한 맛 나는 먹꾼", "86ab96a9c1b146d01872691e0beb9029", 6000));
-    productList.add(new Product("단짠맛 나는 먹꾼", "e4a48bca29c5f9898cedd6c043eed7b8", 6000));
-    productList.add(new Product("건강한맛 나는 먹꾼", "5de28516f84d4f669e4c80625cb4b3e7", 6000));
+    productList.add(new Product("알싸한 맛 나는 먹꾼", "905f83adb557ef5e2a9b47fff133a97a", 5800));
+    productList.add(new Product("핫불닭맛 나는 먹꾼", "70e942b4199a3f13cd8e259c9422d0c0", 5800));
+    productList.add(new Product("스위트콘 맛 나는 먹꾼", "f7ed1ab86b8cc673a61b2ddee68f838e", 5800));
+    productList.add(new Product("담백한 맛 나는 먹꾼", "86ab96a9c1b146d01872691e0beb9029", 12800));
+    productList.add(new Product("단짠맛 나는 먹꾼", "e4a48bca29c5f9898cedd6c043eed7b8", 5800));
+    productList.add(new Product("건강한맛 나는 먹꾼", "5de28516f84d4f669e4c80625cb4b3e7", 5800));
 
     setState(() {});
   }

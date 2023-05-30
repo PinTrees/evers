@@ -418,8 +418,8 @@ class ItemTS {
   static Widget OnBalanceTableHeader() {
     return Column(
       children: [
-        WidgetUI.titleRowNone([ '순번', '품목명', '분류', '재고수량', '작업중인 수량',  ],
-            [ 28, 200, 150, 100, 100, 100 ]),
+        WidgetUI.titleRowNone([ '순번', '품목명', '분류', '재고', '작업중', '총생산'  ],
+            [ 28, 200, 150, 100, 100, 100, 100 ]),
         WidgetT.dividHorizontal(size: 0.7),
       ],
     );

@@ -128,13 +128,13 @@ class CompRE {
               ExcelT.LitGrid(text: StyleT.krw(re.vat.toString()), width: 80, center: true),
               ExcelT.LitGrid(text: StyleT.krw(re.totalPrice.toString()), width: 80, center: true),
               SizedBox(height: 28,width: 32,),
-              ButtonT.Icon(
+              ButtonT.Icont(
                 icon: Icons.create,
                 onTap: () {
                   UIState.OpenNewWindow(context, WindowReEditor(re: re, refresh: refresh));
                 }
               ),
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.delete,
                   onTap: () async {
                     var alt = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');

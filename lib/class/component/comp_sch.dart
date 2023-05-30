@@ -167,7 +167,7 @@ class CompSchedule {
               ExcelT.LitGrid(text: SystemT.getAccountName(ts.account) ?? '-', width: 100, center: true),
               ExcelT.LitGrid(text: ts.memo, width: 100, center: true, expand: true),
 
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon: Icons.delete,
                   onTap: () async {
                     if(context == null) return;
@@ -306,7 +306,7 @@ class CompSchedule {
             ExcelT.LitInput(context, '$index::ts메모', width: 250, index: index,
               setState: setState, expand: true,
               onEdited: (i, data) { ts.memo = data;}, text: ts.memo,  ),
-            ButtonT.Icon(
+            ButtonT.Icont(
               icon: Icons.cancel,
               onTap: () async {
                 ts.type = 'DEL';
@@ -433,7 +433,7 @@ class CompSchedule {
               setState: setState, expand: true,
               onEdited: (i, data) { ts.memo = data;}, text: ts.memo,  ),
 
-            ButtonT.Icon(
+            ButtonT.Icont(
               icon: Icons.delete_forever,
               color: Colors.redAccent,
               onTap: () async {

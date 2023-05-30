@@ -193,7 +193,7 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
                                   var fileName = schedule.filesMap.keys.elementAt(i);
                                   PdfManager.OpenPdf(downloadUrl, fileName);
                                 },
-                                leaging: ButtonT.Icon(
+                                leaging: ButtonT.Icont(
                                   icon: Icons.delete,
                                     onTap: () {
                                       WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
@@ -207,7 +207,7 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
                                 onTap: () async {
                                   PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
                                 },
-                                leaging: ButtonT.Icon(
+                                leaging: ButtonT.Icont(
                                   icon: Icons.delete,
                                   onTap: () {
                                     fileByteList.remove(fileByteList.keys.elementAt(i));

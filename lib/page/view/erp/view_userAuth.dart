@@ -159,7 +159,7 @@ class ViewUserAuth extends StatelessWidget {
                   ],
                 ),
               ),
-              ButtonT.Icon(
+              ButtonT.Icont(
                   icon:Icons.create,
                   onTap: () {
                     UIState.OpenNewWindow(context, WindowUserEditor(user: user, refresh: () { FunT.setStateMain(); }));
