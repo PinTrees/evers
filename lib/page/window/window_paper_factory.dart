@@ -125,7 +125,7 @@ class _WindowFactoryPaperState extends State<WindowFactoryPaper> {
                       SizedBox(height: 6 * 4,),
                       TextT.SubTitle(text: '내용',),
                       SizedBox(height: dividHeight,),
-                      InputWidget.Lit(context, "${widget.key}::factory::paper::memo",
+                      InputWidget.LitText(context, "${widget.key}::factory::paper::memo",
                         expand: true, isMultiLine: true,
                         setState: () {  setState(() {}); },
                         onEdited: (i, data) { factoryD.memo = data; },

@@ -229,8 +229,8 @@ class CompRE {
             ]
         ),
         SizedBox(height: 6,),
-        InputWidget.Lit(context, "$index::메모",
-          lavel: "메모", expand: true,
+        InputWidget.LitText(context, "$index::메모",
+          label: "메모", expand: true,
           setState: setState, index: index,
           onEdited: (i, data) { re.memo  = data ?? ''; },
           text: re.memo,

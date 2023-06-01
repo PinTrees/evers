@@ -393,6 +393,7 @@ class CompPU {
       children: [
         Row(
             children: [
+
               ExcelT.LitGrid(text: "${index ?? "-"}", width: 28, center: true),
               ExcelT.LitInput(context, "${index}::pu.매출일자", width: 100, index: index,
                 setState: setState,

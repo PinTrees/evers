@@ -19,6 +19,7 @@ import 'package:http/http.dart' as http;
 import 'package:encrypt/encrypt.dart' as en;
 
 import '../class/Customer.dart';
+import '../class/database/article.dart';
 import '../class/revenue.dart';
 import '../class/schedule.dart';
 import '../class/system.dart';
@@ -31,6 +32,31 @@ import '../class/database/item.dart';
 
 class DatabaseM {
   //static const _databaseURL = 'https://taegi-survey-default-rtdb.firebaseio.com';
+
+
+  /// 이 함수는 데이터베이스에서 새소식 작성글 목록을 요청합니다.
+  /// 작성글 목록은 최신작성준으로 정렬됩니다.
+  ///
+  /// 반환:
+  ///   List<Article> 새소식 목록입니다. - NULL일 수 없습니다.
+  static dynamic getArticleNews() async {
+    List<Article> articleList = [];
+    CollectionReference coll = await FirebaseFirestore.instance.collection('contents/news/article');
+
+    await coll.orderBy('createAt', descending: true).limit(20).get().then((value) async {
+      if(value.docs.isEmpty) return false;
+
+      for(var e in value.docs) {
+        if(e.data() == null) continue;
+        var art = Article.fromDatabase(e.data() as Map);
+        articleList.add(art);
+      }
+    });
+
+    return articleList;
+  }
+
+
   static dynamic updateEmployee(Employee data,
       { Map<String, Uint8List>? files,}) async {
     if (data.id == '') data.id = generateRandomString(16);

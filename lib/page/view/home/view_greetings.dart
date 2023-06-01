@@ -8,6 +8,7 @@ import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/class/widget/textInput.dart';
+import 'package:evers/class/widget/youtube.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
@@ -60,13 +61,11 @@ class _ViewGreetingsState extends State<ViewGreetings> {
     _controller = YoutubePlayerController.fromVideoId(
       videoId: 'wGa_89i_nuU',
       autoPlay: true,
-
       params: const YoutubePlayerParams(showFullscreenButton: true, mute: true),
     );
 
     setState(() {});
   }
-
 
 
 
@@ -129,9 +128,11 @@ class _ViewGreetingsState extends State<ViewGreetings> {
         children: [
           titleWidget,
           greetingWidget,
+          SizedBox(height: 6 * 12,),
 
+          YoutubeContainer(),
           Padding(
-            padding: EdgeInsets.all(6 * 24),
+            padding: EdgeInsets.all(padding * 0.5),
             child: YoutubePlayer(
               controller: _controller,
               aspectRatio: 16 / 9,

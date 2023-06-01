@@ -3,3 +3,6 @@
 var parent = UIState.mdiController!.createWindow(context);
 var page = WindowTS(cs: cs, refresh: initAsync, parent: parent,);
 UIState.mdiController!.addWindow(context, widget: page, resizableWindow: parent);
+
+
+//flutter build web --web-renderer canvaskit

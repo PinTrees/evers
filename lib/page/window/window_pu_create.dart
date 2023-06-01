@@ -5,6 +5,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/class/widget/list.dart';
+import 'package:evers/class/widget/textinput_lit.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/json.dart';
@@ -610,19 +611,18 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
           spacing: 6 * 4, runSpacing: 4,
           children: [
             /// 검수자 입력
-            InputWidget.Lit(context, "puit.manager",
-              lavel: "담당자(검수자)", width: 150,
-              onEdited: (i, data) {
+            LitTextInput(style: LitTextFieldStyle( height: 28, width: 150, ), params: LitTextParams(
+              label: "담당자(검수자)",
+              onEdited: (data) {
                 it.manager = data;
+                setState(() {});
               },
-              setState: () { setState(() {}); },
-              text: it.manager,
-              value: it.manager,
-            ),
+              text: it.manager, value: it.manager,
+            )),
 
             /// 보관 창고 입력
-            InputWidget.Lit(context, 'puit.storageLC', index: i,
-              lavel: '저장위치', width: 150, textSize: 10,
+            InputWidget.LitText(context, 'puit.storageLC', index: i,
+              label: '저장위치', width: 150, textSize: 10,
               onEdited: (i, data) {
                 it.storageLC = data;
               },
@@ -632,8 +632,8 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
             ),
 
             /// 측정 습도 입력
-            InputWidget.Lit(context, 'puit.rh', index: i,
-              lavel: '측정 습도', width: 150, textSize: 10,
+            InputWidget.LitText(context, 'puit.rh', index: i,
+              label: '측정 습도', width: 150, textSize: 10,
               onEdited: (i, data) {
                 it.rh = double.tryParse(data) ?? 0.0;
               },
@@ -643,8 +643,8 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
             ),
 
             /// 작성자 입력
-            InputWidget.Lit(context, 'puit.writer', index: i,
-              lavel: '작성자', width: 150, textSize: 10,
+            InputWidget.LitText(context, 'puit.writer', index: i,
+              label: '작성자', width: 150, textSize: 10,
               onEdited: (i, data) {
                 it.writer = data;
               },

@@ -79,7 +79,7 @@ class _ViewCreateArticleState extends State<ViewCreateArticle> {
   Widget mainBuild() {
     QuillEditorController controller = QuillEditorController();
     controller.enableEditor(false);
-    var titleInputWidget = InputWidget.Lit(context, "ascdasdcasdc",
+    var titleInputWidget = InputWidget.LitText(context, "ascdasdcasdc",
       color: Colors.white, textSize: 36, width: 1280, height: 68, expand: true, bold: true, textColor: Colors.black,
       setState: () { setState(() {}); },
       onEdited: (i, data) {

@@ -153,16 +153,16 @@ class _WindowSchCreateState extends State<WindowSchCreate> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        InputWidget.Lit(context, "${widget.parent.key}::sch::메모",
-          lavel: "메모", expand: true, isMultiLine: true,
+        InputWidget.LitText(context, "${widget.parent.key}::sch::메모",
+          label: "메모", expand: true, isMultiLine: true,
           setState: () { setState(() {}); },
           onEdited: (i, data) { schedule.memo = data; },
           text: schedule.memo,
         ),
         SizedBox(height: dividHeight,),
-        InputWidget.Lit(
+        InputWidget.LitText(
           context, "${widget.parent.key}::sch::작성자",
-          width: 150, lavel: "작성자",
+          width: 150, label: "작성자",
           setState: () { setState(() {}); },
           onEdited: (i, data) { schedule.writer = data; },
           text: schedule.writer,

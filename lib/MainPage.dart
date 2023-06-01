@@ -1,5 +1,6 @@
 import 'dart:html';
 
+import 'package:evers/class/widget/button/button_menu_expand.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/page.dart';
 import 'package:evers/class/widget/text.dart';
@@ -12,12 +13,15 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'class/widget/button.dart';
+import 'class/widget/button/button_image_web.dart';
+import 'class/widget/youtube.dart';
+import 'core/context_data.dart';
 import 'helper/interfaceUI.dart';
 import 'helper/style.dart';
 import 'info/menu.dart';
 import 'page/view/home/view_meogkkun.dart';
 
-class HomePage extends StatefulWidget{
+class HomePage extends StatefulWidget {
   const HomePage({super.key,});
 
   @override
@@ -29,6 +33,11 @@ class _HomePageState extends State<HomePage> {
   HomeSubMenu currentSubMenu = HomeSubMenu.greetings;
 
   Widget drawer = SizedBox();
+  Widget main = SizedBox();
+
+  ContextData contextData = ContextData();
+
+  bool isExpanded = false;
 
   @override
   void initState() {
@@ -36,18 +45,30 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     initAsync();
   }
-  void initAsync() async {
+
+  dynamic initAsync() async {
+    /// 메디아 쿼리값 오류 제거
+    await Future.delayed(const Duration(milliseconds: 50), () {});
+    contextData = ContextData(context: context);
     setState(() {});
   }
 
 
-  Widget main() {
+  Widget mainBuild() {
+    print("mainBuild");
+    contextData.Init();
+
+    if(isExpanded) { drawer = buildSideNavigation(); }
+    else { drawer = const SizedBox(); }
+    
     var bottomWidget = Column(
       children: [
         WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.3)),
 
         SizedBox(height: 64,),
+
         buildBottomMenu(),
+
         SizedBox(height: 64,),
 
         WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.3)),
@@ -56,7 +77,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     if(currentMenu == HomeMainMenu.home) {
-      return PageWidget.Home(
+      main = PageWidget.Home(
           children: [
             ViewHome(),
           ],
@@ -65,7 +86,7 @@ class _HomePageState extends State<HomePage> {
     }
     else if(currentMenu == HomeMainMenu.info) {
       if(currentSubMenu == HomeSubMenu.greetings) {
-        return PageWidget.Home(
+        main = PageWidget.Home(
           children: [
             ViewGreetings(),
           ],
@@ -73,7 +94,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
       else if(currentSubMenu == HomeSubMenu.history) {
-        return PageWidget.Home(
+        main = PageWidget.Home(
             children: [
               ViewHistory(),
             ],
@@ -83,7 +104,7 @@ class _HomePageState extends State<HomePage> {
     }
     else if(currentMenu == HomeMainMenu.community) {
       if(currentSubMenu == HomeSubMenu.news) {
-        return PageWidget.Home(
+        main = PageWidget.Home(
             children: [
               ViewNews(),
             ],
@@ -91,7 +112,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
       else if(currentSubMenu == HomeSubMenu.eversStore) {
-        return PageWidget.Home(
+        main = PageWidget.Home(
             children: [
               ViewHistory(),
             ],
@@ -101,7 +122,7 @@ class _HomePageState extends State<HomePage> {
     }
     else if(currentMenu == HomeMainMenu.technology) {
       if(currentSubMenu == HomeSubMenu.freezeDrying) {
-        return PageWidget.Home(
+        main = PageWidget.Home(
             children: [
               ViewFreezeDrying(),
             ],
@@ -111,7 +132,7 @@ class _HomePageState extends State<HomePage> {
     }
     else if(currentMenu == HomeMainMenu.product) {
       if(currentSubMenu == HomeSubMenu.meogkkun) {
-        return PageWidget.Home(
+        main = PageWidget.Home(
             children: [
               ViewMeogkkun(),
             ],
@@ -120,7 +141,7 @@ class _HomePageState extends State<HomePage> {
       }
     }
 
-    return SizedBox();
+    return main;
   }
 
 
@@ -129,11 +150,12 @@ class _HomePageState extends State<HomePage> {
     for(var m in HomeMainMenu.values) {
       if(m.subMenus.isEmpty) continue;
       List<Widget> subMenuWidgets = [];
-      subMenuWidgets.add(ButtonT.Text(text: m.displayName, textSize: 16, bold: true, color: Colors.transparent));
+      subMenuWidgets.add(ButtonT.Text(text: m.displayName, textColor: Colors.black, textSize: 16, bold: true, color: Colors.transparent));
       subMenuWidgets.add(SizedBox(height: 6,));
       for(var s in m.subMenus) {
-        subMenuWidgets.add(ButtonT.Text(text: s.displayName, textSize: 14, bold: true, color: Colors.transparent, textColor: StyleT.textColor.withOpacity(0.5),
-            onTap: () {
+        subMenuWidgets.add(ButtonT.Text(text: s.displayName, textSize: 14, bold: false, color: Colors.transparent,
+            textColor: Colors.grey,
+            onTap: () async {
               if(s == HomeSubMenu.store) {
                 launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
               } else if(s == HomeSubMenu.naverStore) {
@@ -151,7 +173,10 @@ class _HomePageState extends State<HomePage> {
         children: subMenuWidgets,));
     }
 
-    return Container(
+    Widget w = const SizedBox();
+
+    if(contextData.isMobile) { w = buildBottomMenuMobile(); }
+    else { w = Container(
       padding: EdgeInsets.only(left: 28, right: 28),
       child: Column(
         children: [
@@ -165,9 +190,9 @@ class _HomePageState extends State<HomePage> {
             spacing: 6 * 12, colSpacing: 6,
             children: [
               ButtonT.IconText(text: "개인정보 처리방침", icon: Icons.info, textSize: 16, bold: true, color: Colors.transparent, textColor: Colors.indigo,
-                onTap: () {
-                  launchUrl( Uri.parse("https://eversfood.cafe24.com/member/privacy.html"),   webOnlyWindowName: true ? '_blank' : '_self', );
-                }
+                  onTap: () {
+                    launchUrl( Uri.parse("https://eversfood.cafe24.com/member/privacy.html"),   webOnlyWindowName: true ? '_blank' : '_self', );
+                  }
               ),
 
               ButtonT.IconText(text: "라이센스", icon: Icons.open_in_new_sharp, textSize: 16, bold: true, color: Colors.transparent,
@@ -177,9 +202,78 @@ class _HomePageState extends State<HomePage> {
               ),
 
               ButtonT.IconText(text: "제품 스토어", icon: Icons.open_in_new_sharp, textSize: 16, bold: true, color: Colors.transparent,
+                onTap: () {
+                  launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+                },
+              ),
+
+              ButtonT.IconText(text: "스마트 스토어", icon: Icons.open_in_new_sharp, textSize: 16, bold: true, color: Colors.transparent,
                   onTap: () {
                     launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
-                  },
+                  }
+              ),
+            ],
+          )
+        ],
+      ),
+    ); }
+
+    return w;
+  }
+  Widget buildBottomMenuMobile() {
+    List<Widget> menuWidgets = [];
+    for(var m in HomeMainMenu.values) {
+      if(m.subMenus.isEmpty) continue;
+
+      var buttonExpand = ButtonMenuExpand<HomeSubMenu>(
+        style: ButtonMenuStyle(
+          title: m.displayName,
+        ),
+        params: ButtonMenuParams<HomeSubMenu>(
+          menu: m.subMenus,
+          onSelected: (value) {
+            if(value == HomeSubMenu.store) {
+              launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+            } else if(value == HomeSubMenu.naverStore) {
+              launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+            } else {
+              currentMenu = m;
+              currentSubMenu = value;
+            }
+            setState(() {});
+          },
+          displayText: (value) { return value.displayName; }
+        ),
+      );
+
+      menuWidgets.add(buttonExpand);
+    }
+
+    return Container(
+      padding: EdgeInsets.only(left: 28, right: 28),
+      child: Column(
+        children: [
+          ListBoxT.Columns(children: menuWidgets),
+          SizedBox(height: 6 * 8,),
+          ListBoxT.Wraps(
+            spacing: 6 * 12, colSpacing: 6,
+            children: [
+              ButtonT.IconText(text: "개인정보 처리방침", icon: Icons.info, textSize: 16, bold: true, color: Colors.transparent, textColor: Colors.indigo,
+                  onTap: () {
+                    launchUrl( Uri.parse("https://eversfood.cafe24.com/member/privacy.html"),   webOnlyWindowName: true ? '_blank' : '_self', );
+                  }
+              ),
+
+              ButtonT.IconText(text: "라이센스", icon: Icons.open_in_new_sharp, textSize: 16, bold: true, color: Colors.transparent,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => LicensePage()));
+                  }
+              ),
+
+              ButtonT.IconText(text: "제품 스토어", icon: Icons.open_in_new_sharp, textSize: 16, bold: true, color: Colors.transparent,
+                onTap: () {
+                  launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+                },
               ),
 
               ButtonT.IconText(text: "스마트 스토어", icon: Icons.open_in_new_sharp, textSize: 16, bold: true, color: Colors.transparent,
@@ -193,39 +287,111 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  Widget buildBottomBar() {
-    Container(
-      height: 256,
-      width:  double.maxFinite,
-      alignment: Alignment.center,
-      color: Colors.white,
-      child: Text(
-        'ABOUT US | AGREEMENT | PRIVACY POLICY | GUIDE'
-            '\n\nCOMPANY : 에버스 | OWNER : 이재구| 사업자등록번호 : 741-87-02231 [사업자정보확인]| 통신판매업신고번호 : -'
-            '\nADDRESS : 강원도 원주시 시청로 160-1, 401호(무실동)| CS CENTER : -| 개인정보관리책임자 : -'
-            '\n\n\nCOPYRIGHT © 에버스. ALL RIGHTS RESERVED.'
-            '\nHOSTING BY Firebase',
-      ),
+
+
+
+
+  Widget buildSideNavigation() {
+    List<Widget> menuWidgets = [];
+    for(var m in HomeMainMenu.values) {
+      if(m.subMenus.isEmpty) continue;
+
+      var buttonExpand = ButtonMenuExpand<HomeSubMenu>(
+        style: ButtonMenuStyle(
+          title: m.displayName,
+        ),
+        params: ButtonMenuParams<HomeSubMenu>(
+            menu: m.subMenus,
+            onSelected: (value) {
+              if(value == HomeSubMenu.store) {
+                launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+              } else if(value == HomeSubMenu.naverStore) {
+                launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+              } else {
+                currentMenu = m;
+                currentSubMenu = value;
+              }
+
+              isExpanded = false;
+              setState(() {});
+            },
+            displayText: (value) { return value.displayName; }
+        ),
+      );
+
+      menuWidgets.add(buttonExpand);
+    }
+
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.fromLTRB(18, 6, 18, 12),
+          width: contextData.width * 0.7,
+          color: Colors.white,
+          child: ListBoxT.Columns(
+            spacingWidget: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ButtonT.Icont(
+                      icon: Icons.close,
+                      onTap: () {
+                        isExpanded = false;
+                        setState(() {});
+                      }
+                  ),
+                  TextButton(
+                      onPressed: () async {
+                        currentMenu = HomeMainMenu.home;
+                        currentSubMenu = HomeSubMenu.greetings;
+                        isExpanded = false;
+                        setState(() {});
+                      },
+                      style: StyleT.buttonStyleNone(elevation: 0, color: Colors.transparent,),
+                      child: Container(height: 28, child: Image(image: AssetImage('assets/icon_hor.png') ),)),
+                  SizedBox(width: 64, height: 68,),
+                ],
+              ),
+              for(var w in menuWidgets) w,
+            ],
+          ),
+        ),
+        Expanded(
+          child: InkWell(
+            onTap: () {
+              isExpanded = false;
+              setState(() {});
+            },
+            child: Container(
+              width: double.maxFinite,
+              height: double.maxFinite,
+              color: Colors.black.withOpacity(0.75),
+            )
+          ),
+        )
+      ],
     );
+  }
 
 
+  Widget buildBottomBar() {
     return Container(
       child: Stack(
         children: [
           Container(
-            height: 80,
+            height: 60,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TextButton(
-                    onPressed: () {
-                      currentMenu = HomeMainMenu.home;
-                      setState(() {});
-                    },
-                    style: StyleT.buttonStyleNone(elevation: 0, color: Colors.transparent,),
-                    child: Container(height: 36, child: Image(image: AssetImage('assets/icon_hor.png') ),)),
+                ButtonImage(style: ButtonImageStyle(imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor.png", height: 28), params: ButtonTParams(
+                  onTap: () async {
+                    currentMenu = HomeMainMenu.home;
+                    setState(() {});
+                  }
+                ),),
                 SizedBox(width: 6 * 4,),
-                TextT.Lit(text: "Copyright © 에버스. All Rights Reserved.", size: 16, bold: false, color: StyleT.textColor.withOpacity(0.5)),
+                TextT.Lit(text: "Copyright © 에버스. All Rights Reserved.", size: 14, bold: false, color: StyleT.textColor.withOpacity(0.5)),
               ],
             ),
           )
@@ -244,10 +410,10 @@ class _HomePageState extends State<HomePage> {
       List<Widget> subMenus = [];
       for(var s in m.subMenus) {
         subMenus.add(ButtonT.Text(
-          textSize: 14, bold: true, textColor: currentSubMenu == s ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5),
-          text: s.displayName, /*icon: s.icon,*/
+          textSize: 14, bold: currentSubMenu == s , textColor: currentSubMenu == s ? StyleT.titleColor : Colors.grey,
+          text: s.displayName,
           color: Colors.transparent,
-          onTap: () {
+          onTap: () async {
             if(s == HomeSubMenu.store) {
               launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
               return;
@@ -290,6 +456,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
   Widget buildMainMenu() {
     List<Widget> mainWidgets = [];
 
@@ -297,7 +464,7 @@ class _HomePageState extends State<HomePage> {
       if(m.subMenus.isEmpty) continue;
       mainWidgets.add( ButtonT.Title(
         text: m.displayName,
-        onTap: () {
+        onTap: () async {
           if(m == HomeMainMenu.store) {
             currentMenu = HomeMainMenu.product;
             currentSubMenu = currentMenu.subMenus.first;
@@ -320,14 +487,12 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          TextButton(
-              onPressed: () {
+          ButtonImage(style: ButtonImageStyle(imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor.png", height: 28), params: ButtonTParams(
+              onTap: () async {
                 currentMenu = HomeMainMenu.home;
-                currentSubMenu = HomeSubMenu.greetings;
                 setState(() {});
-              },
-              style: StyleT.buttonStyleNone(elevation: 0, color: Colors.transparent,),
-              child: Container(height: 64, child: Image(image: AssetImage('assets/icon_hor.png') ),)),
+              }
+          ),),
           Expanded(child: SizedBox()),
           ListBoxT.Rows( spacing: 6 * 10, children: mainWidgets ),
           Expanded(child: SizedBox()),
@@ -342,36 +507,25 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
   Widget buildMainMenuMobile() {
     List<Widget> mainWidgets = [];
     for(var m in HomeMainMenu.values) {
       if(m.subMenus.isEmpty) continue;
       mainWidgets.add( ButtonT.Title(
           text: m.displayName,
-          onTap: () {
+          onTap: () async {
             if(m == HomeMainMenu.store) {
               currentMenu = HomeMainMenu.product;
               currentSubMenu = currentMenu.subMenus.first;
-              setState(() {});
-              return;
             }
-
-            currentMenu = m;
-            currentSubMenu = m.subMenus.first;
+            else {
+              currentMenu = m;
+              currentSubMenu = m.subMenus.first;
+            }
             setState(() {});
           }
       ),);
     }
-
-
-    var homeWidget = InkWell(
-        onTap: () {
-          currentMenu = HomeMainMenu.home;
-          currentSubMenu = HomeSubMenu.greetings;
-          setState(() {});
-        },
-        child: Container(height: 38, child: Image(image: AssetImage('assets/icon_hor.png') ),));
 
     return Container(
       color: Colors.white,
@@ -379,101 +533,26 @@ class _HomePageState extends State<HomePage> {
       padding: EdgeInsets.all(6),
       alignment: Alignment.centerLeft,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           ButtonT.Icont(
             icon: Icons.menu,
             onTap: () {
-
-              List<Widget> menuWidgets = [];
-              for(var m in HomeMainMenu.values) {
-                if(m.subMenus.isEmpty) continue;
-                List<Widget> subMenuWidgets = [];
-                subMenuWidgets.add(ButtonT.Text(text: m.displayName, textSize: 16, bold: true, color: Colors.transparent));
-                subMenuWidgets.add(SizedBox(height: 6,));
-                for(var s in m.subMenus) {
-                  subMenuWidgets.add(ButtonT.Text(text: s.displayName, textSize: 14, bold: true, color: Colors.transparent, textColor: StyleT.textColor.withOpacity(0.5),
-                      onTap: () {
-                        if(s == HomeSubMenu.store) {
-                          launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
-                        } else if(s == HomeSubMenu.naverStore) {
-                          launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
-                        } else {
-                          currentMenu = m;
-                          currentSubMenu = s;
-                        }
-
-                        drawer = SizedBox();
-                        setState(() {});
-                      }
-                  ));
-                }
-                menuWidgets.add(Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: subMenuWidgets,));
-              }
-
-              drawer = Row(
-                children: [
-                  Container(
-                    width: 400,
-                    color: Colors.white,
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        Container(
-                          height: 68,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              ButtonT.LitIcon(
-                                Icons.close, size: 32,
-                                onTap: () {
-                                  drawer = SizedBox();
-                                  setState(() {});
-                                }
-                              ),
-                              homeWidget,
-
-                              SizedBox(width: 48,),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 6 * 4,),
-
-                        ListBoxT.Columns(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          spacing: 6 * 4,
-                          children: menuWidgets,
-                        )
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        drawer = SizedBox();
-                        setState(() {});
-                      },
-                      child: Container(
-                        height: double.maxFinite,
-                        color: Colors.black.withOpacity(0.5),
-                      ),
-                    ),
-                  )
-                ],
-              );
-              setState(() {});
+              isExpanded = true;
+             setState(() {});
             }
           ),
-          Expanded(child: SizedBox()),
-          homeWidget,
-          Expanded(child: SizedBox()),
+
+          ButtonImage(style: ButtonImageStyle(imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor.png", height: 28), params: ButtonTParams(
+              onTap: () async {
+                currentMenu = HomeMainMenu.home;
+                setState(() {});
+              }
+          ),),
+
           ButtonT.Icont(
               icon: Icons.search,
               onTap: () {
-
               }
           ),
         ],
@@ -483,13 +562,12 @@ class _HomePageState extends State<HomePage> {
 
 
   Widget buildTitleBar() {
-    if (MediaQuery.of(context).size.width < 800) {
+    if (contextData.isMobile) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           buildMainMenuMobile(),
           Container(color: Colors.white, child: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),),
-          //if (isMouseOver) buildSubMenu(),
         ],
       );
     }
@@ -507,9 +585,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             buildMainMenu(),
-            Container(
-              color: Colors.white,
-              child: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),),
+            Container(color: Colors.white, child: WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.3)),),
             if (isMouseOver) buildSubMenu(),
           ],
         ),
@@ -523,7 +599,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       body: Stack(
         children: [
-          main(),
+          mainBuild(),
           Positioned(
             top: 0, left: 0, right: 0,
             child: buildTitleBar(),

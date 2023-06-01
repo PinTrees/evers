@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evers/MainPage.dart';
 import 'package:evers/class/component/comp_contract.dart';
 import 'package:evers/class/component/comp_process.dart';
 import 'package:evers/class/component/comp_pu.dart';
@@ -30,11 +31,8 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:quill_html_editor/quill_html_editor.dart';
 import 'package:url_launcher/url_launcher.dart';
-//import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import '../../../class/database/article.dart';
-import '../../../info/menu.dart';
-import '../../../ui/dl.dart';
-
+import '../../../class/widget/button/button_image_web.dart';
 
 
 class ViewArticle extends StatefulWidget {
@@ -107,12 +105,13 @@ class _ViewArticleState extends State<ViewArticle> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(height: 68,),
-          SizedBox(height: 6 * 6,),
+          SizedBox(height: 6 * 4,),
           TextT.Lit(text: widget.article.type.toUpperCase(), size: 14,),
-          Container(padding: EdgeInsets.all(6 * 3), child: TextT.Lit(text: widget.article.title, size: 24, color: Colors.black, bold: true)),
+          Container(padding: EdgeInsets.all(6 * 2), child: TextT.Lit(text: widget.article.title, size: 20, color: Colors.black, bold: true)),
           TextT.Lit(text: StyleT.dateFormatYYMMDD(widget.article.createAt), size: 14,),
           SizedBox(height: 6 * 4,),
           WidgetT.dividHorizontal(size: 1.4, width: www, color: Colors.black),
+
           Expanded(child: Container(width: www, child: articleViewer)),
 
           Container(child: WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.3)),),
@@ -130,11 +129,6 @@ class _ViewArticleState extends State<ViewArticle> {
 
 
   Widget buildMainMenuMobile() {
-    var homeWidget = InkWell(
-        onTap: () {},
-        child: Container(height: 38, child: Image(image: AssetImage('assets/icon_hor.png') ),));
-
-
     return Column(
       children: [
         Container(
@@ -143,7 +137,7 @@ class _ViewArticleState extends State<ViewArticle> {
           padding: EdgeInsets.all(6),
           alignment: Alignment.centerLeft,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ButtonT.LitIcon(
                   Icons.arrow_back, size: 28,
@@ -152,19 +146,20 @@ class _ViewArticleState extends State<ViewArticle> {
                     setState(() {});
                   }
               ),
-              Expanded(child: SizedBox()),
-              homeWidget,
-              Expanded(child: SizedBox()),
+              ButtonImage(style: ButtonImageStyle(imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor.png", height: 28), params: ButtonTParams(
+                  onTap: () async {
+                   Navigator.push(context, MaterialPageRoute(builder: (b) => HomePage()));
+                  }
+              ),),
               ButtonT.Icont(
                   icon: Icons.search,
                   onTap: () {
-
                   }
               ),
             ],
           ),
         ),
-        Container(color: Colors.white, child: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),)
+        Container(color: Colors.white, child: WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.3)),)
       ],
     );
   }

@@ -121,9 +121,7 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
         )*/
       ],
     );
-
-
-    var greetingWidget = Container(
+    var itemWidget = Container(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -179,13 +177,12 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
       ),
     );
 
-
     return Container(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           titleWidget,
-          greetingWidget
+          itemWidget
         ],
       ),
     );

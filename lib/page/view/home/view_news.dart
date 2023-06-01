@@ -224,7 +224,7 @@ class _ViewNewsState extends State<ViewNews> {
         builder: (BuildContext context) {
           return  StatefulBuilder(
             builder: (BuildContext context, StateSetter setStateS) {
-              var titleInputWidget = InputWidget.Lit(context, "ascdasdcasdc",
+              var titleInputWidget = InputWidget.LitText(context, "ascdasdcasdc",
                 color: Colors.white, textSize: 36, width: 1280, height: 68, expand: true, bold: true, textColor: Colors.black,
                 setState: () { setStateS(() {}); },
                 onEdited: (i, data) {
