@@ -4,8 +4,11 @@ import 'package:evers/class/widget/youtube/meta_data_section.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
-
 import '../../../helper/style.dart';
+
+/// 이 위젯은 이미지 버튼을 생성하기 위한 위젯 클래스 입니다.
+/// 이미지는 URL 로 제공되어야 합니다.
+
 
 
 
