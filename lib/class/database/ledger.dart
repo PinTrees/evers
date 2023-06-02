@@ -4,9 +4,11 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/system.dart';
+import 'package:evers/class/system/state.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/pdfx.dart';
+import 'package:evers/page/window/window_ledger_revenue.dart';
 import 'package:evers/ui/ux.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
@@ -256,7 +258,8 @@ class Ledger {
 
       if(revenueDocRef.values.length > 0) {
         for(var r in revenueDocRef.keys) {
-          var rSn = await transaction.get(revenueDocRef[r]!); revenueSn[r] = rSn;
+          var rSn = await transaction.get(revenueDocRef[r]!);
+          revenueSn[r] = rSn;
         }
       }
 
@@ -291,25 +294,32 @@ class Ledger {
     return WidgetUI.titleRowNone([ '순번', '구분', '날짜', '작성자', '목록' ], [ 28, 100, 100, 100, 999], background: true, lite: true);
   }
 
-  Widget onTableUI({ int? index, Function? state, Function? onEdite }) {
-    return Container(
-      height: 28,
-      child: Row(
-        children: [
-          ExcelT.LitGrid(text: '${index ?? 0 + 1}', width: 28, center: true),
-          ExcelT.LitGrid(width: 100, text: id, center: true),
-          ExcelT.LitGrid(width: 100, text: StyleT.dateInputFormatAtEpoch(date.toString()), center: true),
-          ExcelT.Grid(width: 100, text: writer, expand: true, textSize: 10),
-          ExcelT.LitGrid(width: 500, text: revenueList.join(', '), expand: true),
-          ButtonT.IconText(icon: Icons.open_in_new_sharp,
-            text: "원장보기",
-            color: Colors.transparent,
-            onTap: () async {
-              var downloadUrl = fileUrl;
-              PdfManager.OpenPdf(downloadUrl, "출고원장.pdf");
-            }
-          )
-        ],
+  Widget onTableUI(BuildContext context, {
+    required Function refresh,
+    int? index, Function? state, Function? onEdite }) {
+    return InkWell(
+      onTap: () {
+        UIState.OpenNewWindow(context, WindowLedgerRe(ledger: this, refresh: refresh));
+      },
+      child: Container(
+        height: 28,
+        child: Row(
+          children: [
+            ExcelT.LitGrid(text: '${index ?? 0 + 1}', width: 28, center: true),
+            ExcelT.LitGrid(width: 100, text: id, center: true),
+            ExcelT.LitGrid(width: 100, text: StyleT.dateInputFormatAtEpoch(date.toString()), center: true),
+            ExcelT.Grid(width: 100, text: writer, expand: true, textSize: 10),
+            ExcelT.LitGrid(width: 500, text: revenueList.join(', '), expand: true),
+            ButtonT.IconText(icon: Icons.open_in_new_sharp,
+              text: "원장보기",
+              color: Colors.transparent,
+              onTap: () async {
+                var downloadUrl = fileUrl;
+                PdfManager.OpenPdf(downloadUrl, "출고원장.pdf");
+              }
+            )
+          ],
+        ),
       ),
     );
   }

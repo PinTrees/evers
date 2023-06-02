@@ -103,7 +103,7 @@ class PageWidget {
     Widget? bottomWidget,
     BuildContext? context,
   }) {
-    var w = Expanded(
+    var w = Container(
       child: Column(
         children: [
           titleWidget ?? const SizedBox(),

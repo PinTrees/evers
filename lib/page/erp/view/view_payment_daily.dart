@@ -74,15 +74,23 @@ class _ViewPaymentDailyState extends State<ViewPaymentDaily> {
 
 
   var title = "일계표";
-  var titlePurchase = "매입";
-  var titleRevenue = "매출";
-  var titleTransPU = "수입";
-  var titleTransRE = "지출";
+  var titlePurchase = "매입 내역";
+  var titleRevenue = "매출 내역";
+  var titleTransPU = "지출 내역";
+  var titleTransRE = "수입 내역";
+
+  var titleBalance = "현재 잔고";
+  var titleLastBalance = "전일 잔고";
+  var titleDayInfo = "날짜 범위";
 
   List<Purchase> purchaseList = [];
   List<Revenue> revenueList = [];
   List<TS> tsList = [];
+  Map<String, int> account = {};
+  int balance = 0;
 
+  DateTime? startDate;
+  DateTime? lastDate;
 
   @override
   void initState() {
@@ -90,66 +98,166 @@ class _ViewPaymentDailyState extends State<ViewPaymentDaily> {
     initAsync();
   }
 
+  int currentDaily = 1;
 
 
   void initAsync() async {
-    var now = DateTime.now();
-    var startDate = DateTime(now.year, now.month, now.day - 1);
+    lastDate = DateTime.now();
+    startDate = DateTime(lastDate!.year, lastDate!.month, lastDate!.day - currentDaily);
 
-    purchaseList = await DatabaseM.getPurchase(startDate: startDate.microsecondsSinceEpoch);
-    revenueList = await DatabaseM.getRevenue(startDate: startDate.microsecondsSinceEpoch );
-    tsList = await DatabaseM.getTransaction(startDate: startDate.microsecondsSinceEpoch);
+    purchaseList = await DatabaseM.getPurchase(startDate: startDate?.microsecondsSinceEpoch, lastDate: lastDate?.microsecondsSinceEpoch);
+    revenueList = await DatabaseM.getRevenue(startDate: startDate?.microsecondsSinceEpoch, lastDate: lastDate?.microsecondsSinceEpoch);
+    tsList = await DatabaseM.getTransaction(startDate: startDate?.microsecondsSinceEpoch, lastDate: lastDate?.microsecondsSinceEpoch);
+
+    balance = 0;
+    for(var a in SystemT.accounts.values) {
+      var amount = await DatabaseM.getAmountAccount(a.id,);
+      Account acc = SystemT.getAccount(a.id) ?? Account.fromDatabase({});
+      account[a.id] = amount + acc.balanceStartAt;
+    }
+    account.forEach((key, value) { balance += value; });
 
     setState(() {});
   }
 
 
   Widget mainBuild({ ERPViewParams? params }) {
+    int index = 0;
+
     Widget titleWidget = ListBoxT.Rows(
       children: [
         SizedBox(height: 64,),
-        TextT.Title(text: title),
+        TextT.TitleMain(text: title,),
+        SizedBox(width: 6 * 4,),
+
+        ButtonT.TabMenu("금일", Icons.view_day,
+            onTap: () {
+              currentDaily = 1;
+              initAsync();
+            }
+        ),
+        SizedBox(width: 6,),
+        ButtonT.TabMenu("1 주일", Icons.calendar_view_week,
+            onTap: () {
+              currentDaily = 7;
+              initAsync();
+            }
+        ),
+        SizedBox(width: 6,),
+        ButtonT.TabMenu("1 개월", Icons.calendar_month,
+            onTap: () {
+              currentDaily = DateTime.now().day - 1;
+              initAsync();
+            }
+        ),
       ],
     );
     Widget bottomWidget = SizedBox();
-    List<Widget> childrenW = [];
 
+
+
+    List<Widget> dayInfoWidget = [
+      TextT.SubTitle(text: StyleT.dateFormatYYMMDD(startDate!.microsecondsSinceEpoch)),
+      SizedBox(width: 6 * 2,),
+      TextT.SubTitle(text: "~"),
+      SizedBox(width: 6 * 2,),
+      TextT.SubTitle(text: StyleT.dateFormatYYMMDD(lastDate!.microsecondsSinceEpoch)),
+    ];
 
 
     List<Widget> purchaseWidgets = [
-      TextT.Lit(text: titlePurchase),
+      TextT.SubTitle(text: titlePurchase),
+      SizedBox(height: 6,),
       CompPU.tableHeader(),
     ];
+
+    index = 1;
     for(var pu in purchaseList) {
-      purchaseWidgets.add(CompPU.tableUI(context, pu));
+      purchaseWidgets.add(CompPU.tableUI(context, pu, index: index++));
       purchaseWidgets.add(WidgetT.dividHorizontal(size: 0.35));
     }
 
 
-
-    List<Widget> tras = [
-      TextT.Lit(text: titlePurchase),
+    List<Widget> revenueWidgets = [
+      TextT.SubTitle(text: titleRevenue),
+      SizedBox(height: 6,),
       CompPU.tableHeader(),
     ];
-    for(var pu in purchaseList) {
-      purchaseWidgets.add(CompPU.tableUI(context, pu));
+
+    index = 1;
+    for(var re in revenueList) {
+      purchaseWidgets.add(CompRE.tableUI(context, re, index: index++));
       purchaseWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+    }
+
+
+    List<Widget> tsPuWidgets = [
+      TextT.SubTitle(text: titleTransPU),
+      SizedBox(height: 6,),
+      CompTS.tableHeader(),
+    ];
+    List<Widget> tsReWidgets = [
+      TextT.SubTitle(text: titleTransRE),
+      SizedBox(height: 6,),
+      CompTS.tableHeader(),
+    ];
+
+    for(var ts in tsList) {
+      if(ts.type == "RE") {
+        tsReWidgets.add(CompTS.tableUIMain(context: context, ts, index: (tsReWidgets.length / 2).toInt()));
+        tsReWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+      }
+      else if(ts.type == "PU") {
+        tsPuWidgets.add(CompTS.tableUIMain(context: context, ts, index: (tsPuWidgets.length / 2).toInt()));
+        tsPuWidgets.add(WidgetT.dividHorizontal(size: 0.35));
+      }
     }
 
 
 
 
 
+    int dailyAmount = 0;
+    for(var ts in tsList) {
+      dailyAmount += ts.amount;
+    }
+
+    List<Widget> balanceCurrWidgets = [
+      TextT.SubTitle(text: titleBalance),
+      SizedBox(height: 6,),
+      TextT.SubTitle(text: StyleT.krwInt(balance)),
+    ];
+    List<Widget> balanceLastWidgets = [
+      TextT.SubTitle(text: titleLastBalance),
+      SizedBox(height: 6,),
+      TextT.SubTitle(text: StyleT.krwInt(balance - dailyAmount)),
+    ];
 
 
-    return PageWidget.View(
-      titleWidget: titleWidget,
+
+
+    return ListBoxT.Columns(
+      spacing: 6 * 4,
       children: [
+        titleWidget,
+
+        ListBoxT.Columns(
+          children: [
+            TextT.SubTitle(text: titleDayInfo) ,
+            SizedBox(height: 6,),
+            ListBoxT.Rows(children: dayInfoWidget),
+          ],
+        ),
         ListBoxT.Columns(children: purchaseWidgets),
+        ListBoxT.Columns(children: revenueWidgets),
+        ListBoxT.Columns(children: tsPuWidgets),
+        ListBoxT.Columns(children: tsReWidgets),
+        ListBoxT.Columns(children: balanceCurrWidgets),
+        ListBoxT.Columns(children: balanceLastWidgets),
+        bottomWidget,
         //ListBoxT.Columns(children: revenueWidgets),
         //ListBoxT.Columns(children: revenueWidgets),
       ],
-      bottomWidget: bottomWidget,
     );
   }
 

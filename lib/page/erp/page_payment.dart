@@ -8,6 +8,7 @@ import 'package:evers/class/widget/page.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/erp/view/view_payment_daily.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:flutter/cupertino.dart';
@@ -128,10 +129,12 @@ class PagePayment extends StatelessWidget {
     Widget bottomWidget = SizedBox();
 
     List<Widget> childrenW = [];
-    if(menu == "일계표") {
+    childrenW.clear();
 
+    if(menu == "일계표") {
+      childrenW.add(ViewPaymentDaily());
     }
-    if(menu == '금전출납현황') {
+    else if(menu == '금전출납현황') {
       currentMenu = (currentMenu == '') ? '목록' : currentMenu;
       childrenW.clear();
       var titleW = Row(

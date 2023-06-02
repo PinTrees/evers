@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
+import 'package:evers/page/window/window_ledger_revenue.dart';
 import 'package:evers/page/window/window_paper_product.dart';
 import 'package:evers/page/window/window_process_create.dart';
 import 'package:evers/page/window/window_process_info.dart';
@@ -57,6 +58,7 @@ class MdiController{
     if(widget is WindowUserCreate) resizableWindow.title = '계정 신규 생성창';
     if(widget is WindowUserEditor) resizableWindow.title = '계정 정보 수정창';
     if(widget is WindowItemTS) resizableWindow.title = "매입품목 공정 관리창";
+    if(widget is WindowLedgerRe) resizableWindow.title = "출고원장 상세정보창";
 
     if(widget is WindowProcessOutputCreate) resizableWindow.title = "신규 생산품 생성창";
     if(widget is WindowProcessCreate) resizableWindow.title = "신규 공정 생성창";

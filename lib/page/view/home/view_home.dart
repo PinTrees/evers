@@ -43,6 +43,7 @@ class ViewHome extends StatefulWidget {
   _ViewHomeState createState() => _ViewHomeState();
 }
 
+
 class _ViewHomeState extends State<ViewHome> {
   var thumbnailImageHeight = 300.0;
   var dividHeight = 6.0;
@@ -57,6 +58,7 @@ class _ViewHomeState extends State<ViewHome> {
 
   /// 새소식 작성글 목록입니다.
   List<Article> articleList = [];
+
 
   @override
   void initState() {
@@ -83,6 +85,7 @@ class _ViewHomeState extends State<ViewHome> {
     setState(() {});
   }
 
+
   void _initVideoPlayer(context) async {
     v_controller = VideoPlayerController.network(url);
     print("video initialize");
@@ -105,6 +108,7 @@ class _ViewHomeState extends State<ViewHome> {
     print("video widget build");
     setState(() {});
   }
+
 
   Widget buildMain() {
     print("buildMain");

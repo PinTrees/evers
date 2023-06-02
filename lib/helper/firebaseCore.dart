@@ -29,6 +29,8 @@ import '../class/version.dart';
 import '../system/product.dart';
 import 'function.dart';
 import '../class/database/item.dart';
+import 'package:async/async.dart';
+
 
 class DatabaseM {
   //static const _databaseURL = 'https://taegi-survey-default-rtdb.firebaseio.com';
@@ -1301,6 +1303,11 @@ class DatabaseM {
     return data;
   }
 
+
+
+
+
+
   static dynamic getRevenue(
       { String? startAt, int? startDate, int? lastDate,}) async {
     List<Revenue> data = [];
@@ -1376,6 +1383,47 @@ class DatabaseM {
 
     return data;
   }
+
+
+
+  static dynamic getRevenueDoc(String id) async {
+    DocumentReference doc = FirebaseFirestore.instance.collection('revenue').doc(id);
+
+    Revenue? revenue;
+
+    await doc.get().then((value) {
+      if(!value.exists) return;
+      if(value.data() == null) return;
+
+      revenue = Revenue.fromDatabase(value.data() as Map);
+    });
+
+    return revenue;
+  }
+
+  static dynamic getRevenueList(List<dynamic> docs) async {
+    List<Revenue> data = [];
+
+    print(docs);
+
+    final futureGroup = FutureGroup();
+
+    for(var re in docs) {
+      futureGroup.add(DatabaseM.getRevenueDoc(re));
+    }
+    futureGroup.close();
+
+    await futureGroup.future.then((value) {
+      value.forEach((e) {
+        if(e == null) return;
+        data.add(e);
+      });
+    });
+
+    return data;
+  }
+
+
 
   static dynamic getRevenueAll(
       { String? startAt, int? startDate, int? lastDate,}) async {

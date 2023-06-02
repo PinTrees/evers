@@ -82,13 +82,13 @@ class Search {
   ///     목록은 항상 날짜로 Dec 정렬되어 반환됩니다.
   static dynamic searchRevenue() async {
     List<TS> search = [];
-    if(tsList.length <= tsListIndex) return search;
+    if(reList.length <= reListIndex) return search;
 
     final futureGroup = FutureGroup();
     for(int i = 0; i < 25; i++) {
-      if(tsList.length <= tsListIndex) break;
+      if(reList.length <= reListIndex) break;
 
-      futureGroup.add(DatabaseM.getTsDoc(tsList[tsListIndex++].id));
+      futureGroup.add(DatabaseM.getRevenueDoc(reList[reListIndex++].id));
     }
 
     futureGroup.close();

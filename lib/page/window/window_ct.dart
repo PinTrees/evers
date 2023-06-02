@@ -130,21 +130,13 @@ class _WindowCTState extends State<WindowCT> {
     }
 
     int ledgerIndex = 0;
-    List<Widget> ledgerWidgets = [];
-    ledgerWidgets.add(Row(
-        children: [
-          Expanded(child: Ledger.onTableHeader()),
-          ButtonT.Icont( icon: Icons.refresh,
-              onTap: () async {
-                WidgetT.loadingBottomSheet(context);
-                ledgerList = await DatabaseM.getLedgerRevenueList(ct.csUid);
-                Navigator.pop(context);
-                setState(() {});
-              }),
-        ]
-    ));
+    List<Widget> ledgerWidgets = [ Ledger.onTableHeader(), ];
     ledgerList.forEach((e) {
-      ledgerWidgets.add(e.onTableUI(index: ledgerIndex++));
+      ledgerWidgets.add(e.onTableUI(context, index: ledgerIndex++,
+          refresh: () async {
+            await initAsync();
+          }
+      ));
       ledgerWidgets.add(WidgetT.dividHorizontal(size: 0.35));
     });
 
@@ -511,12 +503,6 @@ class _WindowCTState extends State<WindowCT> {
                     children: [
                       TextT.Title(text:'매출 목록' ),
                       SizedBox(width: 6,),
-
-                      ButtonT.IconText(icon: Icons.open_in_new_sharp, text: "출고원장 작업창으로 이동", onTap: () async {
-                        var url = Uri.base.toString().split('/work').first + '/printform/releaserevenue/${ ct.id }';
-                        await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self');
-                        FunT.setStateMain();
-                      }),
                     ],
                   ),
                   SizedBox(height: dividHeight,),
@@ -642,6 +628,16 @@ class _WindowCTState extends State<WindowCT> {
         UIState.OpenNewWindow(context, WindowSchCreate(refresh: () async { await initAsync(); }, ct: ct,));
       },
     );
+    var paperReleseReWidget = ButtonT.Action(
+      context, "출고원장 생성",
+      expend: true,
+      icon: Icons.open_in_new_sharp, backgroundColor: Colors.blueGrey.withOpacity(0.35),
+      onTap: () async {
+        var url = Uri.base.toString().split('/work').first + '/printform/releaserevenue/${ ct.id }';
+        await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self');
+        setState(() {});
+       },
+    );
 
 
 
@@ -659,7 +655,7 @@ class _WindowCTState extends State<WindowCT> {
 
     return Column(
       children: [
-        Row( children: [ revenueSaveWidget, purchaseSaveWidget, purchaseItemSaveWidget, scheduleSaveWidget ],  ),
+        Row( children: [ revenueSaveWidget, purchaseSaveWidget, purchaseItemSaveWidget, scheduleSaveWidget, paperReleseReWidget ],  ),
         Row(
           children: [
             saveWidget,

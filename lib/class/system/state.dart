@@ -5,6 +5,7 @@ import 'package:evers/class/system.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
+import 'package:evers/page/window/window_ledger_revenue.dart';
 import 'package:evers/page/window/window_paper_product.dart';
 import 'package:evers/page/window/window_process_create.dart';
 import 'package:evers/page/window/window_process_info.dart';
@@ -65,6 +66,9 @@ class UIState {
     if(window is WindowItemTS) width = 1000;
 
     if(window is WindowProcessOutputCreate || window is WindowProcessCreate) width = 1000;
+
+    /// 원장 - 출고원장 및 각 원장들의 최대 가로사이즈 제한
+    if(window is WindowLedgerRe) width = 1000;
 
     /// 공장일보 및 생산일보 창 사이즈
     if(window is WindowFactoryPaper || window is WindowProductPaper) width = 800;
