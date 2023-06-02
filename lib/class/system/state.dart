@@ -70,6 +70,7 @@ class UIState {
 
     /// 원장 - 출고원장 및 각 원장들의 최대 가로사이즈 제한
     if(window is WindowLedgerRe) width = 1000;
+    if(window is WindowLedgerReCreate) width = 1000;
 
     /// 공장일보 및 생산일보 창 사이즈
     if(window is WindowFactoryPaper || window is WindowProductPaper) width = 800;

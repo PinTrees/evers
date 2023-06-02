@@ -22,7 +22,9 @@ import 'info/menu.dart';
 import 'page/view/home/view_meogkkun.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key,});
+  String url = "";
+  String subUrl = "";
+  HomePage({ this.url = "", this.subUrl = "", super.key,});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -50,9 +52,15 @@ class _HomePageState extends State<HomePage> {
     /// 메디아 쿼리값 오류 제거
     await Future.delayed(const Duration(milliseconds: 50), () {});
     contextData = ContextData(context: context);
+
+    if(widget.url != "") {
+      currentMenu = HomeMainMenu.getByCode(widget.url);
+      if(widget.subUrl != "") currentSubMenu = HomeSubMenu.getByCode(widget.subUrl);
+      else currentSubMenu = currentMenu.subMenus.first;
+    }
+
     setState(() {});
   }
-
 
   Widget mainBuild() {
     print("mainBuild");
@@ -468,13 +476,13 @@ class _HomePageState extends State<HomePage> {
           if(m == HomeMainMenu.store) {
             currentMenu = HomeMainMenu.product;
             currentSubMenu = currentMenu.subMenus.first;
-            setState(() {});
-            return;
           }
-
-          currentMenu = m;
-          currentSubMenu = m.subMenus.first;
-          setState(() {});
+          else {
+            currentMenu = m;
+            currentSubMenu = m.subMenus.first;
+          }
+          var url = Uri.base.toString().split('home').first + 'home/${currentMenu.code}/${currentSubMenu.code}';
+          await launchUrl( Uri.parse(url),   webOnlyWindowName: '_self', );
         }
       ),);
     }

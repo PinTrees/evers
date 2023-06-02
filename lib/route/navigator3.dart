@@ -35,6 +35,14 @@ final GoRouter router = GoRouter(
               ),
             ]
         ),
+        /// 깊이 설정시 새로고침 즉시 적용 안됨
+        GoRoute(
+          path: 'home/:id/:id1',
+          builder: (BuildContext context, GoRouterState state) {
+            return HomePage(url: state.pathParameters['id'] ?? "e",
+              subUrl: state.pathParameters['id1'] ?? "e",);
+          },
+        ),
         GoRoute(
             path: 'login',
             builder: (BuildContext context, GoRouterState state) {
