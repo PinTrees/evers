@@ -157,6 +157,68 @@ class CompRE {
 
 
 
+
+
+
+
+  /// 이 함수는 매출목록 메인화면의 테이블 UI를 반환합니다.
+  /// reaquied params
+  ///   - Customer cs
+  ///
+  static dynamic tableUISelect(BuildContext context, Revenue re, {
+    int? index,
+    Contract? ct,
+    Customer? cs,
+    required Function onTap,
+    required Function setState,
+    Function? refresh,
+  }) {
+    if(refresh == null) return SizedBox();
+    if(cs == null) return SizedBox();
+
+    var item = SystemT.getItem(re.item);
+
+    var w = InkWell(
+      onTap: () async {
+        await onTap();
+      },
+      child: Container(
+        height: 28,
+        decoration: StyleT.inkStyleNone(color: Colors.transparent),
+        child: Row(
+            children: [
+              ExcelT.LitGrid(text: "${ index ?? '-'}", width: 32, center: true),
+              ExcelT.LitGrid(text: re.id, width: 80, center: true),
+              ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(re.revenueAt.toString()), width: 80, center: true),
+              ExcelT.LitGrid(text: "매출", width: 50, center: true, textColor: Colors.blueAccent.withOpacity(0.5)),
+              TextT.OnTap(
+                  width: 150, expand: true,
+                  text: '${ cs.businessName } / ${ ct == null ? '-' : ct.ctName }',
+                  onTap: () async {
+                    UIState.OpenNewWindow(context, WindowCT(org_ct: ct!));
+                  }
+              ),
+              ExcelT.Grid(textSize: 10, text: item == null ? re.item : item.name, width: 100,  expand: true, ),
+              ExcelT.LitGrid(text: item == null ? '-' : item.unit, width: 50, center: true),
+              ExcelT.LitGrid(text: StyleT.krw(re.count.toString()), width: 50, center: true),
+              ExcelT.LitGrid(text: StyleT.krw(re.unitPrice.toString()), width: 80, center: true),
+              ExcelT.LitGrid(text: StyleT.krw(re.supplyPrice.toString()), width: 80, center: true),
+              ExcelT.LitGrid(text: StyleT.krw(re.vat.toString()), width: 80, center: true),
+              ExcelT.LitGrid(text: StyleT.krw(re.totalPrice.toString()), width: 80, center: true),
+            ]
+        ),
+      ),
+    );
+    return w;
+  }
+
+
+
+
+
+
+
+
   /// 이 함수는 신규매출을 추가하기위한 테이블 위젯입니다.
   /// 매출추가 화면의 위젯은 반드시 이 함수를 위젯을 생성해야 합니다.
   static dynamic tableUIInput( BuildContext? context, Revenue re, {

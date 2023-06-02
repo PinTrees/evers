@@ -492,6 +492,31 @@ class DatabaseM {
   }
 
 
+
+  static dynamic getRevenueWithCT(String id) async {
+    List<Revenue> data = [];
+    CollectionReference coll = await FirebaseFirestore.instance.collection(
+        'revenue');
+    await coll.where('ctUid', isEqualTo: id)
+        .where('state', whereIn: [ ''])
+        .get()
+        .then((value) {
+      if (value.docs == null) return false;
+      print(value.docs.length);
+
+      for (var a in value.docs) {
+        if (a.data() == null) continue;
+        var tmp = Revenue.fromDatabase(a.data() as Map);
+        data.add(tmp);
+      }
+    });
+    return data;
+  }
+
+
+
+
+
   static dynamic updateVersion(VersionInfo data) async {
     var db = FirebaseFirestore.instance;
 

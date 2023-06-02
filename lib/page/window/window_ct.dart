@@ -5,6 +5,7 @@ import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/messege.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_ledger_revenue_create.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/page/window/window_re_create_ct.dart';
@@ -633,8 +634,9 @@ class _WindowCTState extends State<WindowCT> {
       expend: true,
       icon: Icons.open_in_new_sharp, backgroundColor: Colors.blueGrey.withOpacity(0.35),
       onTap: () async {
-        var url = Uri.base.toString().split('/work').first + '/printform/releaserevenue/${ ct.id }';
-        await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self');
+        UIState.OpenNewWindow(context, WindowLedgerReCreate(refresh: () { initAsync(); }, contract: ct,));
+        /*var url = Uri.base.toString().split('/work').first + '/printform/releaserevenue/${ ct.id }';
+        await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self');*/
         setState(() {});
        },
     );
