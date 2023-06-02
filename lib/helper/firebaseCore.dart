@@ -342,8 +342,7 @@ class DatabaseM {
               .microsecondsSinceEpoch,
         },);
       }
-    }).then(
-          (value) => print("DocumentSnapshot successfully updated!"),
+    }).then((value) => print("DocumentSnapshot successfully updated!"),
       onError: (e) => print("Error updatePurchase() $e"),
     );
   }

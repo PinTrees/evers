@@ -49,7 +49,7 @@ import '../../../ui/ux.dart';
 ///
 /// 생산관리 시스템 페이지 뷰어
 /// @create YM
-class ViewFactory extends StatelessWidget {
+class PageFactory extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var divideHeight = 6.0;
 
@@ -396,7 +396,7 @@ class ViewFactory extends StatelessWidget {
 
     childrenW.insert(0, titleWidgetT);
 
-    var main = PageWidget.Main(
+    var main = PageWidget.MainPage(
       topWidget: topWidget,
       infoWidget: infoWidget,
       children: childrenW,

@@ -41,7 +41,7 @@ import 'package:http/http.dart' as http;
 import '../../../ui/ux.dart';
 
 /// 고객및 계약 시스템
-class ViewContract extends StatelessWidget {
+class PageContract extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var divideHeight = 6.0;
 
@@ -133,7 +133,7 @@ class ViewContract extends StatelessWidget {
     }
 
 
-    var main = PageWidget.Main(
+    var main = PageWidget.MainPage(
       topWidget: topWidget,
       infoWidget: infoWidget,
       titleWidget: Column(children: [

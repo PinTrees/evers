@@ -170,9 +170,6 @@ class _ViewHomeState extends State<ViewHome> {
 
 
 
-
-
-
     var itemTitleWidget = Container(
       padding: EdgeInsets.fromLTRB(18, 0, 18, 0),
       child: Column(
@@ -184,6 +181,8 @@ class _ViewHomeState extends State<ViewHome> {
         ],
       ),
     );
+
+
 
     var itemWidget = Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -241,6 +240,8 @@ class _ViewHomeState extends State<ViewHome> {
       ],
     );
 
+
+
     var infoVideo = Column(
       children: [
         TextT.Lit(text: "에버스 소개", color: Colors.black, size: 24, bold: true),
@@ -248,6 +249,8 @@ class _ViewHomeState extends State<ViewHome> {
         YoutubeContainer(params: YoutubeParams(url: youtubeUrl),),
       ],
     );
+
+
 
     return Container(
       child: ListBoxT.Columns(

@@ -9,7 +9,7 @@ import '../../helper/interfaceUI.dart';
 import 'button.dart';
 
 class PageWidget {
-  static Widget Main({
+  static Widget MainPage({
     List<Widget>? children,
     Widget? topWidget,
     Widget? infoWidget,
@@ -91,6 +91,58 @@ class PageWidget {
 
     return w;
   }
+
+
+
+
+
+
+  static Widget View({
+    List<Widget>? children,
+    Widget? titleWidget,
+    Widget? bottomWidget,
+    BuildContext? context,
+  }) {
+    var w = Expanded(
+      child: Column(
+        children: [
+          titleWidget ?? const SizedBox(),
+          if(titleWidget != null)
+            WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.35)),
+
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if(children != null)
+                  Expanded(
+                    child: ListView.builder(
+                        padding: EdgeInsets.all(12),
+                        itemCount: children.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          if(index >= children.length) return SizedBox();
+                          return children[index];
+                        }
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          if(bottomWidget != null)
+            WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.35)),
+          bottomWidget ?? const SizedBox(),
+        ],
+      ),
+    );
+    return w;
+  }
+
+
+
+
+
+
 
 
 

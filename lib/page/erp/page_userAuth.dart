@@ -31,12 +31,12 @@ import '../../../class/widget/list.dart';
 import '../../../core/xxx/xxx.dart';
 import '../../../helper/interfaceUI.dart';
 import '../../../ui/dialog_schedule.dart';
-import '../../window/window_user_create.dart';
+import '../window/window_user_create.dart';
 
 
 
 
-class ViewUserAuth extends StatelessWidget {
+class PageUserAuth extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var scrollVertController = ScrollController();
   var scrollHorController = ScrollController();
@@ -97,7 +97,7 @@ class ViewUserAuth extends StatelessWidget {
       else widgets = authInfoWidget(context);
     }
 
-    var main = PageWidget.Main(
+    var main = PageWidget.MainPage(
       topWidget: topWidget,
       infoWidget: infoWidget,
       titleWidget: titleWidget,

@@ -43,12 +43,11 @@ import '../../../helper/dialog.dart';
 import '../../../helper/firebaseCore.dart';
 import '../../../helper/interfaceUI.dart';
 import '../../../helper/pdfx.dart';
-import '../../window/window_ct.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../ui/ux.dart';
 
-class ViewRePu extends StatelessWidget {
+class PageRePu extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var divideHeight = 6.0;
 
@@ -492,7 +491,7 @@ class ViewRePu extends StatelessWidget {
     }
 
 
-    var main = PageWidget.Main(
+    var main = PageWidget.MainPage(
       topWidget: topWidget,
       infoWidget: infoWidget,
       titleWidget: Column(children: [

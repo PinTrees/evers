@@ -9,48 +9,54 @@ import '../class/user.dart';
 
 
 /// ERP 메인 메뉴 목록입니다.
-enum MainMenuInfo {
+enum ERPMenuInfo {
   /// pathName, displayName and menuKey, IconData
-  home("home", '홈', Icons.home, [ SubMenuInfo.schedule ]),
-  customer("customer", '고객관리', Icons.gavel, [ SubMenuInfo.customer, SubMenuInfo.contract ]),
-  revenuePurchase("revenuePurchase", "매입매출", Icons.input, [ SubMenuInfo.revenuePurchase, SubMenuInfo.payment ]),
-  employee("employee", "인사급여", Icons.card_travel, [ SubMenuInfo.employee, SubMenuInfo.employeeM]),
+  home("home", '홈', Icons.home, [ ERPSubMenuInfo.schedule ]),
+  customer("customer", '고객관리', Icons.gavel, [ ERPSubMenuInfo.customer, ERPSubMenuInfo.contract ]),
+  revenuePurchase("revenuePurchase", "매입매출", Icons.input, [ ERPSubMenuInfo.revenuePurchase, ERPSubMenuInfo.payment ]),
+  employee("employee", "인사급여", Icons.card_travel, [ ERPSubMenuInfo.employee, ERPSubMenuInfo.employeeM]),
 
   product("product", "생산관리", Icons.production_quantity_limits,
-      [ SubMenuInfo.itemManager, SubMenuInfo.itemTrans, SubMenuInfo.itemBalance, SubMenuInfo.productManager ]),
-  paper("paper", "공장일보", Icons.production_quantity_limits, [ SubMenuInfo.factoryPaper, SubMenuInfo.productPaper ]),
+      [ ERPSubMenuInfo.itemManager, ERPSubMenuInfo.itemTrans, ERPSubMenuInfo.itemBalance, ERPSubMenuInfo.productManager ]),
+  paper("paper", "공장일보", Icons.production_quantity_limits, [ ERPSubMenuInfo.factoryPaper, ERPSubMenuInfo.productPaper ]),
 
-  payment("payment", "금전출납부", Icons.monetization_on_sharp, [ SubMenuInfo.paymentSystem, SubMenuInfo.paymentRevenue, SubMenuInfo.paymentPurchase ]),
-  userAccount("userAccount", "계정관리", Icons.verified_user, [ SubMenuInfo.userSetting ]),
-  schedule("schedule", "일정관리", Icons.schedule, [ SubMenuInfo.schedule ]),
+  payment("payment", "금전출납부", Icons.monetization_on_sharp, [
+    ERPSubMenuInfo.paymentSystem,
+    ERPSubMenuInfo.paymentRevenue,
+    ERPSubMenuInfo.paymentPurchase,
+    ERPSubMenuInfo.daily,
+  ]),
+
+  userAccount("userAccount", "계정관리", Icons.verified_user, [ ERPSubMenuInfo.userSetting ]),
+  schedule("schedule", "일정관리", Icons.schedule, [ ERPSubMenuInfo.schedule ]),
   data("data", "연락처", Icons.add, []),
-  setting("setting", "설정", Icons.settings_suggest, [ SubMenuInfo.update, SubMenuInfo.delete ]),
+  setting("setting", "설정", Icons.settings_suggest, [ ERPSubMenuInfo.update, ERPSubMenuInfo.delete ]),
   dev("dev", "개발자", Icons.developer_board, []);
 
-  const MainMenuInfo(this.code, this.displayName, this.icon, this.subMenus);
+  const ERPMenuInfo(this.code, this.displayName, this.icon, this.subMenus);
   final String code;
   final String displayName;
   final IconData icon;
-  final List<SubMenuInfo> subMenus;
+  final List<ERPSubMenuInfo> subMenus;
 
-  factory MainMenuInfo.getByCode(String code){
-    return MainMenuInfo.values.firstWhere((value)
+  factory ERPMenuInfo.getByCode(String code){
+    return ERPMenuInfo.values.firstWhere((value)
     => value.code == code,
-        orElse: () => MainMenuInfo.schedule
+        orElse: () => ERPMenuInfo.schedule
     );
   }
 
-  factory MainMenuInfo.getByValue(String code){
-    return MainMenuInfo.values.firstWhere((value)
+  factory ERPMenuInfo.getByValue(String code){
+    return ERPMenuInfo.values.firstWhere((value)
     => value.displayName == code,
-        orElse: () => MainMenuInfo.schedule
+        orElse: () => ERPMenuInfo.schedule
     );
   }
 }
 
 
 /// ERP 메인메뉴 1차 하위메뉴 목록입니다.
-enum SubMenuInfo {
+enum ERPSubMenuInfo {
   /// pathName, displayName and menuKey, IconData
 
   /// 고객관리 하위메누
@@ -65,6 +71,7 @@ enum SubMenuInfo {
   paymentSystem('paymentSystem', '금전출납현황', Icons.monetization_on_sharp),
   paymentRevenue('paymentRevenue', '미수현황', Icons.file_download_off),
   paymentPurchase('paymentPurchase', '미지급현황', Icons.file_upload_outlined),
+  daily('daily', '일계표', Icons.grid_on),
 
   /// 생산관리 하위메뉴
   factoryPaper('factory', '공장일보', Icons.precision_manufacturing),
@@ -89,22 +96,22 @@ enum SubMenuInfo {
   /// 계정관리 하위메뉴
   userSetting('userAccount', '계정현황', Icons.verified_user);
 
-  const SubMenuInfo(this.code, this.displayName, this.icon);
+  const ERPSubMenuInfo(this.code, this.displayName, this.icon);
   final String code;
   final String displayName;
   final IconData icon;
 
-  factory SubMenuInfo.getByCode(String code){
-    return SubMenuInfo.values.firstWhere((value)
+  factory ERPSubMenuInfo.getByCode(String code){
+    return ERPSubMenuInfo.values.firstWhere((value)
     => value.code == code,
-        orElse: () => SubMenuInfo.schedule
+        orElse: () => ERPSubMenuInfo.schedule
     );
   }
 
-  factory SubMenuInfo.getByValue(String code){
-    return SubMenuInfo.values.firstWhere((value)
+  factory ERPSubMenuInfo.getByValue(String code){
+    return ERPSubMenuInfo.values.firstWhere((value)
     => value.displayName == code,
-        orElse: () => SubMenuInfo.schedule
+        orElse: () => ERPSubMenuInfo.schedule
     );
   }
 }
@@ -113,23 +120,23 @@ enum SubMenuInfo {
 /// ERP 좌측 네비게이션 메뉴 목록입니다.
 enum NavigationMenuInfo {
   /// pathName, displayName and menuKey, IconData
-  factoryPaper("1", SubMenuInfo.factoryPaper, Icons.insert_page_break, []),
-  productPaper("2", SubMenuInfo.productPaper, Icons.insert_page_break, []),
-  productSystem('3', SubMenuInfo.productManager, Icons.new_label_rounded, []),
-  revenuePurchase('4', SubMenuInfo.revenuePurchase, Icons.input, [ PermissionType.isPurchaseRead ]),
-  payment('5', SubMenuInfo.payment, Icons.monetization_on_sharp, [ PermissionType.isPaymentRead ]),
-  transactionSystem('6', SubMenuInfo.paymentSystem, Icons.monetization_on_sharp, [ PermissionType.isPaymentRead ]),
-  customer('7', SubMenuInfo.customer, Icons.person, [ PermissionType.isCustomerRead ]),
-  contract('8', SubMenuInfo.contract, Icons.confirmation_num, [ PermissionType.isContractRead ]),
-  salarySystem('9', SubMenuInfo.employeeM, Icons.contact_mail, [ PermissionType.isContractRead ]),
-  schedule('10', SubMenuInfo.schedule, Icons.schedule, [ ] ),
-  userSetting('11', SubMenuInfo.userSetting, Icons.verified_user, [ PermissionType.isUserRead ]),
-  updatelog('12', SubMenuInfo.update, Icons.update, [ PermissionType.isUserWrite ]);
+  factoryPaper("1", ERPSubMenuInfo.factoryPaper, Icons.insert_page_break, []),
+  productPaper("2", ERPSubMenuInfo.productPaper, Icons.insert_page_break, []),
+  productSystem('3', ERPSubMenuInfo.productManager, Icons.new_label_rounded, []),
+  revenuePurchase('4', ERPSubMenuInfo.revenuePurchase, Icons.input, [ PermissionType.isPurchaseRead ]),
+  payment('5', ERPSubMenuInfo.payment, Icons.monetization_on_sharp, [ PermissionType.isPaymentRead ]),
+  transactionSystem('6', ERPSubMenuInfo.paymentSystem, Icons.monetization_on_sharp, [ PermissionType.isPaymentRead ]),
+  customer('7', ERPSubMenuInfo.customer, Icons.person, [ PermissionType.isCustomerRead ]),
+  contract('8', ERPSubMenuInfo.contract, Icons.confirmation_num, [ PermissionType.isContractRead ]),
+  salarySystem('9', ERPSubMenuInfo.employeeM, Icons.contact_mail, [ PermissionType.isContractRead ]),
+  schedule('10', ERPSubMenuInfo.schedule, Icons.schedule, [ ] ),
+  userSetting('11', ERPSubMenuInfo.userSetting, Icons.verified_user, [ PermissionType.isUserRead ]),
+  updatelog('12', ERPSubMenuInfo.update, Icons.update, [ PermissionType.isUserWrite ]);
 
 
   const NavigationMenuInfo(this.code, this.menu, this.icon, this.permissions);
   final String code;
-  final SubMenuInfo menu;
+  final ERPSubMenuInfo menu;
   final IconData icon;
   final List<PermissionType> permissions;
 
@@ -194,7 +201,7 @@ enum HomeSubMenu {
   final String code;
   final String displayName;
   final IconData icon;
-  final List<SubMenuInfo> subMenus;
+  final List<ERPSubMenuInfo> subMenus;
 
   factory HomeSubMenu.getByCode(String code){
     return HomeSubMenu.values.firstWhere((value)

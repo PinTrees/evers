@@ -32,7 +32,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../ui/ux.dart';
 
-class ViewSetting extends StatelessWidget {
+class PageSetting extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var st_sc_vt = ScrollController();
   var st_sc_hr = ScrollController();
@@ -89,7 +89,7 @@ class ViewSetting extends StatelessWidget {
       childrenW.add(buildDeleteView(context));
     }
 
-    var main = PageWidget.Main(
+    var main = PageWidget.MainPage(
       topWidget: topWidget,
       infoWidget: infoWidget,
       children: childrenW,

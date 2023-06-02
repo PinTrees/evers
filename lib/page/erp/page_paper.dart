@@ -1,37 +1,13 @@
-import 'dart:convert';
-import 'dart:ui';
-
-import 'package:evers/class/component/comp_process.dart';
-import 'package:evers/class/database/process.dart';
 import 'package:evers/class/widget/button.dart';
-import 'package:evers/class/widget/excel.dart';
-import 'package:evers/dialog/dialog_itemts.dart';
-import 'package:evers/dialog/dialog_tag.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_paper_factory.dart';
 import 'package:evers/page/window/window_paper_product.dart';
-import 'package:evers/page/window/window_process_info.dart';
-import 'package:evers/ui/dialog_revenue.dart';
-import 'package:evers/ui/dialog_transration.dart';
-import 'package:evers/ui/ex.dart';
-import 'package:excel/excel.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../../class/Customer.dart';
-import '../../../class/contract.dart';
-import '../../../class/database/item.dart';
-import '../../../class/purchase.dart';
-import '../../../class/revenue.dart';
 import '../../../class/schedule.dart';
 import '../../../class/system.dart';
 import '../../../class/system/state.dart';
-import '../../../class/transaction.dart';
 import '../../../class/widget/list.dart';
 import '../../../class/widget/page.dart';
 import '../../../class/widget/text.dart';
@@ -45,13 +21,12 @@ import '../../../ui/dl.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../ui/ux.dart';
-import '../../window/window_paper_factory.dart';
 
 /// work/u 페이지 하위 시스템
 ///
 /// 생산관리 시스템 페이지 뷰어
 /// @create YM
-class ViewPaper extends StatelessWidget {
+class PagePaper extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var divideHeight = 6.0;
 
@@ -530,7 +505,7 @@ class ViewPaper extends StatelessWidget {
       ],
     );
 
-    var main = PageWidget.Main(
+    var main = PageWidget.MainPage(
       topWidget: topWidget,
       infoWidget: infoWidget,
       titleWidget: titleWidget,

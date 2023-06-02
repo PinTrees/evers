@@ -77,7 +77,7 @@ enum ScheduleWeekMenu {
 
 
 
-class ViewSchedule extends StatelessWidget {
+class PageSchedule extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var scrollVertController = ScrollController();
   var scrollHorController = ScrollController();
@@ -320,7 +320,7 @@ class ViewSchedule extends StatelessWidget {
       ));
     }
 
-    var main = PageWidget.Main(
+    var main = PageWidget.MainPage(
       topWidget: topWidget,
       infoWidget: infoWidget,
       titleWidget: titleWidget,
