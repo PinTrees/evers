@@ -10,6 +10,7 @@ import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/class/widget/textInput.dart';
+import 'package:evers/class/widget/video/video_url.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
@@ -249,7 +250,10 @@ class _ViewHomeState extends State<ViewHome> {
     var infoVideo = Column(
       children: [
         TextT.Lit(text: "에버스 소개", color: Colors.black, size: 24, bold: true),
-        YoutubeContainer(style: YoutubeStyle(padding: EdgeInsets.all(padding * 0.7)), params: YoutubeParams(url: youtubeUrl),),
+        SizedBox(height: 6 * 4,),
+        VideoContainer(style: VideoStyle(aspectRatio: 16 / 9),
+        params: VideoParams(url: "https://github.com/PinTrees/evers/raw/main/sever/2023_05_27%2019_32.mp4"),),
+        //YoutubeContainer(style: YoutubeStyle(padding: EdgeInsets.all(padding * 0.7)), params: YoutubeParams(url: youtubeUrl),),
       ],
     );
 
