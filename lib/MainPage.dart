@@ -10,8 +10,10 @@ import 'package:evers/page/view/home/view_history.dart';
 import 'package:evers/page/view/home/view_home.dart';
 import 'package:evers/page/view/home/view_news.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'class/version.dart';
 import 'class/widget/button.dart';
 import 'class/widget/button/button_image_web.dart';
 import 'class/widget/youtube.dart';
@@ -50,7 +52,7 @@ class _HomePageState extends State<HomePage> {
 
   dynamic initAsync() async {
     /// 메디아 쿼리값 오류 제거
-    await Future.delayed(const Duration(milliseconds: 50), () {});
+    await Future.delayed(const Duration(milliseconds: 2), () {});
     contextData = ContextData(context: context);
 
     if(widget.url != "") {
@@ -61,6 +63,19 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {});
   }
+
+  void refreshPage(HomeMainMenu m, HomeSubMenu s) async {
+    if(!Version.checkVersion()) {
+      var url = Uri.base.toString().split('home').first + 'home/${currentMenu.code}/${currentSubMenu.code}';
+      await launchUrl( Uri.parse(url),   webOnlyWindowName: '_self', );
+    } else {
+      widget.url = m.code;
+      widget.subUrl = s.code;
+      context.replace("/home/${widget.url}/${widget.subUrl}", extra: true);
+      setState(() {});
+    }
+  }
+
 
   Widget mainBuild() {
     print("mainBuild");
@@ -171,8 +186,8 @@ class _HomePageState extends State<HomePage> {
               } else {
                 currentMenu = m;
                 currentSubMenu = s;
+                refreshPage(currentMenu, currentSubMenu);
               }
-              setState(() {});
             }
         ));
       }
@@ -247,8 +262,8 @@ class _HomePageState extends State<HomePage> {
             } else {
               currentMenu = m;
               currentSubMenu = value;
+              refreshPage(currentMenu, currentSubMenu);
             }
-            setState(() {});
           },
           displayText: (value) { return value.displayName; }
         ),
@@ -299,6 +314,7 @@ class _HomePageState extends State<HomePage> {
 
 
 
+
   Widget buildSideNavigation() {
     List<Widget> menuWidgets = [];
     for(var m in HomeMainMenu.values) {
@@ -318,8 +334,8 @@ class _HomePageState extends State<HomePage> {
               } else {
                 currentMenu = m;
                 currentSubMenu = value;
+                refreshPage(currentMenu, currentSubMenu);
               }
-
               isExpanded = false;
               setState(() {});
             },
@@ -433,8 +449,7 @@ class _HomePageState extends State<HomePage> {
 
             currentMenu = m;
             currentSubMenu = s;
-
-            setState(() {});
+            refreshPage(currentMenu, currentSubMenu);
           }
         ));
       }
@@ -481,8 +496,7 @@ class _HomePageState extends State<HomePage> {
             currentMenu = m;
             currentSubMenu = m.subMenus.first;
           }
-          var url = Uri.base.toString().split('home').first + 'home/${currentMenu.code}/${currentSubMenu.code}';
-          await launchUrl( Uri.parse(url),   webOnlyWindowName: '_self', );
+          refreshPage(currentMenu, currentSubMenu);
         }
       ),);
     }
@@ -530,7 +544,7 @@ class _HomePageState extends State<HomePage> {
               currentMenu = m;
               currentSubMenu = m.subMenus.first;
             }
-            setState(() {});
+            refreshPage(currentMenu, currentSubMenu);
           }
       ),);
     }

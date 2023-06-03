@@ -132,7 +132,7 @@ class _ViewGreetingsState extends State<ViewGreetings> {
 
           YoutubeContainer(),
           Padding(
-            padding: EdgeInsets.all(padding * 0.5),
+            padding: EdgeInsets.all(padding * 1.5),
             child: YoutubePlayer(
               controller: _controller,
               aspectRatio: 16 / 9,

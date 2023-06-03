@@ -249,8 +249,7 @@ class _ViewHomeState extends State<ViewHome> {
     var infoVideo = Column(
       children: [
         TextT.Lit(text: "에버스 소개", color: Colors.black, size: 24, bold: true),
-        SizedBox(height: 18 * 2,),
-        YoutubeContainer(params: YoutubeParams(url: youtubeUrl),),
+        YoutubeContainer(style: YoutubeStyle(padding: EdgeInsets.all(padding * 0.7)), params: YoutubeParams(url: youtubeUrl),),
       ],
     );
 
