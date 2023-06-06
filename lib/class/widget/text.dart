@@ -60,12 +60,16 @@ class TextT extends StatelessWidget {
     int? maxLine,
     bool bold=false,
     Alignment? alignment,
+    EdgeInsets? padding,
     bool expand=false,}) {
-    var w = Text(
+    Widget w = Text(
         text ?? '',
         maxLines: maxLine,
         style: TextStyle(color: color ?? StyleT.textColor, fontSize: size ?? 10, fontWeight: bold ? FontWeight.w900 : FontWeight.w500),
     );
+
+
+    if(padding != null) w = Padding(padding: padding, child: w,);
 
     if(expand) {
       return Expanded(

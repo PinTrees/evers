@@ -40,23 +40,19 @@ import '../../core/window/window_base.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
 
-class WindowShopItemCreate extends WindowBaseMDI {
+class WindowShopItemEditor extends WindowBaseMDI {
   Function refresh;
-  Article? article;
-  String board;
+  ShopArticle shopItem;
 
-  WindowShopItemCreate({ this.article, required this.board, required this.refresh, }) { }
+  WindowShopItemEditor({ required this.shopItem, required this.refresh, }) { }
 
   @override
-  _WindowShopItemCreateState createState() => _WindowShopItemCreateState();
+  _WindowShopItemEditorState createState() => _WindowShopItemEditorState();
 }
 
-class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
-  var dividHeight = 6.0;
-
+class _WindowShopItemEditorState extends State<WindowShopItemEditor> {
   QuillController _controller = QuillController.basic();
-  ShopArticle article = ShopArticle.fromDatabase({});
-
+  ShopArticle shopItem = ShopArticle.fromDatabase({});
   int selectThumbIndex = 0;
 
   @override
@@ -67,8 +63,10 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
   }
 
   void initAsync() async {
+    shopItem = ShopArticle.fromDatabase(JsonManager.toJsonObject(widget.shopItem));
+
     _controller = QuillController(
-      document: Document.fromJson(jsonDecode(article.json)),
+      document: Document.fromJson(jsonDecode(shopItem.json)),
       selection: TextSelection.collapsed(offset: 0),
     );
 
@@ -116,8 +114,8 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
     );
 
     var thumb = "";
-    if(article.thumbnail.length > selectThumbIndex) {
-      thumb = article.thumbnail[selectThumbIndex];
+    if(shopItem.thumbnail.length > selectThumbIndex) {
+      thumb = shopItem.thumbnail[selectThumbIndex];
     }
 
     return main = Container(
@@ -140,26 +138,26 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
                     LitTextInput(style: LitTextFieldStyle(),
                       params: LitTextParams(
                         expand: true,
-                        hint: "제품명 입력 (표시명)",
+                        label: "제품이름",
                         onEdited: (data) {
-                          article.name = data;
+                          shopItem.name = data;
                           setState(() {});
                         },
-                        text: article.name,
+                        text: shopItem.name,
                       ),
                     ),
                     SizedBox(height: 6,),
                     LitTextInput(style: LitTextFieldStyle(
                     ),
                       params: LitTextParams(
-                        hint: "제품 상세설명 입력",
+                        label: "제품설명",
                         expand: true,
                         isMultiLine: true,
                         onEdited: (data) {
-                          article.desc = data;
+                          shopItem.desc = data;
                           setState(() {});
                         },
-                        text: article.desc,
+                        text: shopItem.desc,
                       ),
                     ),
                     SizedBox(height: 6,),
@@ -171,11 +169,11 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
                               label: "제품가격",
                               width: 100,
                               onEdited: (data) {
-                                article.price = int.tryParse(data) ?? 0;
+                                shopItem.price = int.tryParse(data) ?? 0;
                                 setState(() {});
                               },
-                              text: StyleT.krwInt(article.price),
-                              value: article.price.toString(),
+                              text: StyleT.krwInt(shopItem.price),
+                              value: shopItem.price.toString(),
                             ),
                           ),
                           LitTextInput(style: LitTextFieldStyle(),
@@ -183,10 +181,10 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
                               label: "제품 분류",
                               width: 100,
                               onEdited: (data) {
-                                article.group = data;
+                                shopItem.group = data;
                                 setState(() {});
                               },
-                              text: article.group,
+                              text: shopItem.group,
                             ),
                           ),
                           LitTextInput(style: LitTextFieldStyle(),
@@ -194,11 +192,39 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
                               label: "최대구매수량",
                               width: 100,
                               onEdited: (data) {
-                                article.maxBuyCount = int.tryParse(data) ?? 0;
+                                shopItem.maxBuyCount = int.tryParse(data) ?? 0;
                                 setState(() {});
                               },
-                              text: StyleT.krwInt(article.maxBuyCount),
-                              value: article.maxBuyCount.toString(),
+                              text: StyleT.krwInt(shopItem.maxBuyCount),
+                              value: shopItem.maxBuyCount.toString(),
+                            ),
+                          ),
+                        ]
+                    ),
+                    SizedBox(height: 6,),
+                    ListBoxT.Rows(
+                        spacing: 6,
+                        children: [
+                          LitTextInput(style: LitTextFieldStyle(),
+                            params: LitTextParams(
+                              label: "상품스토어 URL",
+                              width: 300,
+                              onEdited: (data) {
+                                shopItem.storeUrl = data;
+                                setState(() {});
+                              },
+                              text: shopItem.storeUrl,
+                            ),
+                          ),
+                          LitTextInput(style: LitTextFieldStyle(),
+                            params: LitTextParams(
+                              label: "Naver 스토어 URL",
+                              width: 300,
+                              onEdited: (data) {
+                                shopItem.naveStoreUrl = data;
+                                setState(() {});
+                              },
+                              text: shopItem.naveStoreUrl,
                             ),
                           ),
                         ]
@@ -212,23 +238,23 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
                               onTap: () async {
                                 var thumbUrl = await thumbImagePickImpl();
                                 if(thumbUrl != null) {
-                                  article.thumbnail.add(thumbUrl);
+                                  shopItem.thumbnail.add(thumbUrl);
                                   setState(() {});
                                 }
                               }
                           ),
-                          for(int i = 0; i < article.thumbnail.length; i++)
+                          for(int i = 0; i < shopItem.thumbnail.length; i++)
                             ButtonImage(
-                              style: ButtonImageStyle(imageUrl: article.thumbnail[i], height: 48, width: 48, paddingAll: 0),
+                              style: ButtonImageStyle(imageUrl: shopItem.thumbnail[i], height: 48, width: 48, paddingAll: 0),
                               params: ButtonTParams(
-                                onTap: () {
-                                  selectThumbIndex = i;
-                                  setState(() {});
-                                }
+                                  onTap: () {
+                                    selectThumbIndex = i;
+                                    setState(() {});
+                                  }
                               ),
                             ),
                         ]
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -257,10 +283,10 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
                 ),
                   width: 250,
                   onEdited: (value) {
-                    article.writer = value;
+                    shopItem.writer = value;
                     setState(() {});
                   },
-                  text: article.writer,
+                  text: shopItem.writer,
                 ),
               ],
             ),
@@ -278,17 +304,17 @@ class _WindowShopItemCreateState extends State<WindowShopItemCreate> {
       icon: Icons.save,
       altText: "제품을 저장하시겠습니까?",
       init: () {
-        if(article.name == "") return Messege.toReturn(context, "이름은 비워둘 수 없습니다.", false);
-        if(article.name.length < 6) return Messege.toReturn(context, "제목은 더 상세히 작성해야 합니다.", false);
-        if(article.price < 1) return Messege.toReturn(context, "가격은 0일 수 없습니다.", false);
-        if(article.maxBuyCount < 1) return Messege.toReturn(context, "최대구매가능 수량은 0일 수 없습니다.", false);
-        if(article.writer == "") return Messege.toReturn(context, "작성자는 비워둘 수 없습니다.", false);
-        if(article.thumbnail.isEmpty) return Messege.toReturn(context, "썸네일을 1개 이상 추가하세요.", false);
+        if(shopItem.name == "") return Messege.toReturn(context, "이름은 비워둘 수 없습니다.", false);
+        if(shopItem.name.length < 6) return Messege.toReturn(context, "제목은 더 상세히 작성해야 합니다.", false);
+        if(shopItem.price < 1) return Messege.toReturn(context, "가격은 0일 수 없습니다.", false);
+        if(shopItem.maxBuyCount < 1) return Messege.toReturn(context, "최대구매가능 수량은 0일 수 없습니다.", false);
+        if(shopItem.writer == "") return Messege.toReturn(context, "작성자는 비워둘 수 없습니다.", false);
+        if(shopItem.thumbnail.isEmpty) return Messege.toReturn(context, "썸네일을 1개 이상 추가하세요.", false);
         return true;
       },
       onTap: () async {
         var json = jsonEncode(_controller.document.toDelta().toJson());
-        await article.update(json: json);
+        await shopItem.update(json: json);
         await widget.refresh();
 
         widget.parent.onCloseButtonClicked!();

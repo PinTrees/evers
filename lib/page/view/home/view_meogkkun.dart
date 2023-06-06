@@ -4,11 +4,14 @@ import 'package:evers/class/component/comp_contract.dart';
 import 'package:evers/class/component/comp_process.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/database/article.dart';
+import 'package:evers/class/widget/button/button_shopItem.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/core/window/window_base.dart';
+import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/page/window/window_pu_create.dart';
@@ -23,19 +26,6 @@ import 'package:get/get.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-
-
-class Product {
-  var name = "";
-  var iconUrl = "";
-  var price = 0;
-  
-  Product(String name, String iconUrl, int price) {
-    this.name = name;
-    this.iconUrl = 'https://raw.githubusercontent.com/PinTrees/evers/main/sever/' + iconUrl + '.jpg';
-    this.price = price;
-  }
-}
 
 
 class ViewMeogkkun extends StatefulWidget {
@@ -68,7 +58,7 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
   "\n\n또한, 동결건조 과정에서는 물의 결정화 형태도 중요합니다. 물의 결정화 형태는 물 분자들이 어떻게 배열되느냐에 따라서 제품의 품질에 영향을 미칩니다. 일반적으로, 빙결할 때는 물 분자들이 얼음의 결정구조를 형성합니다. 이러한 얼음의 결정구조는 제품 내부에서 고체상태의 물이 분포하는 방식과 관련이 있습니다."
   "\n\n동결건조는 높은 품질의 건조 식품을 생산하기 위한 중요한 기술입니다. 이러한 기술은 물의 증발로 인한 제품 내부의 구조 변화를 최소화하여 제품의 품질을 유지할 수 있습니다. 동결건조 과정에서는 냉동기 내부의 온도와 압력, 그리고 삼중점과 물의 결정화 형태 등이 중요한 역할을 합니다. 이러한 요소들을 적절하게 제어하여 높은 품질의 건조 식품을 생산할 수 있습니다. 따라서, 삼중점과 동결건조의 원리를 이해하고 이를 적용하여 실제 제조 과정에서 적절하게 활용하는 것이 중요합니다.";
 
-  List<Product> productList = [];
+  List<ShopArticle> shopItemList = [];
 
   @override
   void initState() {
@@ -78,13 +68,7 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
   }
 
   void initAsync() async {
-
-    productList.add(new Product("알싸한 맛 나는 먹꾼", "905f83adb557ef5e2a9b47fff133a97a", 5800));
-    productList.add(new Product("핫불닭맛 나는 먹꾼", "70e942b4199a3f13cd8e259c9422d0c0", 5800));
-    productList.add(new Product("스위트콘 맛 나는 먹꾼", "f7ed1ab86b8cc673a61b2ddee68f838e", 5800));
-    productList.add(new Product("담백한 맛 나는 먹꾼", "86ab96a9c1b146d01872691e0beb9029", 12800));
-    productList.add(new Product("단짠맛 나는 먹꾼", "e4a48bca29c5f9898cedd6c043eed7b8", 5800));
-    productList.add(new Product("건강한맛 나는 먹꾼", "5de28516f84d4f669e4c80625cb4b3e7", 5800));
+    shopItemList = await DatabaseM.getShopItemList();
 
     setState(() {});
   }
@@ -134,41 +118,11 @@ class _ViewMeogkkunState extends State<ViewMeogkkun> {
             padding: EdgeInsets.all(6 * 8),
             spacing: 6 * 4,
             children: [
-              for(var p in productList)
-                InkWell(
+              for(var p in shopItemList)
+                ButtonShopItem(shopItem: p,
                   onTap: () async {
                     await launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
                   },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Material(
-                        elevation: 0,
-                        borderRadius: BorderRadius.all(Radius.circular(0)),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.all(Radius.circular(0)),
-                          child: Container(
-                            width: 300, height: 300,
-                            color: Colors.grey.withOpacity(0.3),
-                            padding: EdgeInsets.all(1.4),
-                            child:CachedNetworkImage(imageUrl: p.iconUrl, fit: BoxFit.cover),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.all(6 * 2),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            TextT.Lit(text: p.name, size: 18, color: Colors.black, bold: true),
-                            SizedBox(height: 3 * 1,),
-                            TextT.Lit(text: StyleT.krwInt(p.price) + "원", size: 16, color: Colors.blue, bold: true),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 6,),
-                    ],
-                  ),
                 )
             ]
           ),

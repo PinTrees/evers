@@ -13,6 +13,8 @@ import 'package:evers/page/window/window_re_editor.dart';
 import 'package:evers/page/window/window_schList_info.dart';
 import 'package:evers/page/window/window_sch_create.dart';
 import 'package:evers/page/window/window_sch_editor.dart';
+import 'package:evers/page/window/window_shopitem_create.dart';
+import 'package:evers/page/window/window_shopitem_editor.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:evers/page/window/window_user_create.dart';
@@ -62,6 +64,9 @@ class MdiController{
 
     if(widget is WindowProcessOutputCreate) resizableWindow.title = "신규 생산품 생성창";
     if(widget is WindowProcessCreate) resizableWindow.title = "신규 공정 생성창";
+
+    if(widget is WindowShopItemEditor) resizableWindow.title = "제품 상세정보 수정창";
+    if(widget is WindowShopItemCreate) resizableWindow.title = "신규 제품 생성창";
   }
 
   ResizableWindow createWindow(BuildContext context, { double? pw, double? ph, }) {
@@ -75,7 +80,7 @@ class MdiController{
 
     ResizableWindow resizableWindow = ResizableWindow(
       startWidth: pw ?? w - w * 0.15, startHeight: ph ?? h - h * 0.15,
-      x: rng.nextDouble() * 250, y: rng.nextDouble() * 250,
+      x: rng.nextDouble() * 100 + 50, y: rng.nextDouble() * 50 + 50,
       title: '-',
     );
 

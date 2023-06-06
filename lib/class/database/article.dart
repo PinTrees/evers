@@ -244,6 +244,9 @@ class ShopArticle {
 
   var group = '';
 
+  var naveStoreUrl = "";
+  var storeUrl = "";
+
   var name = '';
   var desc = '';
 
@@ -267,11 +270,16 @@ class ShopArticle {
     name = json["name"] ?? "";
     desc = json["desc"] ?? "";
 
+    naveStoreUrl = json["naveStoreUrl"] ?? "";
+    storeUrl = json["storeUrl"] ?? "";
+
     this.json = json["json"] ?? "";
     url = json["url"] ?? '';
-    thumbnail = json["thumbnail"] ?? '';
+    thumbnail = json["thumbnail"] == null ? [] : json["thumbnail"] as List;
 
     writer = json['writer'] ?? '';
+    price = json["price"] ?? 0;
+    maxBuyCount = json["maxBuyCount"] ?? 0;
     updateAt = json['updateAt'] ?? 0;
     createAt = json['createAt'] ?? 0;
   }
@@ -284,12 +292,17 @@ class ShopArticle {
 
       "name": name,
       "desc": desc,
+      "naveStoreUrl": naveStoreUrl,
+      "storeUrl": storeUrl,
+
 
       "json": json,
       "url": url,
       "thumbnail": thumbnail,
 
       "writer": writer,
+      "price": price,
+      "maxBuyCount": maxBuyCount,
       "updateAt": updateAt,
       "createAt": createAt,
     };
@@ -304,7 +317,7 @@ class ShopArticle {
     }
   }
 
-  dynamic update({ required String json, required List<Uint8List> thumbs }) async {
+  dynamic update({ required String json }) async {
     var create = false;
 
     if(id == '')  { create = true; }
@@ -319,7 +332,7 @@ class ShopArticle {
 
     /// 메인문서 기록
     var db = FirebaseFirestore.instance;
-    final docRef = db.collection("shopItem/").doc(id);
+    final docRef = db.collection("shopItem").doc(id);
 
     /// 매입 트랜잭션을 수행합니다.
     return await db.runTransaction((transaction) async {

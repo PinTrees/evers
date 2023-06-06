@@ -18,12 +18,14 @@ class ButtonImageStyle {
   final double? width;
   final BoxFit? fit;
   final Alignment alignment;
+  final double paddingAll;
 
   ButtonImageStyle({
     required this.imageUrl,
     this.fit = BoxFit.cover,
     this.alignment = Alignment.center,
     this.height,
+    this.paddingAll = 6,
     this.width,
   });
 }
@@ -80,7 +82,9 @@ class _ButtonImageState extends State<ButtonImage> {
         onPressed: () async {
           if(params.onTap != null) await params.onTap!();
         },
-        style: StyleT.buttonStyleNone(elevation: 0, color: Colors.transparent,),
+        style: StyleT.buttonStyleNone(elevation: 0, color: Colors.transparent,
+          padding: style.paddingAll,
+        ),
         child: Container(
           height: style.height, width: style.width,
         child: CachedNetworkImage(imageUrl: style.imageUrl, fit: style.fit,),

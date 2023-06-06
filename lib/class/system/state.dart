@@ -18,6 +18,8 @@ import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/page/window/window_re_create_ct.dart';
 import 'package:evers/page/window/window_re_editor.dart';
 import 'package:evers/page/window/window_sch_create.dart';
+import 'package:evers/page/window/window_shopitem_create.dart';
+import 'package:evers/page/window/window_shopitem_editor.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:evers/page/window/window_user_create.dart';
@@ -80,6 +82,11 @@ class UIState {
     if(window is WindowPUCreate || window is WindowPUEditor || window is WindowPUCreateWithCS) width = 1000;
     if(window is WindowReCreate || window is WindowReEditor || window is WindowReCreateWithCt) width = 1000;
 
+    if(window is WindowShopItemCreate) width = 1000;
+    if(window is WindowShopItemEditor) width = 1000;
+
+
+
 
     var parent = mdiController!.createWindow(context, pw: width);
     window!.parent = parent;
@@ -90,8 +97,12 @@ class UIState {
     if(window is WindowCsCreate) isFixedHeight = true;
     if(window is WindowItemTS) isFixedHeight = false;
     if(window is WindowLedgerReCreate) isFixedHeight = true;
+
+    if(window is WindowShopItemCreate) isFixedHeight = true;
+    if(window is WindowShopItemEditor) isFixedHeight = true;
     if(window is WindowArticleCreate) isFixedHeight = true;
     if(window is WindowPageACreate) isFixedHeight = true;
+
     //if(window is WindowFactoryCreate) isFixedHeight = true;
 
     mdiController!.addWindow(context, widget: window, resizableWindow: parent, fixedHeight: isFixedHeight);

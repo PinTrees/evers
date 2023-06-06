@@ -84,6 +84,21 @@ class DatabaseM {
 
     return article;
   }
+  static dynamic getShopItemList() async {
+    List<ShopArticle> article = [];
+    var coll = await FirebaseFirestore.instance.collection('shopItem');
+
+    await coll.orderBy('createAt', descending: true).where("state", whereIn: [ "" ]) .limit(50).get().then((value) async {
+      if(value.docs.isEmpty) return false;
+      value.docs.forEach((e) {
+        if(!e.exists) return;
+        if(e.data() == null) return;
+        article.add(ShopArticle.fromDatabase(e.data() as Map));
+      });
+    });
+
+    return article;
+  }
 
 
 
@@ -2874,6 +2889,12 @@ class StorageHub {
       print(e);
       return null;
     }
+  }
+
+  static dynamic deleteFolder(String path, String code, String folder) async {
+    await FirebaseStorage.instance.ref(path + "/" + folder).listAll().then((value) {
+       FirebaseStorage.instance.ref(value.items.first.fullPath).delete();
+    });
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/database/article.dart';
 import 'package:evers/class/widget/article/article.dart';
+import 'package:evers/class/widget/button/button_shopItem.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/text.dart';
@@ -54,25 +55,17 @@ class _ViewHomeState extends State<ViewHome> {
   late VideoPlayerController v_controller = VideoPlayerController.network(url,);
   Widget playerWidget = SizedBox();
 
-  /// 판매되는 상품의 목록입니다.
-  List<Product> productList = [];
 
   /// 새소식 작성글 목록입니다.
   List<Article> articleList = [];
-
+  /// 판매되는 상품의 목록입니다.
+  List<ShopArticle> shopItemList = [];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     print("init ViewHome");
-
-    productList.add(new Product("알싸한 맛 나는 먹꾼", "905f83adb557ef5e2a9b47fff133a97a", 5800));
-    productList.add(new Product("핫불닭맛 나는 먹꾼", "70e942b4199a3f13cd8e259c9422d0c0", 5800));
-    productList.add(new Product("스위트콘 맛 나는 먹꾼", "f7ed1ab86b8cc673a61b2ddee68f838e", 5800));
-    productList.add(new Product("담백한 맛 나는 먹꾼", "86ab96a9c1b146d01872691e0beb9029", 12800));
-    productList.add(new Product("단짠맛 나는 먹꾼", "e4a48bca29c5f9898cedd6c043eed7b8", 5800));
-    productList.add(new Product("건강한맛 나는 먹꾼", "5de28516f84d4f669e4c80625cb4b3e7", 5800));
 
     _initVideoPlayer(context);
     initAsync();
@@ -81,6 +74,7 @@ class _ViewHomeState extends State<ViewHome> {
 
   /// 비동기 초기화자 입니다. 추후 인터페이스로 재구현 되어야 합니다.
   dynamic initAsync() async {
+    shopItemList = await DatabaseM.getShopItemList();
     articleList = await DatabaseM.getArticleWithCode("8HGb2ghAvOJcjuEd");
     setState(() {});
   }
@@ -193,54 +187,18 @@ class _ViewHomeState extends State<ViewHome> {
       children: [
         itemTitleWidget,
         SizedBox(height: 18,),
-        Container(
-          height: 200 + 200,
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(18, 0, 18, 0),
-            scrollDirection: Axis.horizontal,
-            children: [
-              ListBoxT.Rows(
-                  spacing: 6 * 2,
-                  children: [
-                    for(var p in productList)
-                      InkWell(
-                        onTap: () async {
-                          await launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Material(
-                              elevation: 0,
-                              borderRadius: BorderRadius.all(Radius.circular(0)),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.all(Radius.circular(0)),
-                                child: Container(
-                                  width: 200, height: 280,
-                                  color: Colors.grey.withOpacity(0.3),
-                                  padding: EdgeInsets.all(1.4),
-                                  child:CachedNetworkImage(imageUrl: p.iconUrl, fit: BoxFit.cover),
-                                ),
-                              ),
-                            ),
-                            SizedBox(height: 6,),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextT.Lit(text: p.name, size: 16, color: Colors.black, bold: true),
-                                SizedBox(height: 3 * 1,),
-                                TextT.Lit(text: StyleT.krwInt(p.price) + "원", size: 24, color: Colors.redAccent, bold: false),
-                              ],
-                            ),
-                            SizedBox(height: 6,),
-                          ],
-                        ),
-                      )
-                  ]
+        ListBoxT.Wraps(
+          spacing: 6 * 4,
+          padding: EdgeInsets.fromLTRB(platformPadding, platformPadding, platformPadding, platformPadding),
+          children: [
+            for(var p in shopItemList)
+              ButtonShopItem(shopItem: p,
+                onTap: () async {
+                  await launchUrl( Uri.parse("https://eversfood.cafe24.com/#"),   webOnlyWindowName: true ? '_blank' : '_self', );
+                },
               ),
-            ],
-          ),
-        )
+          ],
+        ),
       ],
     );
 
@@ -260,6 +218,7 @@ class _ViewHomeState extends State<ViewHome> {
 
     return Container(
       child: ListBoxT.Columns(
+        crossAxisAlignment: CrossAxisAlignment.center,
         spacing: 6 * 10,
         children: [
           titleWidget,

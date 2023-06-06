@@ -24,7 +24,7 @@ class LitTextFieldStyle {
     this.textColor = Colors.black,
     this.color = Colors.grey,
     this.width = 200,
-    this.height = 40,
+    this.height = 28,
     this.textSize = 12,
   });
 }
@@ -41,7 +41,6 @@ class LitTextParams {
   final String? value;
   final double? widthLabel;
   final double? width;
-  final double? height;
   final double? textSize;
   final String? hint;
   final bool expand;
@@ -57,7 +56,6 @@ class LitTextParams {
   /// [value] 텍스트 필드의 초기 값을 설정하는 매개변수입니다.
   /// [widthLabel] 라벨의 너비를 설정하는 매개변수입니다.
   /// [width] 텍스트 필드의 너비를 설정하는 매개변수입니다.
-  /// [height] 텍스트 필드의 높이를 설정하는 매개변수입니다.
   /// [textSize] 텍스트의 크기를 설정하는 매개변수입니다.
   /// [hint] 텍스트 필드의 힌트 텍스트를 설정하는 매개변수입니다.
   /// [expand] 텍스트 필드가 확장되어 가로 공간을 채울지 여부를 지정하는 매개변수입니다.
@@ -70,7 +68,6 @@ class LitTextParams {
     this.value,
     this.widthLabel,
     this.width,
-    this.height,
     this.textSize,
     this.hint,
     this.expand = false,
@@ -106,7 +103,6 @@ class LitTextInput extends StatefulWidget {
 /// _LitTextInputState 은 LitTextInput의 상태관리 클래스 입니다.
 class _LitTextInputState extends State<LitTextInput> {
   final textInputs = TextEditingController();
-  var isActive = false;
 
   @override
   void dispose() {
@@ -120,7 +116,6 @@ class _LitTextInputState extends State<LitTextInput> {
   /// [params] 텍스트 필드의 파라미터를 설정하는 매개변수입니다.
   /// [style] 텍스트 필드의 스타일을 설정하는 매개변수입니다.
   Widget litTextWidget(LitTextParams params, LitTextFieldStyle style) {
-    isActive = true;
     textInputs.text = params.value ?? params.text ?? '';
 
     var textStyle = TextStyle(
@@ -135,7 +130,7 @@ class _LitTextInputState extends State<LitTextInput> {
           borderRadius: BorderRadius.all(Radius.circular(8)),
           child: Container(
             width: params.width ?? style.width,
-            height: params.height ?? style.height,
+            height: params.isMultiLine ? null : style.height,
             color: style.color.withOpacity(0.15),
             child: TextFormField(
               autofocus: false,
@@ -144,14 +139,10 @@ class _LitTextInputState extends State<LitTextInput> {
               cursorRadius: Radius.elliptical(4, 4),
               style: textStyle,
               maxLines: params.isMultiLine ? null : 1,
-              textInputAction: params.isMultiLine
-                  ? TextInputAction.newline
-                  : TextInputAction.go,
-              keyboardType: params.isMultiLine
-                  ? TextInputType.multiline
-                  : TextInputType.none,
+              textInputAction: params.isMultiLine ? TextInputAction.newline : TextInputAction.go,
+              keyboardType: params.isMultiLine ? TextInputType.multiline : TextInputType.none,
+
               onEditingComplete: () {
-                isActive = false;
                 if (params.onEdited != null) {
                   params.onEdited!(textInputs.text);
                 }
@@ -182,6 +173,13 @@ class _LitTextInputState extends State<LitTextInput> {
 
     Widget w = const SizedBox();
     w = buildInputWidget();
+
+    w = Focus(onFocusChange: (change) {
+      if (params.onEdited != null) {
+        params.onEdited!(textInputs.text);
+      }
+      setState(() {});
+    }, child: w,);
 
     if (params.expand) w = Expanded(child: w);
 
@@ -311,6 +309,7 @@ class _LitInputState extends State<LitInput> {
 
   @override
   Widget build(BuildContext context) {
+    _controller.text = widget.text ?? widget.value ?? "";
 
     Widget inputWidget = Container(
       width: widget.width ?? double.maxFinite,
