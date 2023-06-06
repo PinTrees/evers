@@ -31,11 +31,13 @@ class Article {
   var state = '';
   var version='';
 
+  var board = '';
   var type = '';
 
   var title = '';
   var desc = '';
 
+  var json = '';
   var url = '';
   var thumbnail = '';
 
@@ -47,11 +49,13 @@ class Article {
     id = json['id'] ?? '';
     state = json['state'] ?? '';
     type = json['type'] ?? '';
+    board = json['board'] ?? "";
     version = json['version'] ?? '';
 
     title = json["title"] ?? "";
     desc = json["desc"] ?? "";
 
+    this.json = json["json"] ?? "";
     url = json["url"] ?? '';
     thumbnail = json["thumbnail"] ?? '';
 
@@ -65,10 +69,12 @@ class Article {
       'state' : state,       // D,
       'type' : type,       // P 매입, R 매출, F 동결,
       'version': version,
+      "board" : board,
 
       "title": title,
       "desc": desc,
 
+      "json": json,
       "url": url,
       "thumbnail": thumbnail,
 
@@ -87,38 +93,264 @@ class Article {
     }
   }
 
-  dynamic update({ required String data }) async {
+  dynamic update({ required String json, }) async {
     var create = false;
 
     if(id == '')  { create = true; }
     if(create) await createUID();
     if(id == '') return false;
 
-    var url = await StorageHub.updateFile("contents/$type/article", "ATC", utf8.encoder.convert(data), id + ".json");
-    if(url != null) this.url = url;
+    if(create) createAt = DateTime.now().microsecondsSinceEpoch;
+    else updateAt = DateTime.now().microsecondsSinceEpoch;
 
-    var imageList = data.split("<img src=\"data:image/webp;base64,");
-    if(imageList.length > 1) {
-      var thumbData = imageList[1].split('">').first;
-      var thumb = await StorageHub.updateFile("contents/$type/article", "ATC_THUMB", base64Decode(thumbData), id + ".png");
-      if(thumb != null) this.thumbnail = thumb;
+    url = await StorageHub.updateFile("contents/board", "", Uint8List.fromList(json.codeUnits), "$id.json");
+    this.json = json;
+
+    if(json.contains("{\"image\":\"")) {
+      thumbnail = json.split("{\"image\":\"").last.split("\"}").first;
     }
 
-    /// 테스트 필요
     /// 메인문서 기록
-    Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
     var db = FirebaseFirestore.instance;
-    final docRef = db.collection("contents/$type/article").doc(id);
+    final docRef = db.collection("contents/board/article").doc(id);
 
     /// 매입 트랜잭션을 수행합니다.
     return await db.runTransaction((transaction) async {
       Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
       final docRefSn = await transaction.get(docRef);
 
-      /// 트랜잭션 내부
-      if(create && docRefSn.exists) return false;
       if(docRefSn.exists) transaction.update(docRef, toJson());
       else transaction.set(docRef, toJson());
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated!"); return true; },
+        onError: (e) { print("Error update article() $e"); return false; }
+    );
+  }
+
+
+
+
+  dynamic delete() async {
+    if(id == '')  { return false; }
+
+    await StorageHub.deleteFile("contents/board", "", "$id.json");
+
+    /// 메인문서 기록
+    var db = FirebaseFirestore.instance;
+    final docRef = db.collection("contents/board/article").doc(id);
+
+    /// 매입 트랜잭션을 수행합니다.
+    return await db.runTransaction((transaction) async {
+      final docRefSn = await transaction.get(docRef);
+
+      if(docRefSn.exists) transaction.delete(docRef);
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated!"); return true; },
+        onError: (e) { print("Error update article() $e"); return false; }
+    );
+  }
+}
+
+
+
+
+class PageArticle {
+  var id = '';
+  var state = '';
+  var version='';
+
+  var type = '';
+
+  var title = '';
+  var json = '';
+
+  var url = '';
+  var thumbnail = '';
+
+  var writer = '';
+  var updateAt = 0;
+  var createAt = 0;
+
+  PageArticle.fromDatabase(Map<dynamic, dynamic> json) {
+    id = json['id'] ?? '';
+    state = json['state'] ?? '';
+    type = json['type'] ?? '';
+    version = json['version'] ?? '';
+
+    title = json["title"] ?? "";
+    this.json = json["json"] ?? "";
+
+    url = json["url"] ?? '';
+    thumbnail = json["thumbnail"] ?? '';
+
+    writer = json['writer'] ?? '';
+    updateAt = json['updateAt'] ?? 0;
+    createAt = json['createAt'] ?? 0;
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'id' : id,
+      'state' : state,       // D,
+      'type' : type,       // P 매입, R 매출, F 동결,
+      'version': version,
+
+      "title": title,
+      "json": json,
+
+      "url": url,
+      "thumbnail": thumbnail,
+
+      "writer": writer,
+      "updateAt": updateAt,
+      "createAt": createAt,
+    };
+  }
+
+
+  dynamic update({ required String code, required String json }) async {
+    url = await StorageHub.updateFile("contents/page", "", Uint8List.fromList(json.codeUnits), "$code.json");
+    this.json = json;
+
+    /// 메인문서 기록
+    var db = FirebaseFirestore.instance;
+    final docRef = db.collection("contents/page/article").doc(code);
+
+    /// 매입 트랜잭션을 수행합니다.
+    return await db.runTransaction((transaction) async {
+      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
+      final docRefSn = await transaction.get(docRef);
+
+      if(docRefSn.exists) transaction.update(docRef, toJson());
+      else transaction.set(docRef, toJson());
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated!"); return true; },
+        onError: (e) { print("Error update article() $e"); return false; }
+    );
+  }
+}
+
+
+
+
+/// 품목 작업 이동 기록 데이터 클래스
+///
+/// @Create YM
+/// @Update YM 23.04.10
+/// @Version 1.1.0
+class ShopArticle {
+  var id = '';
+  var productId = '';
+  var state = '';
+
+  var group = '';
+
+  var name = '';
+  var desc = '';
+
+  var json = '';
+  var url = '';
+  var thumbnail = [];
+
+  var maxBuyCount = 0;
+  var price = 0;
+
+  var writer = '';
+  var updateAt = 0;
+  var createAt = 0;
+
+  ShopArticle.fromDatabase(Map<dynamic, dynamic> json) {
+    id = json['id'] ?? '';
+    productId = json['productId'] ?? '';
+    state = json['state'] ?? '';
+    group = json['group'] ?? '';
+
+    name = json["name"] ?? "";
+    desc = json["desc"] ?? "";
+
+    this.json = json["json"] ?? "";
+    url = json["url"] ?? '';
+    thumbnail = json["thumbnail"] ?? '';
+
+    writer = json['writer'] ?? '';
+    updateAt = json['updateAt'] ?? 0;
+    createAt = json['createAt'] ?? 0;
+  }
+  Map<String, dynamic> toJson() {
+    return {
+      'id' : id,
+      'productId' : productId,
+      'state' : state,       // D,
+      'group' : group,       // P 매입, R 매출, F 동결,
+
+      "name": name,
+      "desc": desc,
+
+      "json": json,
+      "url": url,
+      "thumbnail": thumbnail,
+
+      "writer": writer,
+      "updateAt": updateAt,
+      "createAt": createAt,
+    };
+  }
+
+
+  /// 매우 엄격한 유일성 검사 중요도 낮음
+  /// 무작위 16바이트 문자열
+  dynamic createUID() async {
+    if(id == '') {
+      id = SystemT.generateRandomString(16);
+    }
+  }
+
+  dynamic update({ required String json, required List<Uint8List> thumbs }) async {
+    var create = false;
+
+    if(id == '')  { create = true; }
+    if(create) await createUID();
+    if(id == '') return false;
+
+    if(create) createAt = DateTime.now().microsecondsSinceEpoch;
+    else updateAt = DateTime.now().microsecondsSinceEpoch;
+
+    url = await StorageHub.updateFile("shopItem", "", Uint8List.fromList(json.codeUnits), "$id.json");
+    this.json = json;
+
+    /// 메인문서 기록
+    var db = FirebaseFirestore.instance;
+    final docRef = db.collection("shopItem/").doc(id);
+
+    /// 매입 트랜잭션을 수행합니다.
+    return await db.runTransaction((transaction) async {
+      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
+      final docRefSn = await transaction.get(docRef);
+
+      if(docRefSn.exists) transaction.update(docRef, toJson());
+      else transaction.set(docRef, toJson());
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated!"); return true; },
+        onError: (e) { print("Error update article() $e"); return false; }
+    );
+  }
+
+
+
+
+  dynamic delete() async {
+    if(id == '')  { return false; }
+
+    await StorageHub.deleteFile("contents/board", "", "$id.json");
+
+    /// 메인문서 기록
+    var db = FirebaseFirestore.instance;
+    final docRef = db.collection("contents/board/article").doc(id);
+
+    /// 매입 트랜잭션을 수행합니다.
+    return await db.runTransaction((transaction) async {
+      final docRefSn = await transaction.get(docRef);
+
+      if(docRefSn.exists) transaction.delete(docRef);
     }).then(
             (value) { print("DocumentSnapshot successfully updated!"); return true; },
         onError: (e) { print("Error update article() $e"); return false; }

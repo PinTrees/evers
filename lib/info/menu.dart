@@ -11,6 +11,8 @@ import '../class/user.dart';
 /// ERP 메인 메뉴 목록입니다.
 enum ERPMenuInfo {
   /// pathName, displayName and menuKey, IconData
+  homepage("homepage", "홈페이지", Icons.web, [ ERPSubMenuInfo.pageEditor, ERPSubMenuInfo.communityEditor, ERPSubMenuInfo.shopEditor ]),
+
   home("home", '홈', Icons.home, [ ERPSubMenuInfo.schedule ]),
   customer("customer", '고객관리', Icons.gavel, [ ERPSubMenuInfo.customer, ERPSubMenuInfo.contract ]),
   revenuePurchase("revenuePurchase", "매입매출", Icons.input, [ ERPSubMenuInfo.revenuePurchase, ERPSubMenuInfo.payment ]),
@@ -58,6 +60,11 @@ enum ERPMenuInfo {
 /// ERP 메인메뉴 1차 하위메뉴 목록입니다.
 enum ERPSubMenuInfo {
   /// pathName, displayName and menuKey, IconData
+
+  /// 홈페이지관리 하위메뉴
+  pageEditor("pageEditor", "홈페이지관리", Icons.restore_page_sharp),
+  communityEditor("community", "커뮤니티관리", Icons.comment),
+  shopEditor("shopping", "제품관리", Icons.shopping_bag_outlined),
 
   /// 고객관리 하위메누
   customer("customer", '고객관리', Icons.support_agent),
@@ -131,7 +138,8 @@ enum NavigationMenuInfo {
   salarySystem('9', ERPSubMenuInfo.employeeM, Icons.contact_mail, [ PermissionType.isContractRead ]),
   schedule('10', ERPSubMenuInfo.schedule, Icons.schedule, [ ] ),
   userSetting('11', ERPSubMenuInfo.userSetting, Icons.verified_user, [ PermissionType.isUserRead ]),
-  updatelog('12', ERPSubMenuInfo.update, Icons.update, [ PermissionType.isUserWrite ]);
+  updatelog('12', ERPSubMenuInfo.update, Icons.update, [ PermissionType.isUserWrite ]),
+  homepage('13', ERPSubMenuInfo.pageEditor, Icons.update, []);
 
 
   const NavigationMenuInfo(this.code, this.menu, this.icon, this.permissions);
@@ -157,7 +165,7 @@ enum NavigationMenuInfo {
 enum HomeMainMenu {
   home("home", "홈", Icons.new_label_rounded, []),
   info("info", '소개', Icons.insert_drive_file_outlined, [ HomeSubMenu.greetings, HomeSubMenu.history ]),
-  community("community", "소식", Icons.add_box, [ HomeSubMenu.news, HomeSubMenu.eversStore ]),
+  community("community", "소식", Icons.add_box, [ HomeSubMenu.news, HomeSubMenu.eversStory ]),
   technology("technology", '동결건조', Icons.pages_sharp, [ HomeSubMenu.freezeDrying, ]),
   product("product", "제품", Icons.production_quantity_limits, [ HomeSubMenu.meogkkun ]),
   store("store", "판매 사이트", Icons.storefront_outlined, [ HomeSubMenu.store, HomeSubMenu.naverStore]);
@@ -185,7 +193,7 @@ enum HomeSubMenu {
 
   /// 소식
   news('news', "새소식", Icons.newspaper, []),
-  eversStore('story', "먹꾼 이야기", Icons.work_history_sharp, []),
+  eversStory('story', "먹꾼 이야기", Icons.work_history_sharp, []),
 
   /// 동결건조기술
   freezeDrying("freezeDrying", '동결건조기술', Icons.biotech, [ ]),

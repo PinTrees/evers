@@ -225,21 +225,29 @@ class LitInputStyle {
   Color? focusedBorderColor;
   Color? fillColor;
   final Color hintColor;
-  EdgeInsets? contentPadding;
+  final double textSize;
+  EdgeInsets? margin;
+  EdgeInsets? padding;
   final double borderRadius;
   final double borderWidth;
   final double hintFontSize;
   final FontWeight hintFontWeight;
+  final String? hint;
+  final double? height;
 
   LitInputStyle({
     this.enabledBorderColor = Colors.transparent,
     this.focusedBorderColor,
     this.fillColor,
+    this.hint = "",
+    this.height,
     this.hintColor = Colors.grey,
-    this.contentPadding,
+    this.margin = const  EdgeInsets.only(left: 3, right: 3),
+    this.padding = EdgeInsets.zero,
     this.borderRadius = 6,
     this.borderWidth = 1.4,
     this.hintFontSize = 12,
+    this.textSize = 12.0,
     this.hintFontWeight = FontWeight.normal,
   }) {}
 }
@@ -253,9 +261,7 @@ class LitInput extends StatefulWidget {
   final String? value;
   final Color? textColor;
   final double? width;
-  final double? height;
   final double? textSize;
-  final String? hint;
   final bool expand;
   final bool isMultiLine;
   final LitInputStyle? style;
@@ -268,9 +274,7 @@ class LitInput extends StatefulWidget {
         this.value,
         this.textColor,
         this.width,
-        this.height,
         this.textSize,
-        this.hint,
         this.expand = false,
         this.isMultiLine = false,
         this.style,
@@ -310,8 +314,13 @@ class _LitInputState extends State<LitInput> {
 
     Widget inputWidget = Container(
       width: widget.width ?? double.maxFinite,
-      height: widget.isMultiLine ? widget.height : 28,
+      height: widget.isMultiLine ? null : style.textSize == 12 ? 28 : widget.style!.height,
+      padding: style.margin,
+
       child: TextFormField(
+        style: TextStyle(
+          fontSize: widget.style!.textSize,
+        ),
         autofocus: true,
         maxLines: widget.isMultiLine ? 10 : 1,
         textInputAction: widget.isMultiLine
@@ -324,9 +333,7 @@ class _LitInputState extends State<LitInput> {
           if (widget.onEdited != null) {
             await widget.onEdited!(_controller.text);
           }
-          if (widget.setState != null) {
-            await widget.setState!();
-          }
+          setState(() {});
         },
         decoration: InputDecoration(
           enabledBorder: OutlineInputBorder(
@@ -345,12 +352,12 @@ class _LitInputState extends State<LitInput> {
           ),
           filled: true,
           fillColor: style.fillColor,
-          hintText: widget.hint ?? '',
+          hintText: widget.style!.hint ?? '',
           hintStyle: TextStyle(
             fontSize: style.hintFontSize,
             fontWeight: style.hintFontWeight,
           ),
-          contentPadding: style.contentPadding,
+          contentPadding: style.padding,
         ),
         controller: _controller,
       ),
@@ -364,34 +371,29 @@ class _LitInputState extends State<LitInput> {
             await widget.onEdited!(_controller.text);
           }
         }
-        if (widget.setState != null) {
-          await widget.setState!();
-        }
+        setState(() {});
       },
       child: inputWidget,
     );
 
     Widget wrapperWidget = Container(
-      height: widget.height ?? 28,
+      height: style.textSize == 12 ? 28 : widget.style!.height,
       width: widget.width ?? double.maxFinite,
-      padding: EdgeInsets.only(left: 3, right: 3),
+      padding: style.margin,
       child: InkWell(
         onFocusChange: (hasFocus) async {
           isActive = true;
           _controller.text = widget.value ?? widget.text ?? '';
-          if (widget.setState != null) {
-            await widget.setState!();
-          }
+          setState(() {});
         },
         onTap: () async {
           isActive = true;
           _controller.text = widget.value ?? widget.text ?? '';
-          if (widget.setState != null) {
-            await widget.setState!();
-          }
+          setState(() {});
         },
         child: Container(
-          alignment: widget.alignment ?? Alignment.center,
+          alignment: widget.alignment ?? Alignment.centerLeft,
+          padding: style.padding,
           decoration: StyleT.inkStyle(
             color: Colors.grey.withOpacity(0.15),
             round: 8,
@@ -404,10 +406,10 @@ class _LitInputState extends State<LitInput> {
               SizedBox(width: 4),
               TextT.Lit(
                 text: widget.text != null && widget.text!.isEmpty
-                    ? widget.hint ?? '텍스트 입력'
+                    ? widget.style!.hint
                     : widget.text!,
                 color: StyleT.titleColor,
-                size: 12,
+                size: widget.style!.textSize,
               ),
             ],
           ),

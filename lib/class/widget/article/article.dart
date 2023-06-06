@@ -3,7 +3,7 @@ import 'package:evers/class/system/state.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/page/view/home/view_article.dart';
 import 'package:flutter/material.dart';
-import '../../helper/style.dart';
+import '../../../helper/style.dart';
 
 
 

@@ -8,6 +8,7 @@ import 'package:evers/page/view/home/view_freezedrying.dart';
 import 'package:evers/page/view/home/view_greetings.dart';
 import 'package:evers/page/view/home/view_history.dart';
 import 'package:evers/page/view/home/view_home.dart';
+import 'package:evers/page/view/home/view_meokkun_story.dart';
 import 'package:evers/page/view/home/view_news.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -39,8 +40,6 @@ class _HomePageState extends State<HomePage> {
   Widget drawer = SizedBox();
   Widget main = SizedBox();
 
-  ContextData contextData = ContextData();
-
   bool isExpanded = false;
 
   @override
@@ -53,7 +52,7 @@ class _HomePageState extends State<HomePage> {
   dynamic initAsync() async {
     /// 메디아 쿼리값 오류 제거
     await Future.delayed(const Duration(milliseconds: 2), () {});
-    contextData = ContextData(context: context);
+    ContextData(context: context);
 
     if(widget.url != "") {
       currentMenu = HomeMainMenu.getByCode(widget.url);
@@ -79,7 +78,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget mainBuild() {
     print("mainBuild");
-    contextData.Init();
+    ContextData.Init();
 
     if(isExpanded) { drawer = buildSideNavigation(); }
     else { drawer = const SizedBox(); }
@@ -134,10 +133,10 @@ class _HomePageState extends State<HomePage> {
             bottomWidget: bottomWidget
         );
       }
-      else if(currentSubMenu == HomeSubMenu.eversStore) {
+      else if(currentSubMenu == HomeSubMenu.eversStory) {
         main = PageWidget.Home(
             children: [
-              ViewHistory(),
+              ViewStory(),
             ],
             bottomWidget: bottomWidget
         );
@@ -198,7 +197,7 @@ class _HomePageState extends State<HomePage> {
 
     Widget w = const SizedBox();
 
-    if(contextData.isMobile) { w = buildBottomMenuMobile(); }
+    if(ContextData.isMobile) { w = buildBottomMenuMobile(); }
     else { w = Container(
       padding: EdgeInsets.only(left: 28, right: 28),
       child: Column(
@@ -350,7 +349,7 @@ class _HomePageState extends State<HomePage> {
       children: [
         Container(
           padding: EdgeInsets.fromLTRB(18, 6, 18, 12),
-          width: contextData.width * 0.7,
+          width: ContextData.width * 0.7,
           color: Colors.white,
           child: ListBoxT.Columns(
             spacingWidget: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),
@@ -584,7 +583,7 @@ class _HomePageState extends State<HomePage> {
 
 
   Widget buildTitleBar() {
-    if (contextData.isMobile) {
+    if (ContextData.isMobile) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [

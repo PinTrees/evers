@@ -23,4 +23,23 @@ class Messege {
 
     return ret;
   }
+
+  static void show(BuildContext context, String text) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          //width: 380,
+          //elevation: 18,
+          //behavior: SnackBarBehavior.floating,
+          //backgroundColor: Colors.redAccent,
+          content: Text(text),
+          duration: Duration(seconds: 3), //올라와있는 시간
+          action: SnackBarAction(
+            label: 'Undo',
+            onPressed: (){},
+          ),
+        )
+    );
+  }
+
 }

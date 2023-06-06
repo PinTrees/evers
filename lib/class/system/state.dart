@@ -3,10 +3,12 @@ import 'dart:ui';
 
 import 'package:evers/class/system.dart';
 import 'package:evers/helper/firebaseCore.dart';
+import 'package:evers/page/window/window_article_create.dart';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
 import 'package:evers/page/window/window_ledger_revenue.dart';
 import 'package:evers/page/window/window_ledger_revenue_create.dart';
+import 'package:evers/page/window/window_pageA_create.dart';
 import 'package:evers/page/window/window_paper_product.dart';
 import 'package:evers/page/window/window_process_create.dart';
 import 'package:evers/page/window/window_process_info.dart';
@@ -88,6 +90,8 @@ class UIState {
     if(window is WindowCsCreate) isFixedHeight = true;
     if(window is WindowItemTS) isFixedHeight = false;
     if(window is WindowLedgerReCreate) isFixedHeight = true;
+    if(window is WindowArticleCreate) isFixedHeight = true;
+    if(window is WindowPageACreate) isFixedHeight = true;
     //if(window is WindowFactoryCreate) isFixedHeight = true;
 
     mdiController!.addWindow(context, widget: window, resizableWindow: parent, fixedHeight: isFixedHeight);

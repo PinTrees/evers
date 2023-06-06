@@ -1,15 +1,21 @@
-/*
 library universal_ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:evers/class/widget/youtube.dart';
+import 'package:evers/core/context_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:universal_html/html.dart' as html;
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import 'responsive_widget.dart';
 import 'fake_ui.dart' if (dart.library.html) 'real_ui.dart' as ui_instance;
+
+
+
+/// Web 페이지의 Quill 디자인
 
 class PlatformViewRegistryFix {
   void registerViewFactory(dynamic x, dynamic y) {
@@ -37,12 +43,7 @@ class ImageEmbedBuilderWeb extends EmbedBuilder {
       BuildContext context,
       QuillController controller,
       Embed node,
-      bool readOnly,
-      */
-/*bool inline,
-      TextStyle textStyle,*//*
-
-      ) {
+      bool readOnly,) {
     final imageUrl = node.value.data;
     if (isImageBase64(imageUrl)) {
       // TODO: handle imageUrl of base64
@@ -55,23 +56,15 @@ class ImageEmbedBuilderWeb extends EmbedBuilder {
         ..style.height = 'auto'
         ..style.width = 'auto';
     });
-    return Padding(
-      padding: EdgeInsets.only(
-        right: ResponsiveWidget.isMediumScreen(context)
-            ? size.width * 0.5
-            : (ResponsiveWidget.isLargeScreen(context))
-            ? size.width * 0.75
-            : size.width * 0.2,
-      ),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.45,
-        child: HtmlElementView(
-          viewType: imageUrl,
-        ),
-      ),
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.45,
+      width: double.maxFinite,
+      child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain,),
     );
   }
 }
+
 
 class VideoEmbedBuilderWeb extends EmbedBuilder {
   @override
@@ -83,18 +76,8 @@ class VideoEmbedBuilderWeb extends EmbedBuilder {
       QuillController controller,
       Embed node,
       bool readOnly,
-      */
-/*bool inline,
-      TextStyle textStyle,*//*
-
       ) {
     var videoUrl = node.value.data;
-    if (videoUrl.contains('youtube.com') || videoUrl.contains('youtu.be')) {
-      final youtubeID = YoutubePlayer.convertUrlToId(videoUrl);
-      if (youtubeID != null) {
-        videoUrl = 'https://www.youtube.com/embed/$youtubeID';
-      }
-    }
 
     UniversalUI().platformViewRegistry.registerViewFactory(
         videoUrl,
@@ -105,15 +88,15 @@ class VideoEmbedBuilderWeb extends EmbedBuilder {
           ..style.border = 'none');
 
     return SizedBox(
-      height: 500,
-      child: HtmlElementView(
-        viewType: videoUrl,
-      ),
+        height: MediaQuery.of(context).size.height * 0.45,
+      child: YoutubeContainer(style: YoutubeStyle(padding: EdgeInsets.all(18)),
+      params: YoutubeParams(url: videoUrl),)
     );
   }
 }
 
+
 List<EmbedBuilder> get defaultEmbedBuildersWeb => [
   ImageEmbedBuilderWeb(),
   VideoEmbedBuilderWeb(),
-];*/
+];

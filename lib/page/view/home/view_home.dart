@@ -5,7 +5,7 @@ import 'package:evers/class/component/comp_process.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/database/article.dart';
-import 'package:evers/class/widget/article.dart';
+import 'package:evers/class/widget/article/article.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/text.dart';
@@ -81,8 +81,7 @@ class _ViewHomeState extends State<ViewHome> {
 
   /// 비동기 초기화자 입니다. 추후 인터페이스로 재구현 되어야 합니다.
   dynamic initAsync() async {
-    articleList = await DatabaseM.getArticleNews();
-    articleList.insert(0, articleList.first);
+    articleList = await DatabaseM.getArticleWithCode("8HGb2ghAvOJcjuEd");
     setState(() {});
   }
 
@@ -249,11 +248,11 @@ class _ViewHomeState extends State<ViewHome> {
 
     var infoVideo = Column(
       children: [
-        TextT.Lit(text: "에버스 소개", color: Colors.black, size: 24, bold: true),
+      /*  TextT.Lit(text: "에버스 소개", color: Colors.black, size: 24, bold: true),
         SizedBox(height: 6 * 4,),
         VideoContainer(style: VideoStyle(aspectRatio: 16 / 9),
         params: VideoParams(url: "https://github.com/PinTrees/evers/raw/main/sever/2023_05_27%2019_32.mp4"),),
-        //YoutubeContainer(style: YoutubeStyle(padding: EdgeInsets.all(padding * 0.7)), params: YoutubeParams(url: youtubeUrl),),
+      */  //YoutubeContainer(style: YoutubeStyle(padding: EdgeInsets.all(padding * 0.7)), params: YoutubeParams(url: youtubeUrl),),
       ],
     );
 

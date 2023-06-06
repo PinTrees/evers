@@ -57,6 +57,35 @@ class DatabaseM {
 
     return articleList;
   }
+  static dynamic getPageArticle(String code) async {
+    PageArticle article = PageArticle.fromDatabase({});
+    var coll = await FirebaseFirestore.instance.collection('contents/page/article').doc(code);
+
+    await coll.get().then((value) async {
+      if(!value.exists) return false;
+      if(value.data() == null) return false;
+      article = PageArticle.fromDatabase(value.data() as Map);
+    });
+
+    return article;
+  }
+  static dynamic getArticleWithCode(String code) async {
+    List<Article> article = [];
+    var coll = await FirebaseFirestore.instance.collection('contents/board/article');
+
+    await coll.orderBy('createAt', descending: true).where("board", whereIn: [ code ]) .limit(10).get().then((value) async {
+      if(value.docs.isEmpty) return false;
+      value.docs.forEach((e) {
+        if(!e.exists) return;
+        if(e.data() == null) return;
+        article.add(Article.fromDatabase(e.data() as Map));
+      });
+    });
+
+    return article;
+  }
+
+
 
 
   static dynamic updateEmployee(Employee data,
