@@ -34,6 +34,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  ScrollController scrollController = ScrollController();
+
   HomeMainMenu currentMenu = HomeMainMenu.home;
   HomeSubMenu currentSubMenu = HomeSubMenu.greetings;
 
@@ -64,6 +66,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void refreshPage(HomeMainMenu m, HomeSubMenu s) async {
+    scrollController.animateTo(0, duration: Duration(seconds: 1), curve: Curves.ease);
+
     if(!Version.checkVersion()) {
       var url = Uri.base.toString().split('home').first + 'home/${currentMenu.code}/${currentSubMenu.code}';
       await launchUrl( Uri.parse(url),   webOnlyWindowName: '_self', );
@@ -77,12 +81,13 @@ class _HomePageState extends State<HomePage> {
 
 
   Widget mainBuild() {
-    print("mainBuild");
     ContextData.Init();
 
     if(isExpanded) { drawer = buildSideNavigation(); }
     else { drawer = const SizedBox(); }
-    
+
+    Widget view = Container();
+
     var bottomWidget = Column(
       children: [
         WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.3)),
@@ -99,69 +104,43 @@ class _HomePageState extends State<HomePage> {
     );
 
     if(currentMenu == HomeMainMenu.home) {
-      main = PageWidget.Home(
-          children: [
-            ViewHome(),
-          ],
-          bottomWidget: bottomWidget
-      );
+      view = ViewHome();
     }
     else if(currentMenu == HomeMainMenu.info) {
       if(currentSubMenu == HomeSubMenu.greetings) {
-        main = PageWidget.Home(
-          children: [
-            ViewGreetings(),
-          ],
-          bottomWidget: bottomWidget
-        );
+        view = ViewGreetings();
       }
       else if(currentSubMenu == HomeSubMenu.history) {
-        main = PageWidget.Home(
-            children: [
-              ViewHistory(),
-            ],
-            bottomWidget: bottomWidget
-        );
+        view = ViewHistory();
       }
     }
     else if(currentMenu == HomeMainMenu.community) {
       if(currentSubMenu == HomeSubMenu.news) {
-        main = PageWidget.Home(
-            children: [
-              ViewNews(),
-            ],
-            bottomWidget: bottomWidget
-        );
+        view = ViewNews();
       }
       else if(currentSubMenu == HomeSubMenu.eversStory) {
-        main = PageWidget.Home(
-            children: [
-              ViewStory(),
-            ],
-            bottomWidget: bottomWidget
-        );
+        view = view = ViewStory();
       }
     }
     else if(currentMenu == HomeMainMenu.technology) {
       if(currentSubMenu == HomeSubMenu.freezeDrying) {
-        main = PageWidget.Home(
-            children: [
-              ViewFreezeDrying(),
-            ],
-            bottomWidget: bottomWidget
-        );
+        view = ViewFreezeDrying();
       }
     }
     else if(currentMenu == HomeMainMenu.product) {
       if(currentSubMenu == HomeSubMenu.meogkkun) {
-        main = PageWidget.Home(
-            children: [
-              ViewMeogkkun(),
-            ],
-            bottomWidget: bottomWidget
-        );
+        view = ViewMeogkkun();
       }
     }
+
+
+    main = PageWidget.Home(
+        controller: scrollController,
+        children: [
+          view,
+        ],
+        bottomWidget: bottomWidget
+    );
 
     return main;
   }
@@ -479,7 +458,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget buildMainMenu() {
+  Widget buildTitleBarWin() {
     List<Widget> mainWidgets = [];
 
     for(var m in HomeMainMenu.values) {
@@ -511,7 +490,8 @@ class _HomePageState extends State<HomePage> {
           ButtonImage(style: ButtonImageStyle(imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor.png", height: 28), params: ButtonTParams(
               onTap: () async {
                 currentMenu = HomeMainMenu.home;
-                setState(() {});
+                currentSubMenu = HomeSubMenu.home;
+                refreshPage(currentMenu, currentSubMenu);
               }
           ),),
           Expanded(child: SizedBox()),
@@ -528,7 +508,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  Widget buildMainMenuMobile() {
+  Widget buildTitleBarMobile() {
     List<Widget> mainWidgets = [];
     for(var m in HomeMainMenu.values) {
       if(m.subMenus.isEmpty) continue;
@@ -567,7 +547,8 @@ class _HomePageState extends State<HomePage> {
           ButtonImage(style: ButtonImageStyle(imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor.png", height: 28), params: ButtonTParams(
               onTap: () async {
                 currentMenu = HomeMainMenu.home;
-                setState(() {});
+                currentSubMenu = HomeSubMenu.home;
+                refreshPage(currentMenu, currentSubMenu);
               }
           ),),
 
@@ -580,14 +561,12 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-
   Widget buildTitleBar() {
     if (ContextData.isMobile) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          buildMainMenuMobile(),
+          buildTitleBarMobile(),
           Container(color: Colors.white, child: WidgetT.dividHorizontal(size: 2, color: Colors.grey.withOpacity(0.3)),),
         ],
       );
@@ -605,7 +584,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            buildMainMenu(),
+            buildTitleBarWin(),
             Container(color: Colors.white, child: WidgetT.dividHorizontal(size: 1.4, color: Colors.grey.withOpacity(0.3)),),
             if (isMouseOver) buildSubMenu(),
           ],

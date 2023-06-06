@@ -11,6 +11,8 @@ import 'package:go_router/go_router.dart';
 import 'package:pdf_render/pdf_render_widgets.dart';
 
 import '../helper/pdf_view.dart';
+import '../page/erp/view/homepage/view_shopitem.dart';
+import '../page/homepage/page_shopItem.dart';
 
 final GoRouter router = GoRouter(
   errorBuilder: (context, state) => Container(width: 500, height: 500, color: Colors.red,),
@@ -41,6 +43,12 @@ final GoRouter router = GoRouter(
           builder: (BuildContext context, GoRouterState state) {
             return HomePage(url: state.pathParameters['id'] ?? "e",
               subUrl: state.pathParameters['id1'] ?? "e",);
+          },
+        ),
+        GoRoute(
+          path: 'shopItem/:id',
+          builder: (BuildContext context, GoRouterState state) {
+            return PageShopItem(id: state.pathParameters['id'] ?? "");
           },
         ),
         GoRoute(

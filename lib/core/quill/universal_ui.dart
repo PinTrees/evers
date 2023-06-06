@@ -58,12 +58,14 @@ class ImageEmbedBuilderWeb extends EmbedBuilder {
     });
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.45,
-      width: double.maxFinite,
-      child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.contain,),
+      padding: EdgeInsets.only(left: 6, right: 6),
+      /*height: MediaQuery.of(context).size.height * 0.45,
+      width: double.maxFinite,*/
+      child: CachedNetworkImage(imageUrl: imageUrl, fit: BoxFit.cover,),
     );
   }
 }
+
 
 
 class VideoEmbedBuilderWeb extends EmbedBuilder {

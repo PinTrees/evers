@@ -74,6 +74,8 @@ class _ButtonShopItemState extends State<ButtonShopItem> {
   Widget buildMain({required ButtonImageStyle style, }) {
     var w = InkWell(
       onTap: () async {
+        var url = Uri.base.toString().split('home').first + 'shopItem/${shopItem.id}';
+        await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self',);
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -8,6 +8,7 @@ import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/class/widget/textInput.dart';
+import 'package:evers/core/context_data.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
@@ -69,8 +70,6 @@ class _ViewFreezeDryingState extends State<ViewFreezeDrying> {
 
   /// 이 함수는 매인 위젯 빌더입니다.
   Widget mainBuild() {
-    var padding = MediaQuery.of(context).size.width * 0.1;
-
     var titleWidget = Stack(
       alignment: Alignment.center,
       children: [
@@ -98,7 +97,7 @@ class _ViewFreezeDryingState extends State<ViewFreezeDrying> {
     );
 
     var viewWidget = Container(
-      padding: EdgeInsets.all(padding),
+      padding: ContextData.getPlatformPaddingH(context),
       child: QuillEditor.basic(
         controller: _controller,
         readOnly: true,

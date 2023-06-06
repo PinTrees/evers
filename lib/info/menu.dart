@@ -187,6 +187,9 @@ enum HomeMainMenu {
 
 /// 홈페이지 메인메뉴의 1차 하위메뉴 목록입니다.
 enum HomeSubMenu {
+  /// 메인화면
+  home("home", "홈", Icons.home, []),
+
   /// 소개
   greetings("greetings", '인사말', Icons.waving_hand, [ ]),
   history("history", '걸어온 길', Icons.history_edu, [ ]),

@@ -150,8 +150,10 @@ class PageWidget {
   static Widget Home({
     List<Widget>? children,
     Widget? bottomWidget,
+    ScrollController? controller,
   }) {
     return ListView(
+      controller: controller,
       children: [
         const SizedBox(height: 68,),
         if(children != null) for(var w in children) w,

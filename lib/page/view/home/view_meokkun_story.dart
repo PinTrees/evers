@@ -8,6 +8,7 @@ import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/class/widget/textInput.dart';
+import 'package:evers/core/context_data.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
@@ -89,7 +90,7 @@ class _ViewStoryState extends State<ViewStory> {
     );
 
     var viewWidget = Container(
-      padding: EdgeInsets.all(padding),
+      padding:  ContextData.getPlatformPaddingH(context),
       child: QuillEditor.basic(
         controller: _controller,
         readOnly: true,
