@@ -99,7 +99,18 @@ class DatabaseM {
 
     return article;
   }
+  static dynamic getShopItemDoc(String id) async {
+    ShopArticle? article;
+    var doc = await FirebaseFirestore.instance.collection('shopItem').doc(id);
 
+    await doc.get().then((value) async {
+      if(!value.exists) return false;
+      if(value.data() == null) return false;
+      article = ShopArticle.fromDatabase(value.data() as Map);
+    });
+
+    return article;
+  }
 
 
 

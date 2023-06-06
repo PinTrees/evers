@@ -50,4 +50,14 @@ class ContextData {
 
     return EdgeInsets.fromLTRB(padding, height * 0.1, padding, height * 0.1);
   }
+
+  static double getPlatformSize(BuildContext context) {
+    var width = MediaQuery.of(context).size.width;
+
+    var padding = 0.0;
+    if(width < 800) padding = width * 0.9;
+    else padding = width * 0.8;
+
+    return padding;
+  }
 }

@@ -13,6 +13,7 @@ import 'package:evers/class/widget/youtube.dart';
 import 'package:evers/core/context_data.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
+import 'package:evers/helper/interfaceUI.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/info/menu.dart';
 import 'package:evers/page/window/window_pu_create.dart';
@@ -46,7 +47,7 @@ class PageShopItem extends StatefulWidget {
 
 class _PageShopItemState extends State<PageShopItem> {
   QuillController _controller = QuillController.basic();
-  PageArticle article = PageArticle.fromDatabase({});
+  ShopArticle shopItem = ShopArticle.fromDatabase({});
 
   @override
   void initState() {
@@ -55,9 +56,9 @@ class _PageShopItemState extends State<PageShopItem> {
     initAsync();
   }
   void initAsync() async {
-    article = await DatabaseM.getPageArticle(HomeSubMenu.greetings.code);
+    shopItem = await DatabaseM.getShopItemDoc(widget.id) ?? ShopArticle.fromDatabase({});
     _controller = QuillController(
-      document: Document.fromJson(jsonDecode(article.json)),
+      document: Document.fromJson(jsonDecode(shopItem.json)),
       selection: TextSelection.collapsed(offset: 0),
     );
 
@@ -66,32 +67,8 @@ class _PageShopItemState extends State<PageShopItem> {
 
   /// 이 함수는 매인 위젯 빌더입니다.
   Widget mainBuild() {
-    var titleWidget = Stack(
-      alignment: Alignment.center,
-      children: [
-        Row(
-            children: [
-              Expanded(
-                  child: Container(
-                    height: 380, width: double.maxFinite,
-                    child: CachedNetworkImage(imageUrl:'https://raw.githubusercontent.com/PinTrees/evers/main/sever/DSC03001.JPG.jpg', fit: BoxFit.cover),
-                  )
-              )
-            ]
-        ),
-        Positioned(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              TextT.Lit(text: "에버스 소개", color: Colors.white, bold: true, size: 20),
-              SizedBox(height: 6 * 4,),
-              TextT.Lit(text: "에버스, 건강과 맛을 담은 동결건조 식품의 선택!", color: Colors.white, size: 28),
-            ],
-          ),
-        )
-      ],
-    );
-    var greetingWidget = Container(
+
+    var viewWidget = Container(
       padding:  ContextData.getPlatformPaddingH(context),
       child: QuillEditor.basic(
         controller: _controller,
@@ -103,9 +80,8 @@ class _PageShopItemState extends State<PageShopItem> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        titleWidget,
         SizedBox(height: 6 * 8,),
-        greetingWidget,
+        viewWidget,
         SizedBox(height: 6 * 8,),
       ],
     );
@@ -114,6 +90,108 @@ class _PageShopItemState extends State<PageShopItem> {
 
 
 
+  Widget buildThumb() {
+    if(shopItem == null) return const SizedBox();
+
+    var thumb = Column(
+      children: [
+        Container(
+          height: 500,
+          width: 500,
+          padding: EdgeInsets.all(1),
+          color: Colors.grey.withOpacity(0.5),
+          child: CachedNetworkImage(imageUrl: shopItem.thumbnail.first ?? "", fit: BoxFit.cover,),
+        ),
+        SizedBox(height: 6,),
+        ListBoxT.Rows(
+            spacing: 6,
+            children: [
+              for(var t in shopItem.thumbnail)
+                InkWell(
+                  onTap: () {
+
+                  },
+                  child: Container(
+                    height: 48,
+                    width: 48,
+                    padding: EdgeInsets.all(1),
+                    color: Colors.grey.withOpacity(0.5),
+                    child: CachedNetworkImage(imageUrl: t, fit: BoxFit.cover,),
+                  ),
+                ),
+            ]
+        ),
+      ],
+    );
+
+    var buyWidget = Container(
+      width: 500,
+      child: ListBoxT.Columns(
+        children: [
+          TextT.Lit(text: shopItem.name, size: 24, color: Colors.black),
+          TextT.Lit(text: StyleT.krwInt(shopItem.price) + "원", size: 20, color: Colors.black),
+          SizedBox(height: 6,),
+          WidgetT.dividHorizontal(size: 0.7, color: Colors.grey.withOpacity(0.5)),
+          SizedBox(height: 6,),
+          ListBoxT.Rows(
+            spacing: 6 * 2,
+              children: [
+                TextButton(
+                    onPressed: () async {
+                      if(shopItem.storeUrl == "") {
+                        WidgetT.showSnackBar(context, text: "제품 스토어를 만드는 중이에요.");
+                        return;
+                      }
+                      await launchUrl( Uri.parse(shopItem.storeUrl),   webOnlyWindowName: true ? '_blank' : '_self', );
+                    },
+                    style: StyleT.buttonStyleNone(color: Colors.black, padding: 18),
+                    child: Container(
+                      child: TextT.Lit(text: "제품 구매하기", size: 18, color: Colors.white.withOpacity(0.7)),
+                    )
+                ),
+                TextButton(
+                    onPressed: () async {
+                      if(shopItem.naveStoreUrl == "") {
+                        WidgetT.showSnackBar(context, text: "제품 스토어를 만드는 중이에요.");
+                        return;
+                      }
+                      await launchUrl( Uri.parse(shopItem.naveStoreUrl),   webOnlyWindowName: true ? '_blank' : '_self', );
+                    },
+                    style: StyleT.buttonStyleNone(color: Colors.green.withOpacity(0.7), padding: 18),
+                    child: Container(
+                      child: TextT.Lit(text: "네이버 스토어", size: 18, color: Colors.black.withOpacity(0.7)),
+                    )
+                )
+              ]
+          ),
+        ],
+      ),
+    );
+
+    if(!ContextData.isMobile) {
+      return Container(
+        width: ContextData.getPlatformSize(context),
+        child: ListBoxT.Rows(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              thumb,
+              SizedBox(width: 6 * 4,),
+              buyWidget
+            ]
+        ),
+      );
+    }
+    else {
+      return ListBoxT.Columns(
+          children: [
+            thumb,
+            SizedBox(height: 6 * 4,),
+            buyWidget
+          ]
+      );
+    }
+  }
   Widget buildTitleBar() {
     return Container(
       height: 48,
@@ -142,13 +220,33 @@ class _PageShopItemState extends State<PageShopItem> {
               elevation: 0,
 
               centerTitle: true,
-              title: ButtonImage(style: ButtonImageStyle(height: 32, imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor.png"),
+              title: ButtonImage(style: ButtonImageStyle(height: 32, imageUrl: "https://raw.githubusercontent.com/PinTrees/evers/main/sever/icon_hor_1.jpg"),
                 params: ButtonTParams(),),
+
+              flexibleSpace: Column(
+                children: [
+                  SizedBox(height: 55.3,),
+                  Container(
+                    height: 0.7,
+                    color: Colors.grey.withOpacity(0.5),
+                  ),
+                ],
+              ),
             ),
             SliverList(
               delegate: SliverChildListDelegate(
                 [
-                  mainBuild(),
+                  Container(
+                    padding: EdgeInsets.all(18),
+                    child: Column(
+                      children: [
+                        TextT.Lit(text: "제품 상세 페이지", size: 24, color: Colors.black),
+                        SizedBox(height: 6 * 4,),
+                        buildThumb(),
+                        mainBuild(),
+                      ],
+                    ),
+                  )
                 ],
               ),
             ),
