@@ -17,6 +17,7 @@ import 'package:evers/page/window/window_sch_editor.dart';
 import 'package:evers/page/window/window_shopitem_create.dart';
 import 'package:evers/page/window/window_shopitem_editor.dart';
 import 'package:evers/page/window/window_ts.dart';
+import 'package:evers/page/window/window_ts_create.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:evers/page/window/window_user_create.dart';
 import 'package:flutter/material.dart';
@@ -41,9 +42,11 @@ class MdiController{
     resizableWindow!.fixedHeight = fixedHeight;
 
     if(widget is WindowTSEditor) resizableWindow.title = '수납 개별 상세정보 수정창';
+    if(widget is WindowTsCreateCt) resizableWindow.title = '계약 연결 수납 생성창';
+
     if(widget is WindowCS) resizableWindow.title = '거래처 개별 상세정보창';
     if(widget is WindowCsCreate) resizableWindow.title = "거래처 신규 생성창";
-    if(widget is WindowTsCreate) resizableWindow.title = '수납 개별 상세정보창';
+    if(widget is WindowTsCreate) resizableWindow.title = '수납 생성창';
 
     if(widget is WindowFactoryPaper) resizableWindow.title = '공장일보 생성창';
     if(widget is WindowProductPaper) resizableWindow.title = "생산일보 생성창";
@@ -82,7 +85,7 @@ class MdiController{
     if(ph != null) if(ph > h) pw = h - h * 0.12;
 
     ResizableWindow resizableWindow = ResizableWindow(
-      startWidth: pw ?? w - w * 0.15, startHeight: ph ?? h - h * 0.15,
+      startWidth: pw ?? w - w * 0.15, startHeight: ph ?? h - h * 0.1,
       x: rng.nextDouble() * 100 + 50, y: rng.nextDouble() * 50 + 50,
       title: '-',
     );

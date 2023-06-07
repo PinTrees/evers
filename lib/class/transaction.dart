@@ -552,8 +552,8 @@ class TS {
 
 
   static Widget OnTableHeader() {
-    return  WidgetUI.titleRowNone([ '순번', '거래일자', '구분', '적요', '결제', '금액', '메모', ],
-        [ 28, 150, 100 + 28, 250, 208, 120, 999,], background: true, lite: true);
+    return  WidgetUI.titleRowNone([ '순번', '거래일자', '구분', '적요', '금액', '결제', "" ],
+        [ 28, 150, 100 + 28, 999, 120, 200, 28], background: true, lite: true);
   }
   static Widget OnTableHeaderMain() {
     return Container( padding: EdgeInsets.fromLTRB(6, 0, 6, 6),

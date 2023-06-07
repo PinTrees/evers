@@ -24,6 +24,7 @@ import 'package:evers/page/window/window_sch_editor.dart';
 import 'package:evers/page/window/window_shopitem_create.dart';
 import 'package:evers/page/window/window_shopitem_editor.dart';
 import 'package:evers/page/window/window_ts.dart';
+import 'package:evers/page/window/window_ts_create.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:evers/page/window/window_user_create.dart';
 import 'package:flutter/material.dart';
@@ -65,9 +66,14 @@ class UIState {
   /// 이 함수는 윈도우기반 멀티 인터페이스를 신규 생성하는 함수입니다.
   /// 신규 창을 생성하기 위해서는 반드시 이 함수를 호출해야 합니다.
   static dynamic OpenNewWindow(BuildContext context, WindowBaseMDI window) async {
-
     var width = 1000000.0;
-    if(window is WindowTsCreate || window is WindowTSEditor || window is Window) width = 1000;
+
+    /// 수납정보 창 가로크기 고정
+    if(window is WindowTsCreate ||
+        window is WindowTSEditor ||
+        window is WindowTsCreateCt ||
+        window is Window) width = 1000;
+
     if(window is WindowUserCreate) width = 800;
 
     if(window is WindowCS || window is WindowCsCreate) width = 1150;
@@ -90,7 +96,6 @@ class UIState {
 
     if(window is WindowShopItemCreate) width = 1000;
     if(window is WindowShopItemEditor) width = 1000;
-
 
 
 

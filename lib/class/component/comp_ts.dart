@@ -258,6 +258,10 @@ class CompTS {
                 onEdited: (i, data) { ts.summary = data; }, text: ts.summary,
                 setState: setState, expand: true,
               ),
+              ExcelT.LitInput(context, '$index::ts금액', width: 120, index: index,
+                onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
+                setState: setState,
+                text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
               ExcelT.LitGrid(text: (SystemT.accounts[ts.account] != null) ? SystemT.accounts[ts.account]!.name : 'NULL', width: 180, center: true),
               SizedBox(
                 height: 28, width: 28,
@@ -296,10 +300,6 @@ class CompTS {
                   ),
                 ),
               ),
-              ExcelT.LitInput(context, '$index::ts금액', width: 120, index: index,
-                onEdited: (i, data) {  ts.amount = int.tryParse(data) ?? 0; },
-                setState: setState,
-                text: StyleT.krwInt(ts.amount), value: ts.amount.toString(),),
               ButtonT.Icont(
                 icon: Icons.cancel,
                 onTap: () async {

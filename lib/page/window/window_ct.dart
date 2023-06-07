@@ -11,6 +11,7 @@ import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/page/window/window_re_create_ct.dart';
 import 'package:evers/page/window/window_sch_create.dart';
+import 'package:evers/page/window/window_ts_create.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -549,24 +550,14 @@ class _WindowCTState extends State<WindowCT> {
                     spacing: 6,
                     children: [
                       TextT.SubTitle(text: '수납목록'),
-                      ButtonT.IconText(icon: Icons.add_box, text: "신규 수납정보 추가", onTap: () {
+                      ButtonT.IconText(icon: Icons.add_box, text: "계약 수납 추가", onTap: () {
+                        UIState.OpenNewWindow(context, WindowTsCreateCt(ct: ct, refresh: () { initAsync(); }));
                       }),
                     ]
                   ),
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: tsW,)),
                   SizedBox(height: dividHeight,),
-                  Row(
-                    children: [
-                      ButtonT.IconText(
-                        icon: Icons.add_box,
-                        text: '수금추가',
-                        onTap: () {
-                          WidgetT.showSnackBar(context, text: '하단 버튼으로 변경 예정이며 제거될 버튼입니다.');
-                        }
-                      ),
-                    ],
-                  ),
 
                   dividCol,
                   TextT.SubTitle(text: '금엑현황'),
