@@ -11,7 +11,6 @@ import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/ui/dialog_revenue.dart';
-import 'package:evers/ui/dialog_transration.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';

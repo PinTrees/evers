@@ -85,66 +85,6 @@ class _WindowCtCreateState extends State<WindowCtCreate> {
   Widget main = SizedBox();
 
 
-  static dynamic showCreateCt(BuildContext context,) async {
-    WidgetT.loadingBottomSheet(context);
-
-    var dividHeight = 6.0;
-
-
-    Navigator.pop(context);
-    bool? aa = await showDialog(
-        context: context,
-        barrierColor: Colors.black.withOpacity(0.0),
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return  StatefulBuilder(
-            builder: (BuildContext context, StateSetter setStateS) {
-              FunT.setStateD = () { setStateS(() {}); };
-              FunT.setStateDT();
-
-              var dividCol = SizedBox(height: dividHeight * 8,);
-
-              return AlertDialog(
-                backgroundColor: StyleT.white.withOpacity(1),
-                elevation: 36,
-                shape: RoundedRectangleBorder(
-                    side: BorderSide(color: StyleT.titleColor.withOpacity(0.0), width: 0.01),
-                    borderRadius: BorderRadius.circular(0)),
-                titlePadding: EdgeInsets.zero,
-                contentPadding: EdgeInsets.zero,
-                content: SingleChildScrollView(
-                  child: Container(
-                    padding: EdgeInsets.all(dividHeight * 3),
-                    width: 1280,
-                    child: Column( crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        WidgetT.title('계약상세 정보', size: 14),
-                        SizedBox(height: dividHeight,),
-                        SizedBox(height: dividHeight,),
-                        SizedBox(height: dividHeight,),
-
-                        dividCol,
-                        WidgetT.title('계약내용', size: 14),
-                        SizedBox(height: dividHeight,),
-                        //Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: ctW,)),
-                        SizedBox(height: dividHeight,),
-                      ],
-                    ),
-                  ),
-                ),
-                actionsPadding: EdgeInsets.zero,
-                actions: [
-                ],
-              );
-            },
-          );
-        });
-
-    if(aa == null) aa = false;
-    return aa;
-  }
-
-
   Widget mainBuild() {
     var csWidget = ListBoxT.Columns(
       children: [

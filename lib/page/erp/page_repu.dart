@@ -17,7 +17,6 @@ import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/ui/dialog_revenue.dart';
-import 'package:evers/ui/dialog_transration.dart';
 import 'package:evers/ui/ex.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';

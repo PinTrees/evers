@@ -8,6 +8,7 @@ import 'package:evers/class/purchase.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/text.dart';
+import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/pdfx.dart';
 import 'package:evers/helper/style.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,9 @@ class TS {
   var account = '';       /// 계좌 고유 아이디 값 또는 기초 문자열
   var transactionAt = 0;  /// 매출일
 
+  var writer = "";
+  var updateAt = 0;
+
   var summary = '';       /// 적요
   var memo = '';          /// 메모
 
@@ -61,7 +65,9 @@ class TS {
     amount = json['amount'] ?? 0;
     account = json['account'] ?? '';
     transactionAt = json['transactionAt'] ?? 0;
+    updateAt = json["updateAt"] ?? 0;
 
+    writer = json["writer"] ?? "";
     summary = json['summary'] ?? '';
     memo = json['memo'] ?? '';
   }
@@ -116,6 +122,9 @@ class TS {
       'account': account,
       'transactionAt': transactionAt,
 
+      'writer': writer,
+      'updateAt': updateAt,
+
       'summary': summary,
       'memo': memo,
     };
@@ -138,6 +147,8 @@ class TS {
       'amount': amount,
       'account': account,
       'transactionAt': transactionAt,
+      'updateAt': updateAt,
+      'writer': writer,
 
       'summary': summary,
       'memo': memo,
@@ -159,6 +170,9 @@ class TS {
       'amount': amount,
       'account': account,
       'transactionAt': transactionAt,
+
+      'writer': writer,
+      'updateAt': updateAt,
 
       'summary': summary,
       'memo': memo,
@@ -241,6 +255,22 @@ class TS {
   }
 
 
+  Future<List<TS>> getHistory() async {
+    List<TS> history = [];
+    var coll = FirebaseFirestore.instance.collection('transaction/${id}/history');
+    await coll.orderBy('updateAt', descending: true).limit(10).get().then((value) async {
+      value.docs.forEach((e) {
+        if(!e.exists) return;
+        if(e.data() == null) return;
+
+        history.add(TS.fromDatabase(e.data() as Map));
+      });
+      return true;
+    });
+
+    return history;
+  }
+
   
   /// 거래 UID 확인 함수
   ///
@@ -281,21 +311,10 @@ class TS {
     );
   }
 
-  
-  /// 거래 UID 확인 함수
-  ///
-  /// 거래 기록시 현재 거래문서 데이터베이스 ID 값을 확인
-  /// "T(거래구분자)-16845212(날짜 에폭시)-1(번호)"
-  /// 번호는 1부터 시작하며 날짜마다 고유
-  ///
-  /// @ params none
-  /// @ return String "T-16452222-1"
-  dynamic create() async {
-    await createUid();
-    await update();
-  }
-  
+
   /// 거래기록 데이터베이스 업데이트 함수
+  ///
+  /// 결재계좌 수정시 잔고 계산 미차감 오류 해결 - 과거 기록 재 구축 필요
   ///
   /// @param org 원본 거래기록
   /// @param files 거래기록 신규 첨부파일
@@ -303,7 +322,7 @@ class TS {
   /// @throws 업데이트가 실패할 경우 모든 작업 취소 (문서간 트랜잭션)
   ///
   /// (***) storage - document 간 트랜잭션 구현안됨
-  dynamic update({TS? org, Map<String, Uint8List>? files, }) async {
+  dynamic update({Map<String, Uint8List>? files,}) async {
     var create = false;
     if(id == '') create = true;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));
@@ -311,6 +330,11 @@ class TS {
     if(create) await createUid();
     if(id == '') return;
 
+
+    TS? org;
+    if(!create) org = await DatabaseM.getTsDoc(id);
+
+    var orgDocId = '';
     var orgDateId = '-';
     var orgDateQuarterId = '-';
     var orgDateIdHarp = '-';
@@ -320,21 +344,30 @@ class TS {
       orgDateQuarterId = DateStyle.dateYearsQuarter(org.transactionAt);
       orgDateIdHarp = DateStyle.dateYearsHarp(org.transactionAt);
       orgDateIdMonth = DateStyle.dateYearMM(org.transactionAt);
+
+      orgDocId = SystemT.generateRandomString(16);
+      org.updateAt = DateTime.now().microsecondsSinceEpoch;
     }
+
 
     var dateIdHarp = DateStyle.dateYearsHarp(transactionAt);
     var dateIdQuarter = DateStyle.dateYearsQuarter(transactionAt);
     var dateIdMonth = DateStyle.dateYearMM(transactionAt);
     var searchText = await getSearchText();
 
+
     Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
     var db = FirebaseFirestore.instance;
+
     /// 메인문서 기록
     final docRef = db.collection("transaction").doc(id);
     final dateRef = db.collection('meta/date-by/dateM-transaction').doc(dateId);
-    if(org != null) ref['orgDate'] = db.collection('meta/date-by/dateM-transaction').doc(orgDateId);
-    if(org != null) ref['orgSearch'] = db.collection('meta/search/dateQ-transaction').doc(orgDateQuarterId);
+
     if(org != null) {
+      ref['orgDate'] = db.collection('meta/date-by/dateM-transaction').doc(orgDateId);
+      ref['orgSearch'] = db.collection('meta/search/dateQ-transaction').doc(orgDateQuarterId);
+      ref['history'] = db.collection('transaction/$id/history').doc(orgDocId);
+
       if(org.csUid != '') ref['orgCsDetail'] = db.collection('customer/${org.csUid}/cs-dateH-transaction').doc(orgDateIdHarp);
       if(org.ctUid != '') ref['orgCtDetail'] = db.collection('contract/${org.ctUid}/ct-dateH-transaction').doc(orgDateIdHarp);
       if(org.getAmount() != 0 && org.account != '') ref['orgAccount'] =  db.collection('meta/account/${(org.account == '') ? '00000000' : org.account }').doc(orgDateQuarterId);
@@ -356,12 +389,14 @@ class TS {
       final  docRefSn = await transaction.get(docRef);
       final  docDateRefSn = await transaction.get(dateRef);
       final  searchSn = await transaction.get(searchRef);
+
       if(ref['orgDate'] != null) sn['orgDate'] = await transaction.get(ref['orgDate']!);
       if(ref['orgSearch'] != null) sn['orgSearch'] = await transaction.get(ref['orgSearch']!);
       if(ref['orgCsDetail'] != null) sn['orgCsDetail'] = await transaction.get(ref['orgCsDetail']!);
       if(ref['orgCtDetail'] != null) sn['orgCtDetail'] = await transaction.get(ref['orgCtDetail']!);
       if(ref['orgAccount'] != null) sn['orgAccount'] = await transaction.get(ref['orgAccount']!);
       if(ref['orgAccountDate'] != null) sn['orgAccountDate'] = await transaction.get(ref['orgAccountDate']!);
+      if(ref['history'] != null) sn['history'] = await transaction.get(ref['history']!);
 
       if(ref['account'] != null) sn['account'] = await transaction.get(ref['account']!);
       if(ref['accountDate'] != null) sn['accountDate'] = await transaction.get(ref['accountDate']!);
@@ -373,56 +408,112 @@ class TS {
       if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);
 
       if(org != null) {
-        if(sn['orgDate']!.exists && dateId != orgDateId && orgDateId != '-')
+        if(sn['history'] != null) {
+          transaction.set(ref['history']!, org.toJson());
+        }
+
+        /// 과거 기록과 현재 기록간 날짜 정보가 달라졌을 경우 과거 기록을 제거합니다.
+        if(sn['orgDate']!.exists && dateId != orgDateId && orgDateId != '-') {
           transaction.update(ref['orgDate']!, { org.id : FieldValue.delete(), });
+        }
 
-        if(sn['orgCsDetail'] != null)
-          if(sn['orgCsDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-')
+        if(sn['orgCsDetail'] != null) {
+          /// 거래처 분산기록도 날짜 기반으로 상위문서를 확인함으로 과거 기록을 제거합니다.
+          if(sn['orgCsDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-') {
             transaction.update(ref['orgCsDetail']!, { org.id: FieldValue.delete(), });
+          }
+        }
 
-        if(sn['orgCtDetail'] != null)
-          if(sn['orgCtDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-')
+        if(sn['orgCtDetail'] != null) {
+          /// 계약 분산기록도 날짜 기반으로 상위문서를 확인함으로 과거기록을 제거합니다.
+          if(sn['orgCtDetail']!.exists && dateIdHarp != orgDateIdHarp && orgDateIdHarp != '-') {
             transaction.update(ref['orgCtDetail']!, { org.id: FieldValue.delete() });
+          }
+        }
 
+        /// 날짜가 변경되었을 경우
         if(dateIdQuarter != orgDateQuarterId) {
+          /// 검색정보도 날짜 기반으로 상위문서를 결정함으로 기존기록 제거
           if(sn['orgSearch']!.exists) transaction.update(ref['orgSearch']!, { id: FieldValue.delete(), });
+          /// 잔고기록도 날짜 기반으로 상위문서를 결정함으로 기존기록 제거
           if(sn['orgAccount'] != null) if(sn['orgAccount']!.exists) transaction.update(ref['orgAccount']!, { id: FieldValue.delete(), });
         }
 
+        /// 월별 날짜가 변경되었을 경우
         if(dateIdMonth != orgDateIdMonth) {
+          /// 보다 상세한 날짜기반 잔고계산 문서의 과거 기록을 제거 - 중복 방지
           if(sn['orgAccountDate'] != null)
             if(sn['orgAccountDate']!.exists) transaction.update(ref['orgAccountDate']!, { id: FieldValue.delete(), });
         }
+
+        /// 계좌 정보가 변경되었을 경우 기존 잔고차감계좌 기록 제거후 신규 계좌로 데이터 기록
+        if(org.account != account) {
+          if(sn['orgAccount'] != null) if(sn['orgAccount']!.exists) transaction.update(ref['orgAccount']!, { id: FieldValue.delete(), });
+          if(sn['orgAccountDate'] != null)  if(sn['orgAccountDate']!.exists) transaction.update(ref['orgAccountDate']!, { id: FieldValue.delete(), });
+        }
       }
 
-      if(docRefSn.exists)  transaction.update(docRef, toJson());
-      else  transaction.set(docRef, toJson());
+      /// 기초 경로에 문서 저장
+      if(docRefSn.exists) {
+        transaction.update(docRef, toJson());
+      } else {
+        transaction.set(docRef, toJson());
+      }
 
-      if(docDateRefSn.exists) transaction.update(dateRef, { id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch});
-      else transaction.set(dateRef, {  id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch });
+      /// 날짜기반 문서 저장
+      if(docDateRefSn.exists) {
+        transaction.update(dateRef, { id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch});
+      } else {
+        transaction.set(dateRef, { id: toJson(), 'date': DateTime.fromMicrosecondsSinceEpoch(transactionAt).microsecondsSinceEpoch});
+      }
 
+      /// 잔고 분산 문서 저장 - 날짜기반
       if(sn['account'] != null) {
-        if(sn['account']!.exists) transaction.update(ref['account']!, { id: getAmount(), },);
-        else transaction.set(ref['account']!, { id: getAmount() },);
+        if (sn['account']!.exists) {
+          transaction.update(ref['account']!, { id: getAmount(),},);
+        } else {
+          transaction.set(ref['account']!, { id: getAmount()},);
+        }
 
-        if(sn['accountDate']!.exists) transaction.update(ref['accountDate']!, { id: getAmount(), },);
-        else transaction.set(ref['accountDate']!, { id: getAmount() },);
+        if (sn['accountDate']!.exists) {
+          transaction.update(ref['accountDate']!, { id: getAmount(),},);
+        } else {
+          transaction.set(ref['accountDate']!, { id: getAmount()},);
+        }
       }
 
+
+      /// 수납 변경시 거래처와 계약 정보 수정이 불가능하도록 설게할 예정이므로 해당 구현이 누락되어있습니다.
+      /// 수납정보에 거래처가 포함되었을 경우 해당 거래처에 분산 기록
       if(ref['cs'] != null) {
-        if(create) transaction.update(ref['cs']!, {'tsCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        if (create) {
+          /// 신규수납정보 등록시 거래처 총 수납개수 증가
+          transaction.update(ref['cs']!, {'tsCount': FieldValue.increment(1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
 
-        if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: toJson(), });
-        else transaction.set(ref['csDetail']!, { id: toJson(), });
+          /// 거래처 상세주소 활성화시 수납정보 거래처에 분산기록
+          if (sn['csDetail']!.exists) {
+            transaction.update(ref['csDetail']!, { id: toJson(),});
+          } else {
+            transaction.set(ref['csDetail']!, { id: toJson(),});
+          }
+        }
       }
 
+      /// 수납정보에 계약이 포함되었을 경우 해당 거래처에 분산 기록
       if(ref['ct'] != null) {
+        /// 신규 등록시 계약문서의 일부 정보 업데이트
         if(create) if(sn['ct']!.exists) transaction.update(ref['ct']!, {'tsCount': FieldValue.increment(1),});
 
-        if(sn['ctDetail']!.exists) transaction.update(ref['ctDetail']!, { id: toJson(), });
-        else transaction.set(ref['ctDetail']!, { id: toJson(), });
+        /// 계약 하위에 수납정보 분산기록
+        if(sn['ctDetail']!.exists) {
+          transaction.update(ref['ctDetail']!, { id: toJson(), });
+        } else {
+          transaction.set(ref['ctDetail']!, { id: toJson(),});
+        }
       }
 
+
+      /// 검색 메타정보 업데이트
       if(searchSn.exists) {
         transaction.update(searchRef, { id : searchText, },);
       } else {
@@ -433,6 +524,7 @@ class TS {
         onError: (e) { print("Error update transaction() $e"); return false; }
     );
   }
+
 
   /// 거래기록 데이터베이스 삭제 함수
   ///
@@ -477,7 +569,6 @@ class TS {
 
       if(ref['ct'] != null) sn['ct'] = await transaction.get(ref['ct']!);
       if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);
-
 
 
       /// 기초 거래기록 저장 컬렉션에서 데이터 삭제

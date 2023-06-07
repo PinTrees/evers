@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:evers/class/widget/list.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
+import 'package:evers/helper/json.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_item.dart';
 import 'package:evers/ui/ex.dart';
@@ -40,15 +42,19 @@ class _WindowTSEditorState extends State<WindowTSEditor> {
   var dividHeight = 6.0;
   late TS ts;
 
+  List<TS> history = [];
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    widget.parent.title = '수납 개별 상세정보 수정창';
+    initAsync();
+  }
 
-    var jsonString = jsonEncode(widget.ts.toJson());
-    var json = jsonDecode(jsonString);
-    ts = TS.fromDatabase(json);
+  dynamic initAsync() async {
+    ts = TS.fromDatabase(JsonManager.toJsonObject(widget.ts));
+    history = await ts.getHistory();
+    setState(() {});
   }
 
   Widget main = SizedBox();
@@ -65,6 +71,12 @@ class _WindowTSEditorState extends State<WindowTSEditor> {
     tsCW.add(w);
     tsCW.add(WidgetT.dividHorizontal(size: 0.35));
 
+    List<Widget> historyWidget = [CompTS.tableHeaderHistory()];
+    for(var t in history) {
+      historyWidget.add(CompTS.tableUIHistory(context, t));
+      historyWidget.add(WidgetT.dividHorizontal(size: 0.35));
+    }
+
     return main = Container(
       width: 1280,
       child: Column(
@@ -76,11 +88,11 @@ class _WindowTSEditorState extends State<WindowTSEditor> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: dividHeight,),
-                TextT.Title(text: '거래처 정보'),
+                TextT.SubTitle(text: '거래처 정보'),
                 TextT.Lit(text: widget.cs == null ? 'ㅡ' : widget.cs!.businessName ),
                 SizedBox(height: dividHeight * 4,),
 
-                TextT.Title(text: '수납추가 목록',),
+                TextT.SubTitle(text: '수납추가 목록',),
                 SizedBox(height: dividHeight,),
                 CompTS.tableHeaderEditor(),
                 for(var w in tsCW) w,
@@ -101,6 +113,11 @@ class _WindowTSEditorState extends State<WindowTSEditor> {
                     widget.parent.onCloseButtonClicked!();
                   },
                 ),
+
+                SizedBox(height: dividHeight * 4,),
+                TextT.SubTitle(text: '변경 기록',),
+                SizedBox(height: dividHeight,),
+                ListBoxT.Columns(children: historyWidget),
               ],
             ),
           ),

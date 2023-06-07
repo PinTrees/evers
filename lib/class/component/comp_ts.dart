@@ -33,6 +33,11 @@ class CompTS {
   }
 
 
+  static dynamic tableHeaderHistory() {
+    return WidgetUI.titleRowNone([ '순번', '거래번호', '변경된날짜', '거래처', '적요', '수입', '지출', '계좌' ],
+        [ 32, 80, 80, 999, 999, 80, 80, 100,], background: true, lite: true);
+  }
+
 
   /// 이 함수는 미지급 테이블 UI 헤더 위젯을 반환합니다.
   static dynamic tableHeaderPaymentPU() {
@@ -116,6 +121,44 @@ class CompTS {
     );
     return w;
   }
+
+
+
+
+  static dynamic tableUIHistory(BuildContext context, TS ts, {
+    Contract? ct,
+    int? index,
+    Customer? cs,
+  }) {
+    var w = InkWell(
+      child: Container(
+        height: 28,
+        child: Row(
+            children: [
+              ExcelT.LitGrid(text: '${index ?? '-'}', width: 32, center: true),
+              ExcelT.LitGrid(text: ts.id, width: 80, center: true),
+              ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(ts.updateAt.toString()), width: 80, center: true),
+              TextT.OnTap(
+                  text: cs == null ? '-' : cs.businessName == '' ? 'ㅡ' : cs.businessName,
+                  width: 150,
+                  enable: cs == null ? false : cs.businessName != '',
+                  expand: true,
+                  onTap: () async {}
+              ),
+              ExcelT.Grid(textSize: 10, text: ts.summary, expand: true, width: 250),
+              ExcelT.LitGrid(text: StyleT.krwInt(ts.amount), width: 80, center: true,
+                  textColor: (ts.type == 'RE') ? Colors.blue.withOpacity(0.7) : Colors.transparent),
+              ExcelT.LitGrid(text: StyleT.krwInt(ts.amount), width: 80, center: true,
+                  textColor: (ts.type == 'PU') ? Colors.red.withOpacity(0.7) : Colors.transparent),
+              ExcelT.LitGrid(text: SystemT.getAccountName(ts.account) ?? '-', width: 100, center: true),
+            ]
+        ),
+      ),
+    );
+    return w;
+  }
+
+
 
 
   static dynamic tableUIMain(TS ts, {

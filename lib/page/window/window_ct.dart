@@ -6,6 +6,7 @@ import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/messege.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_ledger_revenue_create.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_re_create.dart';
@@ -246,8 +247,23 @@ class _WindowCTState extends State<WindowCT> {
     var btnStyle =  StyleT.buttonStyleOutline(round: 8, elevation: 0, padding: 0, color: StyleT.backgroundColor.withOpacity(0.5), strock: 0.7);
     var gridStyle = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.00), stroke: 0.01, strokeColor: StyleT.titleColor.withOpacity(0.0));
     var gridStyleT = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.03), stroke: 2, strokeColor: StyleT.titleColor.withOpacity(0.1));
-    var btnStyleT = StyleT.inkStyle(round: 0, color: Colors.black.withOpacity(0.1), stroke: 0.35,);
 
+    var csWidget = ListBoxT.Columns(
+        children: [
+          ListBoxT.Rows(
+            spacing: 6,
+            children: [
+              TextT.SubTitle(text: "거래처 ${ cs.businessName }", ),
+              ButtonT.IconText(
+                  icon: Icons.open_in_new_sharp, text: "거래처 바로가기",
+                  onTap: () async {
+                    UIState.OpenNewWindow(context, WindowCS(org_cs: cs, refresh: () { initAsync(); },));
+                  }
+              )
+            ]
+          )
+        ]
+    );
     var ctInfoWidget = Container(
       decoration: gridStyleT,
       padding: EdgeInsets.only(left: 6, right: 6),
@@ -260,46 +276,45 @@ class _WindowCTState extends State<WindowCT> {
             setState: () { setState(() {}); },
             text: ct.ctName,
           ),
-          Row(
-            children: [
-              TextT.Lit(text: "거래처", width: 100, size: 12, bold: true),
-              TextT.Lit(text: SystemT.getCSName(ct.csUid), width: 250, size: 12, bold: true),
-            ],
-          ),
-          InputWidget.LitText(context, 'df구매부서',
-            label: "구매부서", width: 250,
-            setState: () { setState(() {}); },
-            onEdited: (i, data) { ct.purchasingDepartment = data; },
-            text: ct.purchasingDepartment,
-          ),
-          InputWidget.LitText(context, 'df담당자',
-            label: "담당자", width: 250,
-            setState: () { setState(() {}); },
-            onEdited: (i, data) { ct.manager = data; },
-            text: ct.manager,
-          ),
-          InputWidget.LitText(context, 'df연락처',
-            label: "연락처",  width: 250,
-            setState: () { setState(() {}); },
-            onEdited: (i, data) { ct.managerPhoneNumber = data; },
-            text: ct.managerPhoneNumber,
+          ListBoxT.Rows(
+              spacing: 6,
+              children: [
+                InputWidget.LitText(context, 'df구매부서',
+                  label: "구매부서", width: 250,
+                  setState: () { setState(() {}); },
+                  onEdited: (i, data) { ct.purchasingDepartment = data; },
+                  text: ct.purchasingDepartment,
+                ),
+                InputWidget.LitText(context, 'df담당자',
+                  label: "담당자", width: 150,
+                  setState: () { setState(() {}); },
+                  onEdited: (i, data) { ct.manager = data; },
+                  text: ct.manager,
+                ),
+                InputWidget.LitText(context, 'df연락처',
+                  label: "연락처",  width: 150,
+                  setState: () { setState(() {}); },
+                  onEdited: (i, data) { ct.managerPhoneNumber = data; },
+                  text: ct.managerPhoneNumber,
+                ),
+              ]
           ),
           InputWidget.LitText(context, 'df납품지주소',
             label: "납품지주소",  width: 400,
             setState: () { setState(() {}); },
             onEdited: (i, data) { ct.workSitePlace = data; },
             text: ct.workSitePlace, ),
-          InputWidget.LitText(context, 'df계약일자',
-            label: "계약일자", width: 250,
-            setState: () { setState(() {}); },
-            onEdited: (i, data) { ct.contractAt = StyleT.dateEpoch(data); },
-            text: StyleT.dateInputFormatAtEpoch(ct.contractAt.toString()),
-          ),
           InputWidget.LitText(context, 'input::메모',
             label: "메모", expand: true, isMultiLine: true,
             onEdited: (i, data) { ct.memo = data; },
             setState: () { setState(() {}); },
             text: ct.memo,
+          ),
+          InputWidget.LitText(context, 'df계약일자',
+            label: "계약일자", width: 150 ,
+            setState: () { setState(() {}); },
+            onEdited: (i, data) { ct.contractAt = StyleT.dateEpoch(data); },
+            text: StyleT.dateInputFormatAtEpoch(ct.contractAt.toString()),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,14 +328,11 @@ class _WindowCTState extends State<WindowCT> {
                     ButtonFile(
                       fileName: ct.contractFiles.keys.elementAt(i),
                       fileUrl: ct.contractFiles.values.elementAt(i),
-                      onDelete: () {
-                        WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
-                        setState(() {});
-                      },
+                      onDelete: () { setState(() {}); },
                     ),
                   for(int i = 0; i < ctFileByteList.length; i++)
                     ButtonFile(
-                      fileName:ctFileByteList.keys.elementAt(i),
+                      fileName: ctFileByteList.keys.elementAt(i),
                       onDelete: () {
                         ctFileByteList.remove(ctFileByteList.keys.elementAt(i));
                         setState(() {});
@@ -341,13 +353,12 @@ class _WindowCTState extends State<WindowCT> {
                   for(int i = 0; i < ct.filesMap.length; i++)
                     ButtonFile(
                       fileName: ct.getFileName(ct.filesMap.keys.elementAt(i)),
-                      fileUrl: ct.filesMap.values.elementAt(i),
+                      fileUrl:  ct.filesMap.values.elementAt(i),
                       onDelete: () {
                         WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
                         setState(() {});
                       },
                     ),
-
                   for(int i = 0; i < fileByteList.length; i++)
                     ButtonFile(
                       fileName: ct.getFileName(fileByteList.keys.elementAt(i)),
@@ -360,7 +371,8 @@ class _WindowCTState extends State<WindowCT> {
               ),
             ],
           ),
-      ],),);
+        ],),);
+
 
     return main = Container(
       width: 1280,
@@ -374,6 +386,10 @@ class _WindowCTState extends State<WindowCT> {
               padding: EdgeInsets.all(18),
               child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  SizedBox(height: dividHeight,),
+                  csWidget,
+                  dividCol,
+
                   TextT.SubTitle(text:'계약상세 정보' ),
                   SizedBox(height: dividHeight,),
                   ctInfoWidget,
