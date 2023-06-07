@@ -110,9 +110,10 @@ class UIState {
     if(window is WindowItemTS) isFixedHeight = false;
     if(window is WindowLedgerReCreate) isFixedHeight = true;
 
+    /// 아티클 생성 페이지 세로크기 고정
     if(window is WindowShopItemCreate) isFixedHeight = true;
     if(window is WindowShopItemEditor) isFixedHeight = true;
-    if(window is WindowArticleCreate) isFixedHeight = true;
+    if(window is WindowArticleEditor) isFixedHeight = true;
     if(window is WindowPageACreate) isFixedHeight = true;
 
     //if(window is WindowFactoryCreate) isFixedHeight = true;

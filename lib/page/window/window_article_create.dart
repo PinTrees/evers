@@ -6,6 +6,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_ts.dart';
 import 'package:evers/class/database/article.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/messege.dart';
 import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/class/widget/textinput_lit.dart';
@@ -37,18 +38,18 @@ import '../../core/window/window_base.dart';
 import '../../helper/dialog.dart';
 import '../../helper/interfaceUI.dart';
 
-class WindowArticleCreate extends WindowBaseMDI {
+class WindowArticleEditor extends WindowBaseMDI {
   Function refresh;
   Article? article;
   String board;
 
-  WindowArticleCreate({ this.article, required this.board, required this.refresh, }) { }
+  WindowArticleEditor({ this.article, required this.board, required this.refresh, }) { }
 
   @override
   _WindowArticleCreateState createState() => _WindowArticleCreateState();
 }
 
-class _WindowArticleCreateState extends State<WindowArticleCreate> {
+class _WindowArticleCreateState extends State<WindowArticleEditor> {
   var dividHeight = 6.0;
 
   QuillController _controller = QuillController.basic();
@@ -82,7 +83,8 @@ class _WindowArticleCreateState extends State<WindowArticleCreate> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          LitInput(style: LitInputStyle(
+          if(widget.board != "version")
+            LitInput(style: LitInputStyle(
             textSize: 24,
             hintFontSize: 24,
             hint: "제목을 입력하세요.",
@@ -116,7 +118,8 @@ class _WindowArticleCreateState extends State<WindowArticleCreate> {
           WidgetT.dividHorizontal(size: 0.7),
           Container(
             padding: EdgeInsets.all(6),
-            child: Row(
+            child: ListBoxT.Rows(
+              spacing: 6,
               children: [
                 TextT.Lit(text: "작성자", size: 12, bold: true, color: Colors.black, width: 100),
                 LitInput(style: LitInputStyle(
@@ -128,6 +131,17 @@ class _WindowArticleCreateState extends State<WindowArticleCreate> {
                     setState(() {});
                   },
                   text: article.writer,
+                ),
+                if(widget.board == "version")
+                LitInput(style: LitInputStyle(
+                    padding: EdgeInsets.all(6)
+                ),
+                  width: 250,
+                  onEdited: (value) {
+                    article.version = value;
+                    setState(() {});
+                  },
+                  text: article.version,
                 ),
               ],
             ),
@@ -145,14 +159,21 @@ class _WindowArticleCreateState extends State<WindowArticleCreate> {
       icon: Icons.edit,
       altText: "작성한 글을 저장하시겠습니까?",
       init: () {
-        if(article.title == "") return Messege.toReturn(context, "제목은 비워둘 수 없습니다.", false);
-        if(article.title.length < 6) return Messege.toReturn(context, "제목은 더 상세히 작성해야 합니다.", false);
+        if(widget.board != "version") {
+          if(article.title == "") return Messege.toReturn(context, "제목은 비워둘 수 없습니다.", false);
+          if(article.title.length < 6) return Messege.toReturn(context, "제목은 더 상세히 작성해야 합니다.", false);
+        }
         if(article.writer == "") return Messege.toReturn(context, "작성자는 비워둘 수 없습니다.", false);
         return true;
       },
       onTap: () async {
         var json = jsonEncode(_controller.document.toDelta().toJson());
-        article.desc = _controller.document.getPlainText(0, 64);
+        try {
+          article.desc = _controller.document.getPlainText(0, 32);
+        } catch (e) {
+          article.desc = _controller.document.getPlainText(0, 16);
+        }
+
         await article.update(json: json);
         await widget.refresh();
         widget.parent.onCloseButtonClicked!();

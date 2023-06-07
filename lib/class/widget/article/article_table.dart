@@ -32,7 +32,7 @@ class ArticleTable extends StatelessWidget {
           ButtonT.Icont(
             icon: Icons.edit,
             onTap: () {
-              UIState.OpenNewWindow(context, WindowArticleCreate(article: article, board: article.board, refresh: FunT.setRefreshMain));
+              UIState.OpenNewWindow(context, WindowArticleEditor(article: article, board: article.board, refresh: FunT.setRefreshMain));
             }
           ),
           ButtonT.Icont(

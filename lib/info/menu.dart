@@ -138,7 +138,7 @@ enum NavigationMenuInfo {
   salarySystem('9', ERPSubMenuInfo.employeeM, Icons.contact_mail, [ PermissionType.isContractRead ]),
   schedule('10', ERPSubMenuInfo.schedule, Icons.schedule, [ ] ),
   userSetting('11', ERPSubMenuInfo.userSetting, Icons.verified_user, [ PermissionType.isUserRead ]),
-  updatelog('12', ERPSubMenuInfo.update, Icons.update, [ PermissionType.isUserWrite ]),
+  updatelog('12', ERPSubMenuInfo.update, Icons.update, []),
   homepage('13', ERPSubMenuInfo.pageEditor, Icons.update, []);
 
 

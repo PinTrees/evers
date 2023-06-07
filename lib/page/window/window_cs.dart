@@ -168,9 +168,9 @@ class _WindowCSState extends State<WindowCS> {
       if(i >= purs.length) break;
 
       var pu = purs[i];
-      var item = SystemT.getItem(pu.item);
 
       puW.add(CompPU.tableUI(context, pu,
+        refresh: () { initAsync(); },
         setState: () { setState(() {}); }, index: i + 1,));
       puW.add(WidgetT.dividHorizontal(size: 0.35));
     }

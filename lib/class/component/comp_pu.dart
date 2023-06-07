@@ -65,6 +65,8 @@ class CompPU {
     Function? setState,
     Function? refresh,
   }) {
+    Item? item = SystemT.getItem(pu.item);
+
     var w = InkWell(
       onTap: () async {
         if(cs == null) return;
@@ -606,6 +608,7 @@ class CompPU {
   }
 
 
+
   static dynamic tableUI(BuildContext context, Purchase pu, {
     int? index,
     Customer? cs,
@@ -616,82 +619,79 @@ class CompPU {
   }) {
     var item = SystemT.getItem(pu.item);
 
-    var w = Column(
-      children: [
-        Container(
-          height: 28,
-          child: Row(
-              children: [
-                ExcelT.LitGrid(center: true, text: index == null ? "" : '${index}', width: 28),
-                ExcelT.LitGrid(center: true, text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()), width: 80),
-                ExcelT.LitGrid(center: true, text: item == null ? pu.item : item.name == "" ? pu.item : item.name, width: 200, expand: true),
-                ExcelT.LitGrid(center: true, text: item == null ? '-' : item.unit == "" ? '-' : item.unit, width: 50),
-                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.count),),
-                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.unitPrice),),
-                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.supplyPrice),),
-                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.vat),),
-                ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.totalPrice),),
-                //ExcelT.LitGrid(center: true, width: 200, text: pu.memo, expand: true),
-
-                /// 수정
-                ButtonT.Icont(
-                  icon: Icons.create,
-                  onTap: () async {
-                    UIState.OpenNewWindow(context, WindowPUEditor(pu: pu, refresh: refresh ?? () {}));
-                    if(setState != null) setState();
-                  },
-                ),
-                pu.isItemTs ? ButtonT.IconText(
-                  icon: Icons.account_tree,
-                  text: '품목확인',
-                  color: Colors.transparent,
-                  onTap: () async {
-                    var itemTs = await DatabaseM.getItemTrans(pu.id);
-                    if(itemTs == null) return;
-                    UIState.OpenNewWindow(context, WindowItemTS(itemTS: itemTs, refresh: () { if(refresh != null) refresh(); }));
-                    if(setState != null) setState();
-                  },
-                )
-                    : SizedBox(),
-              ]
-          ),
-        ),
-        if(pu.filesMap.isNotEmpty)
+    var w = InkWell(
+      onTap: () {
+        UIState.OpenNewWindow(context, WindowPUEditor(pu: pu, refresh: refresh ?? () {}));
+      },
+      child: Column(
+        children: [
           Container(
-            height: 32,
-            padding: EdgeInsets.only(left: 6, bottom: 6),
+            height: 28,
             child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Expanded(
-                      child: Container(
-                        child: Wrap(
-                          runSpacing: 6 * 2, spacing: 6 * 2,
-                          children: [
-                            for(int i = 0; i < pu.filesMap.length; i++)
-                              InkWell(
-                                  onTap: () async {
-                                    var downloadUrl = pu.filesMap.values.elementAt(i);
-                                    var fileName = pu.filesMap.keys.elementAt(i);
-                                    PdfManager.OpenPdf(downloadUrl, fileName);
-                                  },
-                                  child: Container(
-                                      color: Colors.grey.withOpacity(0.15),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          WidgetT.iconMini(Icons.cloud_done, size: 24),
-                                          WidgetT.text(pu.filesMap.keys.elementAt(i), size: 10),
-                                          SizedBox(width: 6,)
-                                        ],
-                                      ))
-                              ),
-                          ],
-                        ),)),
+                  ExcelT.LitGrid(center: true, text: index == null ? "" : '${index}', width: 28),
+                  ExcelT.LitGrid(center: true, text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()), width: 80),
+                  ExcelT.LitGrid(center: true, text: item == null ? pu.item : item.name == "" ? pu.item : item.name, width: 200, expand: true),
+                  ExcelT.LitGrid(center: true, text: item == null ? '-' : item.unit == "" ? '-' : item.unit, width: 50),
+                  ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.count),),
+                  ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.unitPrice),),
+                  ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.supplyPrice),),
+                  ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.vat),),
+                  ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.totalPrice),),
+                  //ExcelT.LitGrid(center: true, width: 200, text: pu.memo, expand: true),
+
+                  pu.isItemTs ? ButtonT.IconText(
+                    icon: Icons.account_tree,
+                    text: '품목확인',
+                    color: Colors.transparent,
+                    onTap: () async {
+                      var itemTs = await DatabaseM.getItemTrans(pu.id);
+                      if(itemTs == null) return;
+                      UIState.OpenNewWindow(context, WindowItemTS(itemTS: itemTs, refresh: () { if(refresh != null) refresh(); }));
+                      if(setState != null) setState();
+                    },
+                  )
+                      : SizedBox(),
                 ]
             ),
           ),
-      ],
+          if(pu.filesMap.isNotEmpty)
+            Container(
+              height: 32,
+              padding: EdgeInsets.only(left: 6, bottom: 6),
+              child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                        child: Container(
+                          child: Wrap(
+                            runSpacing: 6 * 2, spacing: 6 * 2,
+                            children: [
+                              for(int i = 0; i < pu.filesMap.length; i++)
+                                InkWell(
+                                    onTap: () async {
+                                      var downloadUrl = pu.filesMap.values.elementAt(i);
+                                      var fileName = pu.filesMap.keys.elementAt(i);
+                                      PdfManager.OpenPdf(downloadUrl, fileName);
+                                    },
+                                    child: Container(
+                                        color: Colors.grey.withOpacity(0.15),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            WidgetT.iconMini(Icons.cloud_done, size: 24),
+                                            WidgetT.text(pu.filesMap.keys.elementAt(i), size: 10),
+                                            SizedBox(width: 6,)
+                                          ],
+                                        ))
+                                ),
+                            ],
+                          ),)),
+                  ]
+              ),
+            ),
+        ],
+      ),
     );
     return w;
   }

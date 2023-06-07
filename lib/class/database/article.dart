@@ -16,10 +16,6 @@ import 'item.dart';
 
 
 
-/*enum ArticleQuillVersion {
-
-};*/
-
 
 /// 품목 작업 이동 기록 데이터 클래스
 ///

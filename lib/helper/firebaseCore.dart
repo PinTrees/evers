@@ -73,7 +73,7 @@ class DatabaseM {
     List<Article> article = [];
     var coll = await FirebaseFirestore.instance.collection('contents/board/article');
 
-    await coll.orderBy('createAt', descending: true).where("board", whereIn: [ code ]) .limit(10).get().then((value) async {
+    await coll.orderBy('createAt', descending: true).where("board", whereIn: [ code ]).limit(25).get().then((value) async {
       if(value.docs.isEmpty) return false;
       value.docs.forEach((e) {
         if(!e.exists) return;

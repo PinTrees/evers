@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/purchase.dart';
+import 'package:evers/class/user.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/text.dart';
@@ -323,6 +324,8 @@ class TS {
   ///
   /// (***) storage - document 간 트랜잭션 구현안됨
   dynamic update({Map<String, Uint8List>? files,}) async {
+    writer = UserSystem.userData.id;
+
     var create = false;
     if(id == '') create = true;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(transactionAt));

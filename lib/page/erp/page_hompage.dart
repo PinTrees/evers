@@ -127,7 +127,7 @@ class PageHomepage extends StatelessWidget {
           ButtonT.IconText(
               icon: Icons.edit, text: "새소식 추가",
               onTap: () {
-                UIState.OpenNewWindow(context, WindowArticleCreate(refresh: FunT.setRefreshMain, board: board1,));
+                UIState.OpenNewWindow(context, WindowArticleEditor(refresh: FunT.setRefreshMain, board: board1,));
               }
           ),
         ]
