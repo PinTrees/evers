@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
+import 'package:evers/page/window/window_ct_create.dart';
 import 'package:evers/page/window/window_ledger_revenue.dart';
 import 'package:evers/page/window/window_paper_product.dart';
 import 'package:evers/page/window/window_process_create.dart';
@@ -48,6 +49,8 @@ class MdiController{
     if(widget is WindowProductPaper) resizableWindow.title = "생산일보 생성창";
 
     if(widget is WindowCT) resizableWindow.title = '계약 개별 상세정보창';
+    if(widget is WindowCtCreate) resizableWindow.title = '계약 정보 생성창';
+
     if(widget is WindowPUCreateWithCS) resizableWindow.title = '거래처 매입 입력창';
     if(widget is WindowPUCreate) resizableWindow.title = '매입 입력창';
     if(widget is WindowPUEditor) resizableWindow.title = '매입 개별 상세정보창';

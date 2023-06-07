@@ -269,7 +269,6 @@ class InputWidget {
     bool isMultiLine = false}) {
 
     if (textInputs[key] == null) textInputs[key] = new TextEditingController();
-    isActive[key] = true;
     textInputs[key]!.text = value ?? text ?? '';
 
     if (setState == null) return SizedBox();
@@ -325,8 +324,16 @@ class InputWidget {
         ),
       );
     }
-    Widget w = buildInputWidget();
+    Widget w = Focus(
+        onFocusChange: (focus) async {
+          if (onEdited != null) onEdited(index ?? 0, textInputs[key]!.text);
+          await setState();
+        },
+        child: buildInputWidget(),
+    );
+
     if (expand) w = Expanded(child: w);
+
 
     return Row(
       mainAxisSize: MainAxisSize.min,

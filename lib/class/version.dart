@@ -36,7 +36,7 @@ class VersionInfo {
 
 
 class Version {
-  static var thisVersion = '1.3.7';
+  static var thisVersion = '1.4.1';
   static var current = '';
   static var release = '';
 

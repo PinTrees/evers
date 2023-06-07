@@ -239,7 +239,7 @@ class StyleT {
     if(date == '') return 0;
     var dS = date.replaceAll('.', '-').replaceAll('/', '-');
     DateTime? dD = DateTime.tryParse(dS);
-    if(dD == null) return 0;
+    if(dD == null) return DateTime.now().microsecondsSinceEpoch;
     return dD.microsecondsSinceEpoch;
   }
 

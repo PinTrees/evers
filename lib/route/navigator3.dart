@@ -81,8 +81,7 @@ final GoRouter router = GoRouter(
         GoRoute(
             path: 'work/:id/:id1',
             builder: (BuildContext context, GoRouterState state) {
-              return WorkPage(url: state.pathParameters['id'],
-                subUrl: state.pathParameters['id1'],);
+              return WorkPage(url: state.pathParameters['id'], subUrl: state.pathParameters['id1'],);
             },
         ),
         GoRoute(

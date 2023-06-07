@@ -1,3 +1,4 @@
+import 'package:evers/class/Customer.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_re.dart';
 import 'package:evers/class/component/comp_ts.dart';
@@ -29,6 +30,7 @@ import '../../class/system.dart';
 import '../../class/system/state.dart';
 import '../../class/transaction.dart';
 import '../../class/widget/button.dart';
+import '../../class/widget/button/button_file.dart';
 import '../../class/widget/excel.dart';
 import '../../class/widget/text.dart';
 import '../../class/widget/textInput.dart';
@@ -56,6 +58,7 @@ class _WindowCTState extends State<WindowCT> {
   Map<String, Uint8List> fileByteList = {};
   Map<String, Uint8List> ctFileByteList = {};
   Contract ct = Contract.fromDatabase({});
+  Customer cs = Customer.fromDatabase({});
 
   int schListIndex = 0;
 
@@ -79,6 +82,8 @@ class _WindowCTState extends State<WindowCT> {
 
     ct = await DatabaseM.getContractDoc(widget.org_ct.id);
     if(ct == null) return;
+
+    cs = await DatabaseM.getCustomerDoc(ct.csUid);
 
     ledgerList = await DatabaseM.getLedgerRevenueList(ct.csUid);
     purList = await DatabaseM.getPur_withCT(ct.id);
@@ -118,8 +123,6 @@ class _WindowCTState extends State<WindowCT> {
     reW.add(Revenue.buildTitleUI());
     for(int i = 0; i < ct.revenueList.length; i++) {
       var re = ct.revenueList[i];
-      var item = SystemT.getItem(re.item) ?? Item.fromDatabase({});
-
       re.init();
       allPay += re.totalPrice;
 
@@ -141,9 +144,10 @@ class _WindowCTState extends State<WindowCT> {
       ledgerWidgets.add(WidgetT.dividHorizontal(size: 0.35));
     });
 
+
     /// 계약
     List<Widget> ctW = [];
-    ctW.add(WidgetUI.titleRowNone([ '', '순번', '매출일자', '품목', '단위', '단가', '메모' ], [ 28, 28, 150, 200 + 28 * 2, 50, 120, 999 ], background: true),);
+    ctW.add(WidgetUI.titleRowNone([ '', '순번', '매출일자', '품목', '단위', '단가', '메모' ], [ 28, 28, 150, 200 + 28 * 2, 50, 120, 999 ], background: true, lite: true),);
     for(int i = 0; i < ct.contractList.length; i++) {
       Widget w = SizedBox();
       var ctl = ct.contractList[i];
@@ -177,6 +181,7 @@ class _WindowCTState extends State<WindowCT> {
       ctW.add(w);
       ctW.add(WidgetT.dividHorizontal(size: 0.35));
     }
+
 
     /// 결재
     List<Widget> tsW = [];
@@ -304,35 +309,21 @@ class _WindowCTState extends State<WindowCT> {
                 runSpacing: dividHeight, spacing: dividHeight,
                 children: [
                   for(int i = 0; i < ct.contractFiles.length; i++)
-                    ButtonT.IconText(
-                      icon: Icons.file_copy_rounded,
-                      text: ct.contractFiles.keys.elementAt(i),
-                      onTap: () async {
-                        var downloadUrl = ct.contractFiles.values.elementAt(i);
-                        var fileName = ct.contractFiles.keys.elementAt(i);
-                        PdfManager.OpenPdf(downloadUrl, fileName);
+                    ButtonFile(
+                      fileName: ct.contractFiles.keys.elementAt(i),
+                      fileUrl: ct.contractFiles.values.elementAt(i),
+                      onDelete: () {
+                        WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+                        setState(() {});
                       },
-                      leaging: ButtonT.Icont(
-                        icon: Icons.delete,
-                        onTap: () {
-                          setState(() {});
-                        },
-                      ),
                     ),
                   for(int i = 0; i < ctFileByteList.length; i++)
-                    ButtonT.IconText(
-                      icon: Icons.file_copy_rounded,
-                      text: ctFileByteList.keys.elementAt(i),
-                      onTap: () async {
-                        PDFX.showPDFtoDialog(context, data: ctFileByteList.values.elementAt(i), name: ctFileByteList.keys.elementAt(i));
+                    ButtonFile(
+                      fileName:ctFileByteList.keys.elementAt(i),
+                      onDelete: () {
+                        ctFileByteList.remove(ctFileByteList.keys.elementAt(i));
+                        setState(() {});
                       },
-                      leaging: ButtonT.Icont(
-                        icon: Icons.delete,
-                        onTap: () {
-                          ctFileByteList.remove(ctFileByteList.keys.elementAt(i));
-                          setState(() {});
-                        },
-                      ),
                     ),
                 ],
               ),
@@ -347,36 +338,22 @@ class _WindowCTState extends State<WindowCT> {
                 runSpacing: dividHeight, spacing: dividHeight,
                 children: [
                   for(int i = 0; i < ct.filesMap.length; i++)
-                    ButtonT.IconText(
-                      icon: Icons.file_copy_rounded,
-                      text: ct.getFileName(ct.filesMap.keys.elementAt(i)),
-                      onTap: () async {
-                        var downloadUrl = ct.filesMap.values.elementAt(i);
-                        var fileName = ct.getFileName(ct.filesMap.keys.elementAt(i));
-                        PdfManager.OpenPdf(downloadUrl, fileName);
+                    ButtonFile(
+                      fileName: ct.getFileName(ct.filesMap.keys.elementAt(i)),
+                      fileUrl: ct.filesMap.values.elementAt(i),
+                      onDelete: () {
+                        WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
+                        setState(() {});
                       },
-                      leaging: ButtonT.Icont(
-                        icon:Icons.delete,
-                          onTap: () {
-                            WidgetT.showSnackBar(context, text: '기능을 개발중입니다.');
-                            FunT.setStateDT();
-                          },
-                      ),
                     ),
+
                   for(int i = 0; i < fileByteList.length; i++)
-                    ButtonT.IconText(
-                      icon: Icons.file_copy_rounded,
-                      text: ct.getFileName(fileByteList.keys.elementAt(i)),
-                      onTap: () async {
-                        PDFX.showPDFtoDialog(context, data: fileByteList.values.elementAt(i), name: fileByteList.keys.elementAt(i));
+                    ButtonFile(
+                      fileName: ct.getFileName(fileByteList.keys.elementAt(i)),
+                      onDelete: () {
+                        fileByteList.remove(fileByteList.keys.elementAt(i));
+                        setState(() {});
                       },
-                      leaging: ButtonT.Icont(
-                        icon: Icons.delete,
-                        onTap: () {
-                          fileByteList.remove(fileByteList.keys.elementAt(i));
-                          FunT.setStateDT();
-                        },
-                      ),
                     ),
                 ],
               ),
@@ -396,10 +373,9 @@ class _WindowCTState extends State<WindowCT> {
               padding: EdgeInsets.all(18),
               child: Column( crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextT.Title(text:'계약상세 정보' ),
+                  TextT.SubTitle(text:'계약상세 정보' ),
                   SizedBox(height: dividHeight,),
                   ctInfoWidget,
-                  //ctInfoWiwwwdget,
                   SizedBox(height: dividHeight,),
                   Row(
                     children: [
@@ -462,7 +438,7 @@ class _WindowCTState extends State<WindowCT> {
                   SizedBox(height: dividHeight,),
 
                   dividCol,
-                  TextT.Title(text:'계약내용' ),
+                  TextT.SubTitle(text:'계약내용' ),
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: ctW,)),
                   SizedBox(height: dividHeight,),
@@ -491,81 +467,92 @@ class _WindowCTState extends State<WindowCT> {
                   ),
 
                   dividCol,
-                  TextT.Title(text:'일정 및 메모' ),
+                  ListBoxT.Rows(
+                      spacing: 6,
+                      children: [
+                        TextT.SubTitle(text:'일정 및 메모' ),
+                        ButtonT.IconText(icon: Icons.add_box, text: "일정 추가",
+                            onTap: () async {
+                              UIState.OpenNewWindow(context, WindowSchCreate(refresh: () async { await initAsync(); }, ct: ct,));
+                            }
+                        ),
+                      ]
+                  ),
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: schTableWidgetList,)),
                   SizedBox(height: dividHeight,),
 
                   dividCol,
-                  TextT.Title(text:'매입 목록' ),
+                  ListBoxT.Rows(
+                    spacing: 6,
+                      children: [
+                        TextT.SubTitle(text:'매입 목록' ),
+                        ButtonT.IconText(icon: Icons.add_box, text: "매입 추가 (재고 미반영)",
+                            onTap: () async {
+                              UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct,));
+                            }
+                        ),
+                        ButtonT.IconText(icon: Icons.add_box, text: "품목 매입 추가 (재고 반영)",
+                            onTap: () async {
+                              UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct, isItemPurchase: true,));
+                            }
+                        ),
+                      ]
+                  ),
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: purWidgets,)),
 
                   dividCol,
-                  Row(
+                  ListBoxT.Rows(
+                    spacing: 6,
                     children: [
-                      TextT.Title(text:'매출 목록' ),
-                      SizedBox(width: 6,),
-                    ],
-                  ),
-                  SizedBox(height: dividHeight,),
-                  Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: reW,)),
-                  SizedBox(height: dividHeight,),
-                  Row(
-                    children: [
-                      InkWell(
+                      TextT.SubTitle(text:'매출 목록' ),
+                      ButtonT.IconText(icon: Icons.add_box, text: "매출 추가", onTap: () {
+                        UIState.OpenNewWindow(context, WindowReCreateWithCt(ct: ct, refresh: () { initAsync(); }));
+                      }),
+                      ButtonT.IconText(icon: Icons.open_in_new_sharp, text: "세금계산서 관리",
                           onTap: () async {
-                            WidgetT.loadingBottomSheet(context, text: '저장중');
                             for(var re in ct.revenueList) {
                               if(re.isTaxed != re.selectIsTaxed) {
                                 re.isTaxed = re.selectIsTaxed;
                                 await re.update();
                               }
                             }
-                            Navigator.pop(context);
-                            FunT.setStateDT();
-                          },
-                          child: Container(
-                              height: 32,
-                              decoration: btnStyleT,
-                              padding: EdgeInsets.all(0), child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              WidgetT.iconMini(Icons.pending_actions, size: 32),
-                              WidgetT.title('세금계산서마감'),
-                              SizedBox(width: 6,),
-                            ],
-                          ))
-                      ),
-                      SizedBox(width: dividHeight,),
-                      InkWell(
+                            setState(() {});
+                      }),
+                      ButtonT.IconText(icon: Icons.open_in_new_sharp, text: "홈택스 바로가기",
                           onTap: () async {
                             launchUrl(Uri.parse('https://www.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index.xml'));
-                            FunT.setStateDT();
-                          },
-                          child: Container(
-                              height: 32,
-                              decoration: btnStyleT,
-                              padding: EdgeInsets.all(0), child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              WidgetT.iconMini(Icons.open_in_new, size: 32),
-                              WidgetT.title('홈택스 바로가기' ),
-                              SizedBox(width: 6,),
-                            ],
-                          ))
-                      ),
+                          }),
                     ],
                   ),
+                  SizedBox(height: dividHeight,),
+                  Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: reW,)),
+                  SizedBox(height: dividHeight,),
 
                   dividCol,
-                  TextT.Title(text: '출고원장'),
+                  ListBoxT.Rows(
+                      spacing: 6,
+                      children: [
+                      TextT.SubTitle(text: '출고원장'),
+                      ButtonT.IconText(icon: Icons.add_box, text: "출고원장 생성", onTap: () {
+                        UIState.OpenNewWindow(context, WindowLedgerReCreate(refresh: () { initAsync(); }, contract: ct,));
+                      }),
+                    ]
+                  ),
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:ledgerWidgets,)),
 
 
                   dividCol,
-                  TextT.Title(text: '수납목록'),
+                  ListBoxT.Rows(
+                    spacing: 6,
+                    children: [
+                      TextT.SubTitle(text: '수납목록'),
+                      ButtonT.IconText(icon: Icons.add_box, text: "신규 수납정보 추가", onTap: () {
+                      }),
+                    ]
+                  ),
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: tsW,)),
                   SizedBox(height: dividHeight,),
@@ -582,7 +569,7 @@ class _WindowCTState extends State<WindowCT> {
                   ),
 
                   dividCol,
-                  TextT.Title(text: '금엑현황'),
+                  TextT.SubTitle(text: '금엑현황'),
                   SizedBox(height: dividHeight,),
                   Container(decoration: gridStyle, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: tsAllW,)),
                 ],
@@ -611,13 +598,7 @@ class _WindowCTState extends State<WindowCT> {
             spacing: 6 * 2,
             children: [
               ButtonT.Text(
-                  text: ct.csName + " / " + ct.ctName + " 계약 정보", textSize: 18, color: Colors.transparent, textColor: Colors.white
-              ),
-              ButtonT.IconText(
-                  icon: Icons.refresh, text: "새로고침", color: Colors.transparent, textColor: Colors.white.withOpacity(0.8),
-                  onTap: () {
-                    initAsync();
-                  }
+                  text: cs.businessName + " / " + ct.ctName + " 계약 정보", textSize: 16, color: Colors.transparent, textColor: Colors.white
               ),
               Expanded(child: SizedBox()),
               ButtonT.AppbarAction("신규 매출 등록", Icons.output,

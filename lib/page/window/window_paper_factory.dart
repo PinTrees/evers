@@ -164,7 +164,8 @@ class _WindowFactoryPaperState extends State<WindowFactoryPaper> {
                               leaging: ButtonT.Icont(
                                 icon: Icons.delete,
                                 onTap: () async {
-                                  if(!await DialogT.showAlertDl(context, text: '파일을 삭제하시겠습니까?')) Messege.toReturn(context, "삭제 취소됨", false);
+                                  var rst = await DialogT.showAlertDl(context, text: '파일을 삭제하시겠습니까?');
+                                  if(!rst) return Messege.toReturn(context, "삭제 취소됨", false);
 
                                   await factoryD.deleteFile(factoryD.filesMap.keys.elementAt(i));
                                   WidgetT.showSnackBar(context, text: '파일 삭제됨');

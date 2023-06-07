@@ -6,6 +6,7 @@ import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_article_create.dart';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
+import 'package:evers/page/window/window_ct_create.dart';
 import 'package:evers/page/window/window_ledger_revenue.dart';
 import 'package:evers/page/window/window_ledger_revenue_create.dart';
 import 'package:evers/page/window/window_pageA_create.dart';
@@ -17,7 +18,9 @@ import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_re_create.dart';
 import 'package:evers/page/window/window_re_create_ct.dart';
 import 'package:evers/page/window/window_re_editor.dart';
+import 'package:evers/page/window/window_schList_info.dart';
 import 'package:evers/page/window/window_sch_create.dart';
+import 'package:evers/page/window/window_sch_editor.dart';
 import 'package:evers/page/window/window_shopitem_create.dart';
 import 'package:evers/page/window/window_shopitem_editor.dart';
 import 'package:evers/page/window/window_ts.dart';
@@ -66,8 +69,10 @@ class UIState {
     var width = 1000000.0;
     if(window is WindowTsCreate || window is WindowTSEditor || window is Window) width = 1000;
     if(window is WindowUserCreate) width = 800;
-    if(window is WindowCS || window is WindowCsCreate) width = 1200;
-    if(window is WindowCT || window is WindowCT) width = 1200;
+
+    if(window is WindowCS || window is WindowCsCreate) width = 1150;
+    if(window is WindowCT || window is WindowCtCreate) width = 1150;
+
     if(window is WindowItemTS) width = 1000;
 
     if(window is WindowProcessOutputCreate || window is WindowProcessCreate) width = 1000;
@@ -81,6 +86,7 @@ class UIState {
 
     if(window is WindowPUCreate || window is WindowPUEditor || window is WindowPUCreateWithCS) width = 1000;
     if(window is WindowReCreate || window is WindowReEditor || window is WindowReCreateWithCt) width = 1000;
+    if(window is WindowSchCreate || window is WindowSchEditor || window is WindowSchListInfo) width = 1000;
 
     if(window is WindowShopItemCreate) width = 1000;
     if(window is WindowShopItemEditor) width = 1000;
@@ -94,6 +100,7 @@ class UIState {
     bool isFixedHeight = false;
     if(window is WindowCT) isFixedHeight = true;
     if(window is WindowCS) isFixedHeight = true;
+    //if(window is WindowCtCreate) isFixedHeight = true;
     if(window is WindowCsCreate) isFixedHeight = true;
     if(window is WindowItemTS) isFixedHeight = false;
     if(window is WindowLedgerReCreate) isFixedHeight = true;

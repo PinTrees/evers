@@ -16,6 +16,7 @@ import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/json.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_ct_create.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/ui/dialog_item.dart';
@@ -274,7 +275,7 @@ class _WindowCSState extends State<WindowCS> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextT.Title(text: '거래처 상세 정보',),
+                    TextT.SubTitle(text: '거래처 상세 정보',),
                     SizedBox(height: dividHeight,),
                     Container(
                       padding: const EdgeInsets.only(top: 6, right: 6),
@@ -500,36 +501,60 @@ class _WindowCSState extends State<WindowCS> {
                     ),
                     SizedBox(height: dividHeight * 8,),
 
-                    TextT.Title(text: '생산관리 - 거래처 연결품목 재고관리',),
-                    SizedBox(height: dividHeight,),
-                    ItemCount.OnTableHeader(),
-                    Column(children: outputWidgets,),
-                    SizedBox(height: dividHeight * 8,),
-
-                    TextT.Title(text: '생산관리 - 공정관리',),
-                    SizedBox(height: dividHeight,),
-                    CompProcess.tableHeader(),
-                    Column(children: processingWidgets,),
-                    SizedBox(height: dividHeight * 8,),
-
-                    TextT.Title(text: '매입목록',),
-                    SizedBox(height: dividHeight,),
-                    Container(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: puW,)),
-                    SizedBox(height: dividHeight * 4,),
-
-                    TextT.Title(text: '수납목록',),
-                    SizedBox(height: dividHeight,),
-                    CompTS.tableHeader(),
-                    Column(children: tsWidgets,),
-                    SizedBox(height: dividHeight * 4,),
-
-                    WidgetT.title('계약목록', size: 14),
+                    ListBoxT.Rows(
+                      spacing: 6,
+                      children: [
+                        TextT.SubTitle(text:'계약 목록', ),
+                        ButtonT.IconText(text: "계약 추가", icon: Icons.add_box, onTap: () {
+                          UIState.OpenNewWindow(context, WindowCtCreate(cs: cs, refresh: () { initAsync(); }));
+                        }),
+                      ]
+                    ),
                     SizedBox(height: dividHeight,),
                     CompContract.tableHeader(),
                     Column(children: widgetsCt,),
                     SizedBox(height: dividHeight * 4,),
 
-                    WidgetT.title("미수, 미지급 현황", size: 14),
+                    TextT.SubTitle(text: '생산관리 - 재고관리',),
+                    SizedBox(height: dividHeight,),
+                    ItemCount.OnTableHeader(),
+                    Column(children: outputWidgets,),
+                    SizedBox(height: dividHeight * 8,),
+
+                    TextT.SubTitle(text: '생산관리 - 공정관리',),
+                    SizedBox(height: dividHeight,),
+                    CompProcess.tableHeader(),
+                    Column(children: processingWidgets,),
+                    SizedBox(height: dividHeight * 8,),
+
+                    ListBoxT.Rows(
+                      spacing: 6,
+                        children: [
+                        TextT.SubTitle(text: '매입 목록',),
+                        ButtonT.IconText(text: "매입 추가", icon: Icons.add_box, onTap: () {
+                          UIState.OpenNewWindow(context, WindowPUCreateWithCS(cs : widget.org_cs, refresh: initAsync,));
+                        }),
+                      ]
+                    ),
+                    SizedBox(height: dividHeight,),
+                    Container(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: puW,)),
+                    SizedBox(height: dividHeight * 4,),
+
+                    ListBoxT.Rows(
+                        spacing: 6,
+                        children: [
+                        TextT.SubTitle(text: '수납 목록',),
+                        ButtonT.IconText(text: "수납 추가", icon: Icons.add_box, onTap: () {
+                          UIState.OpenNewWindow(context, WindowTsCreate(cs: cs, refresh: initAsync));
+                        }),
+                      ]
+                    ),
+                    SizedBox(height: dividHeight,),
+                    CompTS.tableHeader(),
+                    Column(children: tsWidgets,),
+                    SizedBox(height: dividHeight * 4,),
+
+                    TextT.SubTitle(text: "미수, 미지급 현황",),
                     SizedBox(height: dividHeight,),
                     Column(children: inputOutputWidgets,),
                   ],)
@@ -564,6 +589,11 @@ class _WindowCSState extends State<WindowCS> {
                 }
             ),
             Expanded(child: SizedBox()),
+            ButtonT.AppbarAction("신규 계약 등록", Icons.account_tree,
+              onTap: () async {
+                UIState.OpenNewWindow(context, WindowCtCreate(cs : widget.org_cs, refresh: () { initAsync(); },));
+              },
+            ),
             ButtonT.AppbarAction("신규 매입 등록", Icons.input,
               onTap: () async {
                 UIState.OpenNewWindow(context, WindowPUCreateWithCS(cs : widget.org_cs, refresh: initAsync,));
