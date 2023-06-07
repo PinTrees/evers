@@ -550,7 +550,7 @@ class PageRePu extends StatelessWidget {
     List<Widget> widgets = [];
 
     if(puList.isEmpty) {
-      puList = await DatabaseM.getPurchase( startDate: rpStartAt.microsecondsSinceEpoch, lastDate: rpLastAt.microsecondsSinceEpoch);
+      puList = await DatabaseM.getPurchaseList( startDate: rpStartAt.microsecondsSinceEpoch, lastDate: rpLastAt.microsecondsSinceEpoch);
     }
 
     var data = sort ? puSortList : puList;
@@ -568,7 +568,7 @@ class PageRePu extends StatelessWidget {
         icon: Icons.add_box, text: "더보기",
         onTap: () async {
           WidgetT.loadingBottomSheet(context, text: '로딩중');
-          var list = await DatabaseM.getPurchase(
+          var list = await DatabaseM.getPurchaseList(
             startAt: puList.last.id,
             startDate: rpStartAt.microsecondsSinceEpoch,
             lastDate: rpLastAt.microsecondsSinceEpoch,

@@ -1,3 +1,4 @@
+/*
 import 'dart:convert';
 import 'dart:ui';
 
@@ -51,56 +52,25 @@ import 'dart:js' as js;
 import 'dart:html' as html;
 
 
-class ERPViewParams {
-  final Widget topWidget;
-  final Widget bottomWidget;
-  final Widget navigateWidget;
-
-  ERPViewParams({
-    required this.topWidget,
-    required this.bottomWidget,
-    required this.navigateWidget,
-  });
-}
 
 
+class ViewCustomer extends StatefulWidget {
 
-
-class ViewPaymentDaily extends StatefulWidget {
-
-  ViewPaymentDaily();
+  ViewCustomer();
 
   @override
-  _ViewPaymentDailyState createState() => _ViewPaymentDailyState();
+  _ViewCustomerState createState() => _ViewCustomerState();
 }
 
-class _ViewPaymentDailyState extends State<ViewPaymentDaily> {
+class _ViewCustomerState extends State<ViewCustomer> {
   TextEditingController searchInput = TextEditingController();
   var divideHeight = 6.0;
 
-  var title = "일계표";
-  var titlePurchase = "매입 / 지출 현황";
-  var titleRevenueTs = "매출 / 수금 현황";
-  var titleBalanceDes = "누적 영업 현황";
-
-  var titleBalance = "현재 잔고";
-  var titleLastBalance = "전일 잔고";
-  var titleDayInfo = "날짜 범위";
-
-  var titleProduct = "생산 / 가공 현황";
-  var titleContract = "계약 현황";
-
-  Balance balance = Balance();
-
-  DateTime? startDate;
-  DateTime? lastDate;
 
   @override
   void initState() {
     super.initState();
 
-    lastDate = DateTime.now();
-    startDate = DateTime(lastDate!.year, lastDate!.month, lastDate!.day - currentDaily);
     initAsync();
   }
 
@@ -347,3 +317,4 @@ class _ViewPaymentDailyState extends State<ViewPaymentDaily> {
     return mainBuild();
   }
 }
+*/

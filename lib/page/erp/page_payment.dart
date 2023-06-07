@@ -113,6 +113,7 @@ class PagePayment extends StatelessWidget {
     var balance = 0;
 
     if(this.menu != menu) {
+      this.menu = menu;
       sort = false; searchInput.text = '';
     }
     if(refresh) {
@@ -123,7 +124,6 @@ class PagePayment extends StatelessWidget {
       sortStartAt = DateTime(sortLastAt.year, sortLastAt.month, sortLastAt.day - 180);
     }
 
-    this.menu = menu;
 
     Widget titleMenu = SizedBox();
     Widget bottomWidget = SizedBox();

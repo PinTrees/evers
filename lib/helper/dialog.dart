@@ -371,8 +371,7 @@ class DialogT extends StatelessWidget {
                                   textInputAction: TextInputAction.search,
                                   keyboardType: TextInputType.text,
                                   onEditingComplete: () async {
-                                    await SystemT.searchCSMeta(searchInput.text,);
-                                    customerList = await Search.searchCS();
+                                    customerList = await Search.searchCSMeta(searchInput.text,);
                                     setStateS(() {});
                                   },
                                   onChanged: (text) {
@@ -401,8 +400,7 @@ class DialogT extends StatelessWidget {
                                 icon: Icons.search,
                                 onTap: () async {
                                   if(searchInput.text == '') { WidgetT.showSnackBar(context, text: "검색어를 입력해 주세요."); return; }
-                                  await SystemT.searchCSMeta(searchInput.text,);
-                                  customerList = await Search.searchCS();
+                                  customerList = await Search.searchCSMeta(searchInput.text,);
                                   setStateS(() {});
                                 }
                             )

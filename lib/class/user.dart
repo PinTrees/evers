@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/system/records.dart';
+import 'package:evers/core/database/database_search.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -52,6 +54,8 @@ class UserData {
 
   var permission = {};
 
+  List<String> customerSearch = [];
+  List<String> customerSelect = [];
 
   /// 이 함수는 클래스 파서입니다.
   UserData.fromDatabase(Map<dynamic, dynamic> json) {
@@ -59,8 +63,17 @@ class UserData {
     name = json['name'] ?? '';
     email = json['email'] ?? '';
     password = json['password'] ?? '';
-
     permission = json['permission'] == null ? {} : json['permission'] as Map;
+  }
+
+
+  dynamic init() async {
+    customerSearch = await DatabaseSearch.getCSSearchHistory();
+    customerSelect = await DatabaseSearch.getCSSelectHistory();
+
+    try {
+      if(FunT.streamSearchHistory != null) await FunT.streamSearchHistory!(customerSearch, customerSelect);
+    } catch (e) {}
   }
 
 

@@ -220,18 +220,25 @@ class ButtonT extends StatelessWidget {
     double? height,
     double? width,
     double? textSize,
+    double? round,
     bool bold=false,
     bool expand=false,
     Color? color,
     EdgeInsets? padding,
     Color? textColor, }) {
 
+    if(padding == null) padding = EdgeInsets.only(left: 6, right: 6);
+
     Widget w = InkWell(
       onTap: () async {
         if(onTap != null) return await onTap();
       },
       child: Container(
-        color: color ?? Colors.grey.withOpacity(0.25),
+        padding: padding,
+        decoration: StyleT.inkStyleNone(
+          round: round ?? 0,
+          color: color ?? Colors.grey.withOpacity(0.2),
+        ),
         alignment: Alignment.center,
         width: size ?? width, height: size ?? height ?? 28,
         child: TextT.Lit(text: text ?? '텍스트 입력', size: textSize ?? 12, color: textColor, bold: bold),
@@ -240,7 +247,6 @@ class ButtonT extends StatelessWidget {
 
 
     if(expand) w = Expanded(child: w);
-    if(padding != null) w = Container( padding: padding,  child: w, );
 
     return w;
   }
@@ -309,15 +315,18 @@ class ButtonT extends StatelessWidget {
           if(onTap != null) await onTap();
         },
         child: Container(
-          height: 36, width: width,
-          decoration: StyleT.inkStyleNone(round: 8,
-            color: accent ? Colors.black.withOpacity(0.15) : Colors.black.withOpacity(0.05), ),
-          child: Row(
-            children: [
-              WidgetT.iconNormal(icon,  size: 36),
-              WidgetT.text(text, size: 12),
-              SizedBox(width: 6,),
-            ],
+          decoration: StyleT.inkStyleNone(round: 8, color: Colors.white.withOpacity(0.8)),
+          child: Container(
+            height: 36, width: width,
+            decoration: StyleT.inkStyleNone(round: 8,
+              color: accent ? Colors.black.withOpacity(0.15) : Colors.black.withOpacity(0.05), ),
+            child: Row(
+              children: [
+                WidgetT.iconNormal(icon,  size: 36),
+                WidgetT.text(text, size: 12),
+                SizedBox(width: 6,),
+              ],
+            ),
           ),
         ));
   }
@@ -332,7 +341,6 @@ class ButtonT extends StatelessWidget {
     Function? onTap,
     Function? setState,
   }) {
-
     var accentColor = Colors.grey.withOpacity(0.3);
 
     return TextButton(
@@ -427,7 +435,7 @@ class ButtonT extends StatelessWidget {
             height: 42,
             child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                WidgetT.iconMini(icon ?? Icons.add_box),
+                WidgetT.iconMini(icon ?? Icons.add_box, ),
                 TextT.Lit(text: text, size: 12, color: StyleT.titleColor, bold: true),
                 SizedBox(width: 6,),
               ],
@@ -438,6 +446,36 @@ class ButtonT extends StatelessWidget {
     if(expend) return Expanded(child: w);
     else return w;
   }
+
+
+
+
+
+  /// 이 함수는 메인화면의 탭메뉴 위젯을 반환합니다.
+  static Widget AppbarAction(String text, IconData icon, {
+    double? width,
+    Function? onTap,
+    Function? setState,
+  }) {
+    return InkWell(
+        onTap: () async {
+          if(onTap != null) await onTap();
+        },
+        child: Container(
+          height: 36, width: width,
+          decoration: StyleT.inkStyleNone(round: 8,
+            color: Colors.transparent, ),
+          child: Row(
+            children: [
+              WidgetT.iconNormal(icon,  size: 36, color: Colors.white.withOpacity(0.5)),
+              WidgetT.text(text, size: 12, color: Colors.white),
+              SizedBox(width: 6,),
+            ],
+          ),
+        ));
+  }
+
+
   Widget build(context) {
     return Container();
   }

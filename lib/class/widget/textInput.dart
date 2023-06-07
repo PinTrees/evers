@@ -1,6 +1,7 @@
 
 
 
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/text.dart';
@@ -14,12 +15,60 @@ import '../../helper/interfaceUI.dart';
 class InputWidget {
   static Map<String, TextEditingController> textInputs = {};
   static Map<String, bool> isActive = {};
+  static OverlayEntry? overlayEntry;
 
-
-  static Widget textSearch({ Function(String)? search, TextEditingController? controller }) {
+  static Widget textSearch({ Function(String)? search, TextEditingController? controller,
+    List<String>? suggestions,
+    BuildContext? context,
+    Function? setState,
+  }) {
     if(controller == null) {
       return SizedBox();
     }
+
+
+    var textField = AutoCompleteTextField<String>(
+      key: GlobalKey(),
+
+      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      textInputAction: TextInputAction.search,
+      keyboardType: TextInputType.text,
+
+      controller: controller,
+      suggestions: suggestions ?? [],
+      itemBuilder: (context, suggestion) => Container(
+        height: 32,
+        padding: EdgeInsets.all(6),
+        child: Text(suggestion, style: TextStyle(fontSize: 14),),
+      ),
+      itemSorter: (a, b) => a.compareTo(b),
+      itemFilter: (suggestion, query) => suggestion.toLowerCase().startsWith(query.toLowerCase()),
+      itemSubmitted: (value) async {
+        controller!.text = value;
+        if(search != null) await search(controller!.text);
+      },
+      textChanged: (value) { if(setState != null) setState(() {}); },
+      textSubmitted: (value) async {
+        if(search != null) await search(controller!.text);
+      },
+      clearOnSubmit: false,
+      decoration: InputDecoration(
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide(color: Colors.transparent, width: 0)),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide(color: Colors.transparent, width: 0),),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0),
+        suffixIcon: Icon(Icons.keyboard),
+        hintText: '검색어를 입력해 주세요.',
+        hintStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+        contentPadding: EdgeInsets.fromLTRB(12, 6, 12, 6),
+      ),
+    );
+
+
     var w = Row(
       children: [
         SizedBox(height: 64,),
@@ -27,30 +76,7 @@ class InputWidget {
           child: Container(
             height: 36,
             decoration: StyleT.inkStyleNone(color: Colors.grey.withOpacity(0.15), round: 10),
-            child: TextFormField(
-              maxLines: 1,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              textInputAction: TextInputAction.search,
-              keyboardType: TextInputType.text,
-              onEditingComplete: () async {
-                if(search != null) await search(controller!.text);
-              },
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide(color: Colors.transparent, width: 0)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(18),
-                  borderSide: BorderSide(color: Colors.transparent, width: 0),),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0),
-                suffixIcon: Icon(Icons.keyboard),
-                hintText: '검색어를 입력해 주세요.',
-                hintStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
-                contentPadding: EdgeInsets.fromLTRB(12, 6, 12, 6),
-              ),
-              controller: controller,
-            ),
+            child: textField,
           ),
         ),
         SizedBox(width: 6 ,),

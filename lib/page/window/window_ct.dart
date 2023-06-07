@@ -389,6 +389,8 @@ class _WindowCTState extends State<WindowCT> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          buildAppbar(),
+
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.all(18),
@@ -596,52 +598,66 @@ class _WindowCTState extends State<WindowCT> {
   }
 
 
+
+
+  Widget buildAppbar() {
+    return Material(
+      elevation: 18,
+      child: Container(
+        height: 48,
+        padding: EdgeInsets.all(6),
+        color: Colors.black.withOpacity(0.9),
+        child: ListBoxT.Rows(
+            spacing: 6 * 2,
+            children: [
+              ButtonT.Text(
+                  text: ct.csName + " / " + ct.ctName + " 계약 정보", textSize: 18, color: Colors.transparent, textColor: Colors.white
+              ),
+              ButtonT.IconText(
+                  icon: Icons.refresh, text: "새로고침", color: Colors.transparent, textColor: Colors.white.withOpacity(0.8),
+                  onTap: () {
+                    initAsync();
+                  }
+              ),
+              Expanded(child: SizedBox()),
+              ButtonT.AppbarAction("신규 매출 등록", Icons.output,
+                onTap: () async {
+                  UIState.OpenNewWindow(context, WindowReCreateWithCt(refresh: () async { await initAsync(); }, ct: ct,));
+                },
+              ),
+              ButtonT.AppbarAction("신규 매입 등록", Icons.input,
+                onTap: () async {
+                  UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct,));
+                },
+              ),
+              ButtonT.AppbarAction("신규 품목 매입 등록", Icons.icecream_sharp,
+                onTap: () async {
+                  UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct, isItemPurchase: true,));
+                },
+              ),
+              ButtonT.AppbarAction("신규 일정 등록", Icons.schedule,
+                onTap: () async {
+                  UIState.OpenNewWindow(context, WindowSchCreate(refresh: () async { await initAsync(); }, ct: ct,));
+                },
+              ),
+              ButtonT.AppbarAction("출고원장 생성", Icons.padding_outlined,
+                onTap: () async {
+                  UIState.OpenNewWindow(context, WindowLedgerReCreate(refresh: () { initAsync(); }, contract: ct,));
+                },
+              ),
+              ButtonT.AppbarAction("새탭으로 열기", Icons.open_in_new_sharp ,
+                  onTap: () {
+                    Messege.show(context, "기능을 개발중입니다.");
+                  }
+              ),
+            ]
+        ),
+      ),
+    );
+  }
+
+
   Widget buildAction() {
-    var revenueSaveWidget = ButtonT.Action(
-      context, "신규 매출 등록",
-      expend: true,
-      icon: Icons.output, backgroundColor: Colors.blue.withOpacity(0.5),
-      onTap: () async {
-       UIState.OpenNewWindow(context, WindowReCreateWithCt(refresh: () async { await initAsync(); }, ct: ct,));
-      },
-    );
-    var purchaseSaveWidget = ButtonT.Action(
-      context, "신규 매입 등록",
-      expend: true,
-      icon: Icons.schedule, backgroundColor: Colors.redAccent.withOpacity(0.5),
-      onTap: () async {
-        UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct,));
-      },
-    );
-    var purchaseItemSaveWidget = ButtonT.Action(
-      context, "신규 품목 매입 등록",
-      expend: true,
-      icon: Icons.icecream_sharp, backgroundColor: Colors.redAccent.withOpacity(0.35),
-      onTap: () async {
-        UIState.OpenNewWindow(context, WindowPUCreate(refresh: () async { await initAsync(); }, ct: ct, isItemPurchase: true,));
-      },
-    );
-    var scheduleSaveWidget = ButtonT.Action(
-      context, "신규 일정 등록",
-      expend: true,
-      icon: Icons.schedule, backgroundColor: Colors.blueGrey.withOpacity(0.5),
-      onTap: () async {
-        UIState.OpenNewWindow(context, WindowSchCreate(refresh: () async { await initAsync(); }, ct: ct,));
-      },
-    );
-    var paperReleseReWidget = ButtonT.Action(
-      context, "출고원장 생성",
-      expend: true,
-      icon: Icons.open_in_new_sharp, backgroundColor: Colors.blueGrey.withOpacity(0.35),
-      onTap: () async {
-        UIState.OpenNewWindow(context, WindowLedgerReCreate(refresh: () { initAsync(); }, contract: ct,));
-        /*var url = Uri.base.toString().split('/work').first + '/printform/releaserevenue/${ ct.id }';
-        await launchUrl( Uri.parse(url), webOnlyWindowName: true ? '_blank' : '_self');*/
-        setState(() {});
-       },
-    );
-
-
 
     var saveWidget = ButtonT.Action(
       context, "계약 저장",
@@ -657,7 +673,6 @@ class _WindowCTState extends State<WindowCT> {
 
     return Column(
       children: [
-        Row( children: [ revenueSaveWidget, purchaseSaveWidget, purchaseItemSaveWidget, scheduleSaveWidget, paperReleseReWidget ],  ),
         Row(
           children: [
             saveWidget,

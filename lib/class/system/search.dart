@@ -6,6 +6,7 @@ import 'package:evers/class/purchase.dart';
 import 'package:evers/class/revenue.dart';
 import 'package:evers/class/system.dart';
 import 'package:evers/class/system/records.dart';
+import 'package:evers/core/database/database_search.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
@@ -151,6 +152,25 @@ class Search {
 
 
 
+  /// 이 함수는 거래처 검색이 필요한 문서의 키값을 목록으로 저장후 작업 결과를 반환합니다.
+  static dynamic searchCSMeta(String search) async {
+    List<Customer> searchList = [];
+
+    Search.clear();
+    search.trim();
+
+    if(search == "") return searchList;
+    DatabaseSearch.setSearch_CS(search);
+
+    late RegExp regExp;
+    try { regExp = getRegExp(search, RegExpOptions(initialSearch: true, startsWith: false, endsWith: false)); }
+    catch (e) { print(e); return; }
+
+    SystemT.customerSearch.forEach((k, e) { if(regExp.hasMatch(e)) Search.csList.add(k);});
+
+    return await searchCS();
+  }
+
 
   /// 이 함수는 거래처문서 검색을 비동기로 요청합니다.
   /// 반환
@@ -162,6 +182,25 @@ class Search {
     for(int i = 0; i < 100; i++) {
       if(csList.length <= i) break;
       futureGroup.add(DatabaseM.getCustomerDoc(csList[i]));
+    }
+    futureGroup.close();
+
+    await futureGroup.future.then((value) {
+      value.forEach((e) {
+        if(e == null) return;
+        search.add(e);
+      });
+    });
+
+    return search;
+  }
+  static dynamic searchCSOrder(List<dynamic> searchOrder) async {
+    List<Customer> search = [];
+
+    final futureGroup = FutureGroup();
+    for(int i = 0; i < 100; i++) {
+      if(searchOrder.length <= i) break;
+      futureGroup.add(DatabaseM.getCustomerDoc(searchOrder[i]));
     }
     futureGroup.close();
 

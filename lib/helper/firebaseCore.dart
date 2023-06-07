@@ -447,10 +447,8 @@ class DatabaseM {
     batch.commit().then((_) {});
   }
 
-
   static dynamic getPurchaseWithDate(int start, int end) async {
     Map<String, Purchase> data = {};
-
     CollectionReference coll = await FirebaseFirestore.instance.collection(
         'purchase');
     await coll.where('purchaseAt', isGreaterThan: start).where(
@@ -640,8 +638,6 @@ class DatabaseM {
 
       if (data['list'] == null) return false;
       var itemList = data['list'] as Map;
-      SystemT.balance.balance = data['balance'] ?? 0;
-      SystemT.balance.cash = data['cash'] ?? 0;
 
       for (var a in itemList.values) {
         if (a == null) continue;
@@ -772,7 +768,7 @@ class DatabaseM {
     await FirebaseFirestore.instance.collection(
         'meta/date-by/dateM-transaction').orderBy('date', descending: true).
     where('date', isGreaterThanOrEqualTo: startAt - 5000000000000).where(
-        'date', isLessThanOrEqualTo: lastAt + 5000000000000).limit(20)
+        'date', isLessThanOrEqualTo: lastAt + 5000000000000).limit(100)
         .get()
         .then((value) {
       print('get transaction data');
@@ -1134,7 +1130,6 @@ class DatabaseM {
     });
     return true;
   }
-
   static dynamic initStreamPurchase() async {
     CollectionReference coll = await FirebaseFirestore.instance.collection(
         'purchase');
@@ -1243,8 +1238,7 @@ class DatabaseM {
 
     return data;
   }
-
-  static dynamic getPurchase(
+  static dynamic getPurchaseList(
       { String? startAt, int? startDate, int? lastDate,}) async {
     List<Purchase> data = [];
     var coll = FirebaseFirestore.instance.collection('purchase');
@@ -1258,7 +1252,7 @@ class DatabaseM {
             .where('purchaseAt', isLessThanOrEqualTo: lastDate).where(
             'purchaseAt', isGreaterThanOrEqualTo: startDate)
             .where('state', whereIn: [ ''],)
-            .startAfterDocument(doc).limit(25).get().then((value) {
+            .startAfterDocument(doc).limit(100).get().then((value) {
           if (value.docs == null) return false;
           print(value.docs.length);
 
@@ -1274,7 +1268,7 @@ class DatabaseM {
       else {
         await coll.orderBy('purchaseAt', descending: true)
             .where('state', whereIn: [ ''],)
-            .startAfterDocument(doc).limit(25).get().then((value) {
+            .startAfterDocument(doc).limit(100).get().then((value) {
           if (value.docs == null) return false;
           print(value.docs.length);
 
@@ -1293,7 +1287,7 @@ class DatabaseM {
             .where('purchaseAt', isLessThanOrEqualTo: lastDate).where(
             'purchaseAt', isGreaterThanOrEqualTo: startDate)
             .where('state', whereIn: [ ''],)
-            .limit(25).get().then((value) {
+            .limit(50).get().then((value) {
           if (value.docs == null) return false;
           print(value.docs.length);
 
@@ -1310,7 +1304,7 @@ class DatabaseM {
         await coll
             .orderBy('purchaseAt', descending: true)
             .where('state', isEqualTo: '',)
-            .limit(25).get().then((value) {
+            .limit(50).get().then((value) {
           if (value.docs == null) return false;
           print(value.docs.length);
 
@@ -1325,7 +1319,6 @@ class DatabaseM {
 
     return data;
   }
-
   static dynamic getPurchaseAll(
       { String? startAt, int? startDate, int? lastDate,}) async {
     List<Purchase> data = [];
@@ -1344,7 +1337,6 @@ class DatabaseM {
     });
     return data;
   }
-
   static dynamic getRevDelete({ String? startAt }) async {
     List<Revenue> data = [];
     CollectionReference coll = FirebaseFirestore.instance.collection('revenue');
@@ -1400,7 +1392,7 @@ class DatabaseM {
         await coll.orderBy('revenueAt', descending: true)
             .where('revenueAt', isLessThan: lastDate).where(
             'revenueAt', isGreaterThan: startDate)
-            .startAfterDocument(doc).limit(25).get().then((value) {
+            .startAfterDocument(doc).limit(50).get().then((value) {
           if (value.docs == null) return false;
           print(value.docs.length);
 
@@ -1416,7 +1408,7 @@ class DatabaseM {
       else {
         await coll.orderBy('state').orderBy('revenueAt', descending: true)
             .where('state', isNotEqualTo: 'DEL').startAfterDocument(doc).limit(
-            25).get().then((value) {
+            50).get().then((value) {
           if (value.docs == null) return false;
           print(value.docs.length);
 
@@ -1433,7 +1425,7 @@ class DatabaseM {
         await coll.orderBy('revenueAt', descending: true)
             .where('revenueAt', isLessThan: lastDate).where(
             'revenueAt', isGreaterThan: startDate)
-            .limit(25).get().then((value) {
+            .limit(50).get().then((value) {
           if (value.docs == null) return false;
           print(value.docs.length);
 
@@ -1448,7 +1440,7 @@ class DatabaseM {
       }
       else {
         await coll.orderBy('state').orderBy('revenueAt', descending: true)
-            .where('state', isNotEqualTo: 'DEL').limit(25).get().then((value) {
+            .where('state', isNotEqualTo: 'DEL').limit(50).get().then((value) {
           if (value.docs == null) return false;
           print(value.docs.length);
 
@@ -1914,12 +1906,12 @@ class DatabaseM {
     return search;
   }
 
-  static dynamic getCustomer({String? startAt}) async {
+  static dynamic getCustomerList({String? startAt}) async {
     List<Customer> data = [];
 
     if (startAt != null) {
       var doc = await FirebaseFirestore.instance.doc('customer/$startAt').get();
-      await FirebaseFirestore.instance.collection('customer').orderBy('state')
+      await FirebaseFirestore.instance.collection('customer').orderBy('state').orderBy("puCount", descending: true)
           .where('state', isNotEqualTo: 'DEL').startAfterDocument(doc)
           .limit(25)
           .get()
@@ -1935,7 +1927,7 @@ class DatabaseM {
       });
     }
     else {
-      await FirebaseFirestore.instance.collection('customer').orderBy('state')
+      await FirebaseFirestore.instance.collection('customer').orderBy('state').orderBy("puCount", descending: true)
           .where('state', isNotEqualTo: 'DEL').limit(25).get().then((value) {
         if (value.docs == null) return false;
         print(value.docs.length);
@@ -2845,6 +2837,18 @@ class DatabaseM {
   static dynamic getUserDataWithUID(String uid) async {
     UserData user = UserData.fromDatabase({});
     var ref = await FirebaseFirestore.instance.collection('users').doc(uid);
+    await ref.get().then((value) {
+      if (!value.exists) return false;
+      if (value.data() == null) return false;
+
+      user = UserData.fromDatabase(value.data() as Map);
+    });
+    return user;
+  }
+  static dynamic getUserDataWithUIDCurrent() async {
+    if(FirebaseAuth.instance.currentUser == null) return null;
+    UserData user = UserData.fromDatabase({});
+    var ref = await FirebaseFirestore.instance.collection('users').doc(FirebaseAuth.instance.currentUser!.uid);
     await ref.get().then((value) {
       if (!value.exists) return false;
       if (value.data() == null) return false;

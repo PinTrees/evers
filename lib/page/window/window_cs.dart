@@ -6,11 +6,15 @@ import 'package:evers/class/component/comp_contract.dart';
 import 'package:evers/class/component/comp_process.dart';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/user.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/list.dart';
+import 'package:evers/class/widget/messege.dart';
 import 'package:evers/class/widget/textInput.dart';
+import 'package:evers/core/database/database_search.dart';
 import 'package:evers/core/window/window_base.dart';
 import 'package:evers/helper/function.dart';
+import 'package:evers/helper/json.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/page/window/window_pu_create.dart';
 import 'package:evers/page/window/window_ts.dart';
@@ -48,9 +52,34 @@ import '../../ui/dl.dart';
 import '../../ui/ip.dart';
 import '../../ui/ux.dart';
 
+
+/*enum CustomerMenu {
+  //all("all", '전체보기', Icons.calendar_month),
+  newTap('newTap', '새탭에서 보기', Icons.calendar_view_week ),
+  //repu('repu', '매입매출만 보기', Icons.calendar_view_day);
+*//*
+  const CustomerMenu(this.code, this.displayName, this.icon);
+  final String code;
+  final String displayName;
+  final IconData icon;
+
+  factory CustomerMenu.getByCode(String code){
+    return CustomerMenu.values.firstWhere((value)
+    => value.code == code,
+        orElse: () => CustomerMenu.month
+    );
+  }*//*
+}*/
+
+
+
 class WindowCS extends WindowBaseMDI {
+  Function? refresh;
   Customer org_cs;
-  WindowCS({ required this.org_cs,  }) { }
+
+  WindowCS({ required this.org_cs,
+    this.refresh,
+  }) { }
 
   @override
   _WindowCSState createState() => _WindowCSState();
@@ -85,13 +114,12 @@ class _WindowCSState extends State<WindowCS> {
 
   void initAsync() async {
     await widget.org_cs.update();
+    await DatabaseSearch.setSelect_CS(widget.org_cs.id);
 
+    cs = Customer.fromDatabase(JsonManager.toJsonObject(widget.org_cs));
     purs = await widget.org_cs.getPurchase();
     purs.sort((a, b) => b.purchaseAt.compareTo(a.purchaseAt) );
 
-    var jsonString = jsonEncode(widget.org_cs.toJson());
-    var json = jsonDecode(jsonString);
-    cs = Customer.fromDatabase(json);
 
     if(cs.state == 'DEL') {
       //Navigator.pop(context);
@@ -118,8 +146,9 @@ class _WindowCSState extends State<WindowCS> {
       else usedAmount[data.prUid] = data.usedAmount;
     }
 
+    UserSystem.userData.init();
+    //FunT.CallFunction(widget.refresh);
     setState(() {});
-    //Navigator.pop(context);
   }
 
   Widget main = SizedBox();
@@ -237,6 +266,8 @@ class _WindowCSState extends State<WindowCS> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          buildAppbar(),
+
           Expanded(
             child: SingleChildScrollView(
                 padding: EdgeInsets.all(18),
@@ -513,42 +544,61 @@ class _WindowCSState extends State<WindowCS> {
   }
 
 
-  Widget actionWidgets() {
-    return  Column(
-      children: [
-        Row(
+  Widget buildAppbar() {
+    return Material(
+      elevation: 18,
+      child: Container(
+        height: 48,
+        padding: EdgeInsets.all(6),
+        color: Colors.black.withOpacity(0.9),
+        child: ListBoxT.Rows(
+          spacing: 6 * 4,
           children: [
-            ButtonT.ActionLegacy("신규 매출 등록",
-              expend: true,
-              icon: Icons.output, backgroundColor: Colors.blue.withOpacity(0.5),
-              onTap: () async {
-                WidgetT.showSnackBar(context, text: "매출정보는 계약정보를 비워둘 수 없습니다. 계약화면에서 추가해주세요.");
-              },
+            ButtonT.Text(
+              text: cs.businessName + " 거래처 정보", textSize: 18, color: Colors.transparent, textColor: Colors.white
             ),
-            ButtonT.ActionLegacy("신규 매입 등록",
-              expend: true,
-              icon: Icons.input, backgroundColor: Colors.red.withOpacity(0.5),
+            ButtonT.IconText(
+                icon: Icons.refresh, text: "새로고침", color: Colors.transparent, textColor: Colors.white.withOpacity(0.8),
+                onTap: () {
+                  initAsync();
+                }
+            ),
+            Expanded(child: SizedBox()),
+            ButtonT.AppbarAction("신규 매입 등록", Icons.input,
               onTap: () async {
-                /// 수납등록 윈도우창 표시
                 UIState.OpenNewWindow(context, WindowPUCreateWithCS(cs : widget.org_cs, refresh: initAsync,));
               },
             ),
-            ButtonT.ActionLegacy("신규 품목 매입 등록",
+            ButtonT.AppbarAction("신규 수납 등록", Icons.monetization_on_sharp,
+              onTap: () async {
+                UIState.OpenNewWindow(context, WindowTsCreate(cs: cs, refresh: initAsync));
+              },
+            ),
+            ButtonT.AppbarAction("새탭으로 열기", Icons.open_in_new_sharp ,
+                onTap: () {
+                  Messege.show(context, "기능을 개발중입니다.");
+                }
+            ),
+          ]
+        ),
+      ),
+    );
+  }
+
+  Widget actionWidgets() {
+    return  Column(
+      children: [
+        /*Row(
+          children: [
+            *//*ButtonT.ActionLegacy("신규 품목 매입 등록",
               expend: true,
               icon: Icons.input, backgroundColor: Colors.blueGrey.withOpacity(0.5),
               onTap: () async {
                 WidgetT.showSnackBar(context, text: "품목에 대한매입은 계약을 비워둘 수 없습니다. 계약화면에서 추가해주세요.");
               },
-            ),
-            ButtonT.ActionLegacy("신규 수납 등록",
-              expend: true,
-              icon: Icons.monetization_on_sharp, backgroundColor: StyleT.accentOver.withOpacity(0.5),
-              onTap: () async {
-                UIState.OpenNewWindow(context, WindowTsCreate(cs: cs, refresh: initAsync));
-              },
-            ),
+            ),*//*
           ],
-        ),
+        ),*/
         Row(
           children: [
             ButtonT.ActionLegacy("거래처 저장",

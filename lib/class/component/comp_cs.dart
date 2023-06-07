@@ -60,7 +60,7 @@ class CompCS {
   }) {
     var w = InkWell(
         onTap: () async {
-          UIState.OpenNewWindow(context, WindowCS( org_cs: cs,));
+          UIState.OpenNewWindow(context, WindowCS( org_cs: cs, refresh: refresh,));
         },
         child: Container( height: 36 + 6,
           decoration: StyleT.inkStyleNone(color: Colors.transparent),

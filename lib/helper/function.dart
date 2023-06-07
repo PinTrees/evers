@@ -12,6 +12,10 @@ class FunT {
   static Function? setState;
   static Function? setStateO;
 
+
+  static Function(List<String>, List<String>)? streamSearchHistory;
+
+
   static Function? scheduleRf;
   static Function? refresh;
 
@@ -41,6 +45,12 @@ class FunT {
   static dynamic setStateOnly() async {
     if(setStateO != null) await setStateO!();
     return '';
+  }
+
+
+  static dynamic CallFunction(Function? fun) async {
+    if(fun != null) return await fun();
+    else return null;
   }
 
 

@@ -36,8 +36,8 @@ import 'package:http/http.dart' as http;
 
 class CompPU {
   static dynamic tableHeader() {
-    return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', "",  '단위', '수량', '단가', '공급가액', 'VAT', '합계', '메모', ],
-        [ 28, 80, 999, 28 * 2, 50, 80, 80, 80, 80, 80, 999 ], background: true, lite: true);
+    return WidgetUI.titleRowNone([ '순번', '매입일자', '품목', "",  '단위', '수량', '단가', '공급가액', 'VAT', '합계',],
+        [ 28, 80, 999, 28 * 2, 50, 80, 80, 80, 80, 80 ], background: true, lite: true);
   }
 
   static dynamic tableHeaderInput() {
@@ -631,7 +631,7 @@ class CompPU {
                 ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.supplyPrice),),
                 ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.vat),),
                 ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.totalPrice),),
-                ExcelT.LitGrid(center: true, width: 200, text: pu.memo, expand: true),
+                //ExcelT.LitGrid(center: true, width: 200, text: pu.memo, expand: true),
 
                 /// 수정
                 ButtonT.Icont(

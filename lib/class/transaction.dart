@@ -627,10 +627,6 @@ class LTS {
 
 }
 
-class Balance {
-  var balance = 0;
-  var cash = 0;
-}
 
 class LoadingCounter {
   int counter = 0;

@@ -67,7 +67,7 @@ class CompRE {
           ExcelT.LitGrid(text: StyleT.krwInt(re.supplyPrice), width: 80, center: true),
           ExcelT.LitGrid(text: StyleT.krwInt(re.vat), width: 80, center: true),
           ExcelT.LitGrid(text: StyleT.krwInt(re.totalPrice), width: 80, center: true),
-          ExcelT.LitGrid(text: re.memo, width: 200, center: true, expand: true),
+          //ExcelT.LitGrid(text: re.memo, width: 200, center: true, expand: true),
           InkWell(
             onTap: () async {
               UIState.OpenNewWindow(context, WindowReEditor(re: re, refresh: refresh));

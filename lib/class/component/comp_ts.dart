@@ -22,8 +22,8 @@ import '../widget/text.dart';
 
 class CompTS {
   static dynamic tableHeader() {
-    return WidgetUI.titleRowNone([ '순번', '거래번호', '거래일자', '거래처', '적요', '수입', '지출', '계좌', '', ],
-        [ 32, 80, 80, 150, 999, 80, 80, 100, 32, ], background: true, lite: true);
+    return WidgetUI.titleRowNone([ '순번', '거래번호', '거래일자', '거래처', '적요', '수입', '지출', '계좌' ],
+        [ 32, 80, 80, 999, 999, 80, 80, 100,], background: true, lite: true);
   }
 
 
@@ -49,11 +49,16 @@ class CompTS {
     Function? onTap,
     Function? setState,
     Function? refresh,
+    bool edite=true,
   }) {
     var w = InkWell(
       onTap: () async {
         if(onTap != null) await onTap();
         if(setState != null) await setState();
+        if(refresh == null) { WidgetT.showSnackBar(context, text: 'refresh state is not nullable'); return; }
+
+        var cs = await DatabaseM.getCustomerDoc(ts.csUid);
+        UIState.OpenNewWindow(context, WindowTSEditor(ts: ts, cs: cs, refresh: refresh));
       },
       child: Container(
         height: 28,
@@ -66,6 +71,7 @@ class CompTS {
                   text: cs == null ? '-' : cs.businessName == '' ? 'ㅡ' : cs.businessName,
                   width: 150,
                   enable: cs == null ? false : cs.businessName != '',
+                  expand: true,
                   onTap: () async {
                     if(context == null) return;
                     if(cs == null) { return; }
@@ -81,18 +87,9 @@ class CompTS {
               ExcelT.LitGrid(text: StyleT.krwInt(ts.amount), width: 80, center: true,
                   textColor: (ts.type == 'PU') ? Colors.red.withOpacity(0.7) : Colors.transparent),
               ExcelT.LitGrid(text: SystemT.getAccountName(ts.account) ?? '-', width: 100, center: true),
-              ExcelT.LitGrid(text: ts.memo, width: 100, center: true, expand: true),
+              //ExcelT.LitGrid(text: ts.memo, width: 100, center: true, expand: true),
 
-              ButtonT.Icont(
-                  icon: Icons.create,
-                  onTap: () async {
-                    if(refresh == null) { WidgetT.showSnackBar(context, text: 'refresh state is not nullable'); return; }
-
-                    var cs = await DatabaseM.getCustomerDoc(ts.csUid);
-                    UIState.OpenNewWindow(context, WindowTSEditor(ts: ts, cs: cs, refresh: refresh));
-                  }
-              ),
-              ButtonT.Icont(
+              if(edite) ButtonT.Icont(
                   icon: Icons.delete,
                   onTap: () async {
                     if(context == null) return;
