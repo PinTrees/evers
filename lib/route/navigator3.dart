@@ -45,12 +45,12 @@ final GoRouter router = GoRouter(
               subUrl: state.pathParameters['id1'] ?? "e",);
           },
         ),
-        GoRoute(
+        /*GoRoute(
           path: 'shopItem/:id',
           builder: (BuildContext context, GoRouterState state) {
             return PageShopItem(id: state.pathParameters['id'] ?? "");
           },
-        ),
+        ),*/
         GoRoute(
             path: 'login',
             builder: (BuildContext context, GoRouterState state) {
@@ -109,13 +109,6 @@ final GoRouter router = GoRouter(
           path: 'customer/:id',
           builder: (BuildContext context, GoRouterState state) {
             return CustomerPage(csUid: state.pathParameters['id']);
-          },
-        ),
-        GoRoute(
-          path: 'shopping/:id',
-          builder: (BuildContext context, GoRouterState state) {
-            var a = state.pathParameters['id'];
-            return ShoingItemPage();
           },
         ),
         GoRoute(path: 'printform/releaserevenue/:id',

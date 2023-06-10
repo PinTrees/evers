@@ -217,7 +217,7 @@ class _WindowArticleCreateState extends State<WindowArticleEditor> {
       return null;
     }
 
-    if(!result.files.first.name.contains(".png") && !result.files.first.name.contains(".jpg")
+    if(!result.files.first.name.toLowerCase().contains(".png") && !result.files.first.name.toLowerCase().contains(".jpg")
     ) {
       Messege.show(context, "지원하지 않는 이미지 형식입니다. png, 또는 jpg로 변경후 시도하세요.");
       return null;

@@ -12,7 +12,6 @@ import '../../../helper/style.dart';
 
 
 
-
 Map<String, Color> fileColor = {
   "jpg": Colors.green.withOpacity(0.5),
   "png": Colors.blueAccent.withOpacity(0.5),
@@ -21,7 +20,6 @@ Map<String, Color> fileColor = {
   "log": Colors.grey.withOpacity(0.5),
 };
 
-/// YouTube 동영상을 재생하는 컨테이너 위젯입니다.
 class ButtonFile extends StatefulWidget {
   String fileName;
   String? fileUrl;
@@ -37,16 +35,10 @@ class ButtonFile extends StatefulWidget {
   _ButtonFileState createState() => _ButtonFileState();
 }
 
-/// YoutubeContainer 위젯의 상태관리 클래스 입니다.
 class _ButtonFileState extends State<ButtonFile> {
-
-  var baseIconUrl = "";
-
-
   @override
   void initState() {
     super.initState();
-
 
     initAsync();
   }

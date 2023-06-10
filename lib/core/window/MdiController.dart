@@ -99,6 +99,19 @@ class MdiController{
       _onUpdate();
     };
 
+
+    resizableWindow.onClicked = (){
+      if(_windows.last == resizableWindow) {
+        print("ui state is exist - state save");
+        return;
+      }
+
+      _windows.remove(resizableWindow);
+      _windows.add(resizableWindow);
+      _onUpdate();
+    };
+
+
     resizableWindow.onCloseButtonClicked = (){
       _windows.remove(resizableWindow);
       _onUpdate();

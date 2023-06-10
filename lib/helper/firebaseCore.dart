@@ -789,6 +789,8 @@ class DatabaseM {
     return tsList;
   }
 
+
+  /// 이 함수는 모든 거래 기록을 불러옵니다.
   static dynamic getTransactionAll() async {
     List<TS> tsList = [];
     await FirebaseFirestore.instance.collection('transaction').orderBy(
@@ -807,6 +809,7 @@ class DatabaseM {
     });
     return tsList;
   }
+
 
 
   static dynamic getPur_In_ERROR() async {
@@ -1767,21 +1770,18 @@ class DatabaseM {
     return search;
   }
 
-  static dynamic initStreamTsMeta() async {
-    CollectionReference coll = await FirebaseFirestore.instance.collection(
-        'meta/search/dateQ-transaction');
-    return coll.snapshots().listen((value) {
-      if (value.docs == null) return;
-      print('initStream Ts: ${value.docs.length}');
-
-      for (var a in value.docs) {
-        if (a.data() == null) continue;
-        var searchMap = a.data() as Map;
-        for (var s in searchMap.keys)
-          SystemT.transactionSearch[s.toString()] = searchMap[s].toString();
-      }
-
-      FunT.setStateMain();
+  static dynamic initTsMetaData() async {
+    CollectionReference coll = await FirebaseFirestore.instance.collection('meta/search/dateQ-transaction');
+    await coll.limit(100).get().then((value) {
+      if(value.docs.isEmpty) return false;
+      value.docs.forEach((doc) {
+        if(!doc.exists) return;
+        if(doc.data() == null) return;
+        var searchMap = doc.data() as Map;
+        searchMap.forEach((key, value) {
+          SystemT.transactionSearch[key.toString()] = value.toString();
+        });
+      });
     });
   }
 
@@ -1993,7 +1993,7 @@ class DatabaseM {
     List<Customer> data = [];
     CollectionReference coll = await FirebaseFirestore.instance.collection(
         'customer');
-    await coll.where('puCount', isGreaterThan: 0).limit(50).get().then((value) {
+    await coll.where('puCount', isGreaterThan: 0).limit(100).get().then((value) {
       if (value.docs == null) return false;
       print(value.docs.length);
 
@@ -2002,6 +2002,20 @@ class DatabaseM {
         var cs = Customer.fromDatabase(a.data() as Map);
         if (cs.state == 'DEL') continue;
 
+        data.add(cs);
+      }
+    });
+    return data;
+  }
+  static dynamic getContractFromReCount() async {
+    /// 추후 지급, 미지급 금액을 저장 변동시 변동분 따로 저장, 해당값이 0이 아닐경우 읽기, 문서 정렬 필요
+    List<Contract> data = [];
+    CollectionReference coll = await FirebaseFirestore.instance.collection('contract');
+    await coll.where('state', whereIn: [""]).orderBy("reCount", descending: true).where('reCount', isGreaterThan: 0).limit(100).get().then((value) {
+      if (value.docs == null) return false;
+      for (var a in value.docs) {
+        if (a.data() == null) continue;
+        var cs = Contract.fromDatabase(a.data() as Map);
         data.add(cs);
       }
     });

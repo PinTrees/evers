@@ -19,6 +19,7 @@ class ResizableWindow extends StatefulWidget {
   bool fixedHeight=false;
 
   String title;
+  Function()? onClicked;
   Function(double, double)? onWindowDragged;
   VoidCallback? onCloseButtonClicked;
 
@@ -61,89 +62,94 @@ class _ResizableWindowState extends State<ResizableWindow> {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: Container(
-        width: widget.currentWidth,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(_borderRadius)),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x54000000),
-              spreadRadius: 4,
-              blurRadius: 24,
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.all(Radius.circular(_borderRadius)),
-          child: Container(
-            color: _strokColor,
-            padding: EdgeInsets.all(_strok),
-            child: ClipRRect(
-              borderRadius: BorderRadius.all(Radius.circular(_borderRadius - _strok)),
-              child: Container(
-                color: Colors.white,
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [_getHeader(), _getBody()],
-                    ),
-                    /// 우측 화면 조절 제스쳐
-                    Positioned(
-                        right: 0,   top: 0,  bottom: 0,
-                        child: GestureDetector(
-                          onHorizontalDragUpdate: _onHorizontalDragRight,
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.resizeLeftRight,
-                            opaque: true,
-                            child: Container(
-                              width: resizeableGap,
+      child: GestureDetector(
+        onTap: () {
+          widget.onClicked!();
+        },
+        child: Container(
+          width: widget.currentWidth,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.all(Radius.circular(_borderRadius)),
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x54000000),
+                spreadRadius: 4,
+                blurRadius: 24,
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.all(Radius.circular(_borderRadius)),
+            child: Container(
+              color: _strokColor,
+              padding: EdgeInsets.all(_strok),
+              child: ClipRRect(
+                borderRadius: BorderRadius.all(Radius.circular(_borderRadius - _strok)),
+                child: Container(
+                  color: Colors.white,
+                  child: Stack(
+                    children: [
+                      Column(
+                        children: [_getHeader(), _getBody()],
+                      ),
+                      /// 우측 화면 조절 제스쳐
+                      Positioned(
+                          right: 0,   top: 0,  bottom: 0,
+                          child: GestureDetector(
+                            onHorizontalDragUpdate: _onHorizontalDragRight,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.resizeLeftRight,
+                              opaque: true,
+                              child: Container(
+                                width: resizeableGap,
+                              ),
                             ),
-                          ),
-                        )
-                    ),
-                    /// 좌측 화면 조절 제스쳐
-                    Positioned(
-                        left: 0,top: 0, bottom: 0,
-                        child: GestureDetector(
-                          onHorizontalDragUpdate: _onHorizontalDragLeft,
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.resizeLeftRight,
-                            opaque: true,
-                            child: Container(
-                              width: resizeableGap,
+                          )
+                      ),
+                      /// 좌측 화면 조절 제스쳐
+                      Positioned(
+                          left: 0,top: 0, bottom: 0,
+                          child: GestureDetector(
+                            onHorizontalDragUpdate: _onHorizontalDragLeft,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.resizeLeftRight,
+                              opaque: true,
+                              child: Container(
+                                width: resizeableGap,
+                              ),
                             ),
-                          ),
-                        )
-                    ),
-                    /// 상단 화면 조절 제스쳐
-                    Positioned(
-                        left: 0,  right: 0, top: 0,
-                        child: GestureDetector(
-                          onHorizontalDragUpdate: _onHorizontalDragTop,
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.resizeUpDown,
-                            opaque: true,
-                            child: Container(
-                              height: resizeableGap,
+                          )
+                      ),
+                      /// 상단 화면 조절 제스쳐
+                      Positioned(
+                          left: 0,  right: 0, top: 0,
+                          child: GestureDetector(
+                            onHorizontalDragUpdate: _onHorizontalDragTop,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.resizeUpDown,
+                              opaque: true,
+                              child: Container(
+                                height: resizeableGap,
+                              ),
                             ),
-                          ),
-                        )
-                    ),
-                    /// 하단 화면 조절 제스쳐
-                    Positioned(
-                        left: 0,  right: 0, bottom: 0,
-                        child: GestureDetector(
-                          onHorizontalDragUpdate: _onHorizontalDragBottom,
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.resizeUpDown,
-                            opaque: true,
-                            child: Container(
-                              height: resizeableGap,
+                          )
+                      ),
+                      /// 하단 화면 조절 제스쳐
+                      Positioned(
+                          left: 0,  right: 0, bottom: 0,
+                          child: GestureDetector(
+                            onHorizontalDragUpdate: _onHorizontalDragBottom,
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.resizeUpDown,
+                              opaque: true,
+                              child: Container(
+                                height: resizeableGap,
+                              ),
                             ),
-                          ),
-                        )
-                    ),
-                  ],
+                          )
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

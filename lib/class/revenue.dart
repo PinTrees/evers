@@ -61,8 +61,11 @@ class Revenue {
   var supplyPrice = 0;  /// 공급가액
   var vat = 0;          /// 부가세
   var totalPrice = 0;   /// 합계
+
+  /// paymentAt 은 현재 사용되지 않음 - 지급 예정일
   var paymentAt = 0;    /// 매출일
   var revenueAt = 0;    /// 매출일
+  var updateAt = 0;
 
   var memo = '';        /// 메모
 
@@ -80,8 +83,11 @@ class Revenue {
     vat = json['vat'] ?? 0;
     vatType = json['vatType'] ?? 0;
     totalPrice = json['totalPrice'] ?? 0;
+
     paymentAt = json['paymentAt'] ?? 0;
     revenueAt = json['revenueAt'] ?? 0;
+    updateAt = json['updateAt'] ?? 0;
+
     memo = json['memo'] ?? '';
     isTaxed = json['isTaxed'] ?? false;
     fixedVat = json['fixedVat'] ?? false;
@@ -108,6 +114,8 @@ class Revenue {
       'totalPrice': totalPrice,
       'paymentAt': paymentAt,
       'revenueAt': revenueAt,
+      'updateAt': updateAt,
+
       'memo': memo,
       'isTaxed': isTaxed,
       'fixedVat': fixedVat,
@@ -188,6 +196,7 @@ class Revenue {
   /// 이 함수는 해당 클래스를 직렬화하여 데이터베이스에 저장합니다.
   /// @Create YM
   dynamic update({Revenue? org, Map<String, Uint8List>? files, }) async {
+    updateAt = DateTime.now().microsecondsSinceEpoch;
     var create = false;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(revenueAt));
     

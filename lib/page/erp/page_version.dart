@@ -10,6 +10,7 @@ import 'package:evers/class/database/article.dart';
 import 'package:evers/class/user.dart';
 import 'package:evers/class/version.dart';
 import 'package:evers/class/widget/list.dart';
+import 'package:evers/class/widget/messege.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/class/widget/widget.dart';
 import 'package:evers/helper/function.dart';
@@ -106,6 +107,18 @@ class _PageSettingInfoState extends State<PageSettingInfo>  {
         spacing:  6 * 2,
           children: [
             ButtonT.IconText(
+                icon: Icons.refresh, text: "거래기록 검색 메타데이터 재구축",
+                onTap: () async {
+                  List<TS> tsList = await DatabaseM.getTransactionAll();
+                  int index = 0;
+                  for(var ts in tsList) {
+                    var res = await ts.update();
+                    Messege.show(context, "데이터 저장완료 ${index++}");
+                  }
+                }
+            ),
+
+            ButtonT.IconText(
                 icon: Icons.add_box, text: "새 버전 추가",
                 onTap: () {
                   UIState.OpenNewWindow(context, WindowArticleEditor( board: "version", refresh: () { initAsync(); }));
@@ -135,7 +148,13 @@ class _PageSettingInfoState extends State<PageSettingInfo>  {
 
     /// 메뉴 분기
     if(menu == ERPSubMenuInfo.update.displayName) {
-      titleWidgets.add(TextT.Title(text: "현재 버전 : ${Version.current}"),);
+      titleWidgets.add(ListBoxT.Rows(
+          spacing: 6 * 4,
+          children: [
+            TextT.Title(text: "현재 버전 : ${Version.thisVersion}"),
+            TextT.Title(text: "안정 버전 : ${Version.current}"),
+          ]
+        ));
       titleWidgets.add(ListBoxT.Rows(
           spacing: 6,
           children: [
@@ -145,6 +164,10 @@ class _PageSettingInfoState extends State<PageSettingInfo>  {
               ButtonT.Text( text: a.version, round: 8,
                   onTap: () {
                     currentArticle = a;
+                    _controller = QuillController(
+                      document: Document.fromJson(jsonDecode(currentArticle.json)),
+                      selection: TextSelection.collapsed(offset: 0),
+                    );
                     setState(() {});
                   },
               ),
@@ -176,11 +199,11 @@ class _PageSettingInfoState extends State<PageSettingInfo>  {
     return main;
   }
 
-
   Widget buildArticleListView() {
 
     List<Widget> articleView = [
       Container(
+        width: 1000,
         padding: EdgeInsets.all(18),
         child: QuillEditor.basic(
           controller: _controller,

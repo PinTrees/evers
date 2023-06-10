@@ -14,6 +14,7 @@ import 'package:evers/page/window/window_re_create_ct.dart';
 import 'package:evers/page/window/window_sch_create.dart';
 import 'package:evers/page/window/window_ts_create.dart';
 import 'package:evers/ui/ex.dart';
+import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,7 @@ class _WindowCTState extends State<WindowCT> {
   List<TS> tsList = [];
   List<Ledger> ledgerList = [];
   List<Purchase> purList = [];
+  List<Revenue> revList = [];
   List<Schedule> schList = [];
 
   var vatTypeNameList = [ '포함', '별도', ];
@@ -84,13 +86,14 @@ class _WindowCTState extends State<WindowCT> {
 
     ct = await DatabaseM.getContractDoc(widget.org_ct.id);
     if(ct == null) return;
-
-    cs = await DatabaseM.getCustomerDoc(ct.csUid);
+    
+    cs = await DatabaseM.getCustomerDoc(ct.csUid) ?? Customer.fromDatabase({});
 
     ledgerList = await DatabaseM.getLedgerRevenueList(ct.csUid);
     purList = await DatabaseM.getPur_withCT(ct.id);
     tsList = await DatabaseM.getTransactionCt(ct.id);
     schList = await DatabaseM.getSCH_CT(ct.id);
+    revList = await DatabaseM.getRevenueOnlyContract(ct.id);
 
     await ct.updateInit();
 
@@ -123,8 +126,8 @@ class _WindowCTState extends State<WindowCT> {
     /// 매출
     List<Widget> reW = [];
     reW.add(Revenue.buildTitleUI());
-    for(int i = 0; i < ct.revenueList.length; i++) {
-      var re = ct.revenueList[i];
+    for(int i = 0; i < revList.length; i++) {
+      var re = revList[i];
       re.init();
       allPay += re.totalPrice;
 
@@ -258,6 +261,19 @@ class _WindowCTState extends State<WindowCT> {
                   icon: Icons.open_in_new_sharp, text: "거래처 바로가기",
                   onTap: () async {
                     UIState.OpenNewWindow(context, WindowCS(org_cs: cs, refresh: () { initAsync(); },));
+                  }
+              ),
+              if(cs.businessName == "")
+              ButtonT.IconText(
+                  icon: Icons.change_circle_rounded, text: "거래처 등록",
+                  onTap: () async {
+                    var select = await DialogT.selectCS(context);
+                    if(select != null) {
+                      cs = select;
+                      ct.csUid = cs.id;
+                      await DatabaseM.updateContract(ct);
+                      setState(() {});
+                    }
                   }
               )
             ]
@@ -653,6 +669,7 @@ class _WindowCTState extends State<WindowCT> {
       altText: "변경된 계약 정보를 저장하시겠습니까? ",
       icon: Icons.save, backgroundColor: StyleT.accentColor.withOpacity(0.5),
       onTap: () async {
+        ct.csUid = cs.id;
         var data = await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
         if(data == null) return Messege.toReturn(context, "Database Error", false);
         widget.parent.onCloseButtonClicked!();

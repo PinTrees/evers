@@ -2,6 +2,7 @@
 import 'dart:ui';
 
 import 'package:evers/class/Customer.dart';
+import 'package:evers/class/contract.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/class/revenue.dart';
 import 'package:evers/class/system.dart';
@@ -38,8 +39,11 @@ class Search {
 
   /// 미수현황을 계산해야 하는 거래처 목록
   static List<Customer> purCsList = [];
-
   static List<String> csList = [];
+
+  /// 미지급 현황을 계산해야하는 계약 목록
+  static List<Contract> revCtList = [];
+
 
   /// 이 함수는 모든 검색목록을 초기화 합니다.
   static void clear() {
@@ -252,12 +256,60 @@ class Search {
       });
     });
 
-    print("sadsddssddsaddaaddadsa:${tsMap.length}");
+    //print("sadsddssddsaddaaddadsa:${tsMap.length}");
 
     purCsList.forEach((Customer cs) {
       if(!tsMap.containsKey(cs.id) || !puMap.containsKey(cs.id)) return;
       list[cs] = Records<List<TS>, List<Purchase>>(tsMap[cs.id] as List<TS>, puMap[cs.id] as List<Purchase>);
     });
+    return list;
+  }
+
+
+  /// 이 함수는 미수 현황 검색을 비동기로 요청합니다.
+  /// 반환
+  ///   Map<Customer, Records<List<TS>, List<Purchase>>> list 반환값은 NUll일 수 없습니다.
+  static dynamic searchRevCt() async {
+    /// 일대일 대응값이 아닌 모든 계산이므로 레코드로 반환합니다.
+    Map<Contract, Records<List<TS>, List<Revenue>>> list = {};
+    revCtList = await DatabaseM.getContractFromReCount();
+
+    final futureGroup = FutureGroup();
+    for(int i = 0; i < revCtList.length; i++) {
+      futureGroup.add(DatabaseM.getTransactionCt(revCtList[i].id));
+      futureGroup.add(DatabaseM.getRevenueOnlyContract(revCtList[i].id));
+    }
+    futureGroup.close();
+
+    Map<String, List<TS>> tsMap = {};
+    Map<String, List<Revenue>> revMap = {};
+
+    print("미수 계약 정보에 대한 목록 비동기 요청 완료");
+
+    /// value 는 List<TS> 또는 List<Revenue> 의 목록입니다.
+    await futureGroup.future.then((value) {
+      value.forEach((dataList) {
+        if(dataList is List<TS>) {
+          /// Database 쿼리식에서 제한하는 형태로 변경
+          dataList.removeWhere((ts) => ts.type != 'RE');
+          if(tsList.isNotEmpty) tsMap[dataList.first.ctUid] = dataList;
+        }
+        else if(dataList is List<Revenue>) {
+          if(dataList.isNotEmpty) revMap[dataList.first.ctUid] = dataList;
+        }
+      });
+    });
+
+    print("미수 계약 정보에 대한 목록 비동기 요청 반환 완료");
+
+    revCtList.forEach((Contract ct) {
+      if(!tsMap.containsKey(ct.id) && !revMap.containsKey(ct.id)) return;
+      list[ct] = Records<List<TS>, List<Revenue>>(
+          tsMap.containsKey(ct.id) ? tsMap[ct.id] as List<TS> : [],
+          revMap.containsKey(ct.id) ? revMap[ct.id] as List<Revenue> : []);
+    });
+
+    print("미수 계약 개수: ${ list.length }");
     return list;
   }
 }

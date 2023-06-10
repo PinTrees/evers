@@ -33,7 +33,9 @@ enum ERPMenuInfo {
   schedule("schedule", "일정관리", Icons.schedule, [ ERPSubMenuInfo.schedule ]),
   data("data", "연락처", Icons.add, []),
   setting("setting", "설정", Icons.settings_suggest, [ ERPSubMenuInfo.update, ERPSubMenuInfo.delete ]),
-  dev("dev", "개발자", Icons.developer_board, []);
+  dev("dev", "개발자", Icons.developer_board, [
+    ERPSubMenuInfo.dev,
+  ]);
 
   const ERPMenuInfo(this.code, this.displayName, this.icon, this.subMenus);
   final String code;
@@ -101,7 +103,10 @@ enum ERPSubMenuInfo {
   schedule('schedule', '일정관리', Icons.schedule),
 
   /// 계정관리 하위메뉴
-  userSetting('userAccount', '계정현황', Icons.verified_user);
+  userSetting('userAccount', '계정현황', Icons.verified_user),
+
+  /// 개발자 메뉴입니다.
+  dev('dev', "개발자설정", Icons.developer_board);
 
   const ERPSubMenuInfo(this.code, this.displayName, this.icon);
   final String code;

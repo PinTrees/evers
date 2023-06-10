@@ -252,7 +252,7 @@ class TS {
     } catch (e) {
       date = '';
     }
-    return cs.businessName + '&:' + summary + '&:' + memo + '&:' + date;
+    return "${id}&:${cs.businessName}&:${summary}&:${memo}&:AC=${account}&:${date}";
   }
 
 

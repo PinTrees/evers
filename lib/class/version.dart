@@ -36,7 +36,7 @@ class VersionInfo {
 
 
 class Version {
-  static var thisVersion = '1.4.4';
+  static var thisVersion = '1.4.7';
   static var current = '';
   static var release = '';
 
@@ -48,13 +48,17 @@ class Version {
     if(current == '') return true;
 
     else if(current != thisVersion)  {
-      var c = int.tryParse(current.replaceAll('.', '')) ?? 0;
-      var t = int.tryParse(thisVersion.replaceAll('.', '')) ?? 0;
-      if(c > t) {
-        return false;
-      } else {
-        return true;
+      var low = current.split('.');
+      var cur = thisVersion.split('.');
+
+      for(int i = 0; i < cur.length; i++) {
+        var c = int.tryParse(low[i]) ?? 0;
+        var t = int.tryParse(cur[i]) ?? 0;
+        if(c > t) {
+          return false;
+        }
       }
+      return true;
     }
     return true;
   }

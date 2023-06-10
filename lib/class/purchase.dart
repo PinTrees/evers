@@ -111,8 +111,6 @@ class Purchase {
       date = '';
     }
 
-    // 03.08 요청사항 추후 반영
-    // 거래처 대표자명 검색 텍스트에 추가 - 데이터베이스 구조 변경
     return cs.businessName + '&:' + ct.ctName + '&:' + it.toString() + '&:' + memo + '&:' + date;
   }
 
@@ -157,6 +155,7 @@ class Purchase {
     return history;
   }
 
+
   /// 이 함수는 데이터베이스에서 신규 매입정보에 대한 유일한 문서Key를 요청하고 자신의 값에 할당합니다.
   dynamic createUid() async {
     var dateIdDay = DateStyle.dateYearMD(purchaseAt);
@@ -191,6 +190,7 @@ class Purchase {
         onError: (e) { print("Error createUid() $e"); return false; }
     );
   }
+
 
   /// 이 함수는 현재 매입정보를 데이터베이스에 저장하고 결과를 반환합니다.
   /// 신규 생성 또는 기존문서 변경모두 해당 함수를 통해 이루어져야 합니다.
@@ -363,13 +363,13 @@ class Purchase {
     return result;
   }
 
+
   dynamic delete() async {
     state = 'DEL';
     updateAt = DateTime.now().microsecondsSinceEpoch;
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(purchaseAt));
     var dateIdHarp = DateStyle.dateYearsHarp(purchaseAt);
     var dateIdQuarter = DateStyle.dateYearsQuarter(purchaseAt);
-    var searchText = await getSearchText();
 
     ItemTS? itemTS = await DatabaseM.getItemTrans(id);
     itemTS!.state = "DEL";
@@ -415,19 +415,6 @@ class Purchase {
       transaction.update(csRef, {'puCount': FieldValue.increment(-1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
 
       if(searchRefSn.exists) transaction.update(searchRef, { 'list\.${id}': null, 'updateAt': DateTime.now().microsecondsSinceEpoch, },);
-    }).then(
-          (value) => print("DocumentSnapshot successfully updated!"),
-      onError: (e) => print("Error updatePurchase() $e"),
-    );
-  }
-
-  dynamic setUpdate() {
-    var db = FirebaseFirestore.instance;
-    final docRef = db.collection("purchase").doc(id);
-    db.runTransaction((transaction) async {
-      final docRefSn = await transaction.get(docRef);
-
-      transaction.set(docRef, toJson());
     }).then(
           (value) => print("DocumentSnapshot successfully updated!"),
       onError: (e) => print("Error updatePurchase() $e"),

@@ -3,12 +3,16 @@ import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/database/balance.dart';
 import 'package:evers/class/system/records.dart';
 import 'package:evers/class/widget/page.dart';
 import 'package:evers/class/widget/text.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/info/menu.dart';
 import 'package:evers/page/erp/view/view_payment_daily.dart';
+import 'package:evers/page/erp/view/view_payment_puDelay.dart';
+import 'package:evers/page/erp/view/view_payment_reDelay.dart';
 import 'package:evers/page/window/window_ts.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:flutter/cupertino.dart';
@@ -114,19 +118,23 @@ class PagePayment extends StatelessWidget {
 
     if(this.menu != menu) {
       this.menu = menu;
-      sort = false; searchInput.text = '';
+      refresh = true;
     }
+
     if(refresh) {
       clear();
+      searchInput.text = '';
       sort = false;
       currentQuery = '';
+
+      await DatabaseM.initTsMetaData();
+
       sortLastAt = DateTime.now();
       sortStartAt = DateTime(sortLastAt.year, sortLastAt.month, sortLastAt.day - 180);
     }
 
-
-    Widget titleMenu = SizedBox();
-    Widget bottomWidget = SizedBox();
+    Widget titleMenu = const SizedBox();
+    Widget bottomWidget = const SizedBox();
 
     List<Widget> childrenW = [];
     childrenW.clear();
@@ -414,7 +422,6 @@ class PagePayment extends StatelessWidget {
           ],
         );
       }
-
       else if(currentMenu == '금전출납부') {
         titleMenu = titleW;
 
@@ -1195,108 +1202,17 @@ class PagePayment extends StatelessWidget {
         ));
       }
     }
-    else if(menu == '미수현황') {
-      List<Customer> cs = await DatabaseM.getCSWithRe();
 
-      List<Widget> widgets = [];
-      var allP = 0, allPdP = 0;
-      for(int i = 0; i < cs.length; i++) {
-        var c = cs[i];
-        var cts = (await c.getContractList()) ?? [];
-        var allPay = 0, allPayedAmount = 0;
-        for(var ct in cts) {
-          List<TS> ts = await DatabaseM.getTransactionCt(ct.id);
-          List<Revenue> pu = await DatabaseM.getRevenueOnlyContract(ct.id);
-          pu.forEach((e) { allPay += e.totalPrice; });
-          ts.forEach((value) { if(value.type == 'RE') allPayedAmount += value.amount; });
-
-          if((allPay - allPayedAmount) == 0) continue;
-          allP += allPay; allPdP += allPayedAmount;
-        }
-
-        if((allPay - allPayedAmount) != 0) {
-          var w = InkWell(
-              onTap: () {
-
-              },
-              child: Container( height: 36 + divideHeight,
-                child: Row(
-                    children: [
-                      WidgetT.excelGrid(label: '${i + 1}', width: 32),
-                      WidgetT.excelGrid(text: c.businessName, width: 250),
-                      WidgetT.excelGrid(text: StyleT.krwInt(allPay), width: 250),
-                      WidgetT.excelGrid(width: 250,text: StyleT.krwInt(allPayedAmount), ),
-                      WidgetT.excelGrid( width: 250, text: StyleT.krwInt(allPay - allPayedAmount),),
-                    ]
-                ),
-              ));
-          widgets.add(w);
-          widgets.add(WidgetT.dividHorizontal(size: 0.35));
-        }
-      }
-      var tsW =  Column(children: widgets,);
-      childrenW.add(tsW);
-      childrenW.add(SizedBox(height: divideHeight * 3,));
-
-      bottomWidget =  InkWell(
-          onTap: () {
-
-          },
-          child: Container( height: 48,
-            child: Row(
-                children: [
-                  WidgetT.excelGrid(text: '합계', width: 148.7, label: ''),
-                  WidgetT.excelGrid(text: StyleT.krwInt(allP), width: 250, label: '총 매출금액'),
-                  WidgetT.excelGrid( width: 250, label: '총 미수금액', text: StyleT.krwInt(allPdP),),
-                  WidgetT.excelGrid(text: StyleT.krwInt(allP - allPdP), width: 250, label: '총 미수금'),
-                ]
-            ),
-          )
-      );
+    /// 미수 현황
+    else if(menu == ERPSubMenuInfo.paymentRevenue.displayName) {
+      titleMenu = CompTS.tableHeaderPaymentRE();
+      childrenW.add(ViewPaymentReDelay());
     }
-    else if(menu == '미지급현황') {
-      Map<Customer, Records<List<TS>, List<Purchase>>> purCsList = await Search.searchPurCs();
 
-      /// 미지급 테이블 UI 목록 위젯입니다.
-      List<Widget> widgets = [];
-      int index = 1;
-
-      var allP = 0, allPdP = 0;
-
-      purCsList.forEach((Customer cs, Records<List<TS>, List<Purchase>> value) {
-       var allPayedAmount = 0;
-       var allPurchaseAmount = 0;
-
-       value.Item1.forEach((TS e) { allPayedAmount += e.amount; });
-       value.Item2.forEach((Purchase e) { e.init(); allPurchaseAmount += e.totalPrice; });
-
-       allP += allPayedAmount;
-       allPdP += allPurchaseAmount;
-
-       var w = CompTS.tableUIPaymentPU(context, Records(allPurchaseAmount, allPayedAmount), cs: cs, index: index++);
-       widgets.add(w);
-       widgets.add(WidgetT.dividHorizontal(size: 0.35));
-     });
-
-      var tsW =  Column(children: widgets,);
-      childrenW.add(tsW);
-      childrenW.add(SizedBox(height: divideHeight * 3,));
-
-      bottomWidget = InkWell(
-          onTap: () {
-
-          },
-          child: Container( height: 48,
-            child: Row(
-                children: [
-                  WidgetT.excelGrid(text: '합계', width: 148.7, label: ''),
-                  WidgetT.excelGrid(text: StyleT.krwInt(allP), width: 250, label: '총 매입금액'),
-                  WidgetT.excelGrid( width: 250, label: '총 지급금액', text: StyleT.krwInt(allPdP),),
-                  WidgetT.excelGrid(text: StyleT.krwInt(allP - allPdP), width: 250, label: '총 미지급금액'),
-                ]
-            ),
-          )
-      );
+    /// 미지급 현황
+    else if(menu == ERPSubMenuInfo.paymentPurchase.displayName) {
+      titleMenu = CompTS.tableHeaderPaymentPU();
+      childrenW.add(ViewPaymentPuDelay());
     }
 
     var main = PageWidget.MainPage(
@@ -1311,7 +1227,6 @@ class PagePayment extends StatelessWidget {
               child: WidgetUI.titleRowNone([ '순번', '계좌', '잔고', '전일잔고', '변동금', '수입', '지출', ],
                   [ 32, 200, 100, 100, 100, 100, 100, 100  ]),
             ),
-          if(menu == '미지급현황') CompTS.tableHeaderPaymentPU(),
         ],
       ),
       children: childrenW,

@@ -413,9 +413,7 @@ class _WindowCtCreateState extends State<WindowCtCreate> {
 
 
 
-  Widget buildAppbar() {
-    return Container();
-  }
+  Widget buildAppbar() { return Container(); }
 
 
   Widget buildAction() {
@@ -438,6 +436,8 @@ class _WindowCtCreateState extends State<WindowCtCreate> {
         return true;
       },
       onTap: () async {
+        ct.csUid = cs.id;
+        ct.updateAt;
         var data = await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
         if(data == null) return Messege.toReturn(context, "Database Error", false);
 

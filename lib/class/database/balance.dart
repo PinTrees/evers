@@ -83,6 +83,6 @@ class Balance {
     account.forEach((key, value) { allBalance += value; });
   }
   int getLastBalance() {
-    return allBalance + (reTsAmount - puTsAmount);
+    return allBalance - (reTsAmount - puTsAmount);
   }
 }

@@ -1,8 +1,11 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/system/records.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/class/widget/messege.dart';
 import 'package:evers/class/widget/textInput.dart';
 import 'package:evers/helper/firebaseCore.dart';
+import 'package:evers/page/window/window_ct.dart';
+import 'package:evers/page/window/window_ct_create.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
 import 'package:flutter/material.dart';
 
@@ -43,6 +46,13 @@ class CompTS {
   static dynamic tableHeaderPaymentPU() {
     return WidgetUI.titleRowNone([ '순번', '거래처', '총 매입금', '총 지급금', '미 지급금', ],
         [ 32, 999, 200, 200, 200, 0, 0, ],);
+  }
+
+
+  /// 이 함수는 미수 테이블 UI 헤더 위젯을 반환합니다.
+  static dynamic tableHeaderPaymentRE() {
+    return WidgetUI.titleRowNone([ '순번', '거래처', '총 매출금', '총 수입금', '미수금', ],
+      [ 32, 999, 200, 200, 200, 0, 0, ],);
   }
 
 
@@ -532,4 +542,44 @@ class CompTS {
     return w;
   }
 
+
+  /// 미지급 테이블 위젯을 반환합니다.
+  /// regued
+  ///   [Customer]는 NULL일 수 없습니다.
+  /// (***) StateFullWidget 으로 변경해야 합니다.
+  static dynamic tableUIPaymentRe(BuildContext context, Records<int, int> amount, {
+    int? index,
+    required Customer? cs,
+    required Contract ct,
+    Function? onTap,
+    Function? setState,
+    Function? refresh,
+  }) {
+
+    var w = InkWell(
+        onTap: () async {
+          if(cs != null) UIState.OpenNewWindow(context, WindowCS(org_cs: cs));
+          else Messege.show(context, "거래처 정보를 확인할 수 없습니다.");
+        },
+        child: Container(
+          height: 36,
+          child: Row(
+              children: [
+                ExcelT.LitGrid(text: "${index ?? '-'}", width: 32, center: true),
+                TextT.OnTap(
+                    text: "${cs == null ? "정보 없음" : cs.businessName} / ${ct.ctName}",
+                    width: 250, expand: true,
+                    onTap: () {
+                      UIState.OpenNewWindow(context, WindowCT(org_ct: ct,));
+                    }
+                ),
+                ExcelT.Grid(text: StyleT.krwInt(amount.Item1), width: 200, ),
+                ExcelT.Grid(text: StyleT.krwInt(amount.Item2), width: 200, ),
+                ExcelT.Grid(text: StyleT.krwInt(amount.Item1 - amount.Item2), width: 200,),
+              ]
+          ),
+        )
+    );
+    return w;
+  }
 }
