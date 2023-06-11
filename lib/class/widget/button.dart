@@ -220,14 +220,18 @@ class ButtonT extends StatelessWidget {
     double? height,
     double? width,
     double? textSize,
+
     double? round,
     bool bold=false,
     bool expand=false,
+    bool accent=false,
     Color? color,
     EdgeInsets? padding,
     Color? textColor, }) {
 
     if(padding == null) padding = EdgeInsets.only(left: 6, right: 6);
+
+    var backgroundColor = accent ? Colors.grey.withOpacity(0.5) : Colors.grey.withOpacity(0.2);
 
     Widget w = InkWell(
       onTap: () async {
@@ -237,7 +241,7 @@ class ButtonT extends StatelessWidget {
         padding: padding,
         decoration: StyleT.inkStyleNone(
           round: round ?? 0,
-          color: color ?? Colors.grey.withOpacity(0.2),
+          color: color ?? backgroundColor,
         ),
         alignment: Alignment.center,
         width: size ?? width, height: size ?? height ?? 28,

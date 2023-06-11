@@ -61,7 +61,16 @@ class InputWidget {
           borderSide: BorderSide(color: Colors.transparent, width: 0),),
         filled: true,
         fillColor: Colors.white.withOpacity(0),
-        suffixIcon: Icon(Icons.keyboard),
+
+        suffixIcon: IconButton(
+          iconSize: 18,
+          onPressed: () async {
+            controller.clear();
+            if(search != null) await search("");
+          },
+          icon: Icon(Icons.clear),
+        ),
+
         hintText: '검색어를 입력해 주세요.',
         hintStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
         contentPadding: EdgeInsets.fromLTRB(12, 6, 12, 6),

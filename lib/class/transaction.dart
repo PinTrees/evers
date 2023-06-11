@@ -617,8 +617,9 @@ class TS {
   dynamic getTable(int bal) async {
     var cs = await SystemT.getCS(csUid);
     return <String>[ StyleT.dateFormatYYMMDD(transactionAt), SystemT.getAccountName(account), cs.businessName, (type == 'RE') ? StyleT.krwInt(getAmount()) : '',
-      (type == 'PU') ? StyleT.krwInt(getAmount().abs()) : '',  StyleT.krwInt(bal) , summary ];
+      (type == 'PU') ? StyleT.krwInt(getAmount().abs()) : '',  StyleT.krwInt(bal) , summary.length > 16 ? summary.substring(0, 16) : summary ];
   }
+
 
   /// 제거 예정 코드
   /// 확인 필요

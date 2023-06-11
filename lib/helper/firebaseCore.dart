@@ -786,6 +786,11 @@ class DatabaseM {
         }
       }
     });
+
+    tsList.sort((a, b) {
+      return b.transactionAt.compareTo(a.transactionAt);
+    });
+
     return tsList;
   }
 

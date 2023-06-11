@@ -62,6 +62,7 @@ class UIState {
   static MdiController? mdiController;
   static UIType current = UIType.undefined;
 
+  static Widget? bottomSheet;
 
   /// 이 함수는 윈도우기반 멀티 인터페이스를 신규 생성하는 함수입니다.
   /// 신규 창을 생성하기 위해서는 반드시 이 함수를 호출해야 합니다.
