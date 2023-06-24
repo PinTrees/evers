@@ -3,7 +3,9 @@ import 'dart:ui';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:evers/class/component/comp_ts.dart';
+import 'package:evers/class/widget/messege.dart';
 import 'package:evers/helper/function.dart';
+import 'package:evers/helper/json.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_item.dart';
 import 'package:evers/ui/ex.dart';
@@ -47,11 +49,7 @@ class _WindowTsCreateState extends State<WindowTsCreate> {
     super.initState();
 
     tslistCr.add(TS.fromDatabase({ 'transactionAt': DateTime.now().microsecondsSinceEpoch, 'type': 'PU' }));
-    if(widget.cs != null) {
-      var jsonString = jsonEncode(widget.cs!.toJson());
-      var json = jsonDecode(jsonString);
-      cs = Customer.fromDatabase(json);
-    }
+    if(widget.cs != null) cs = Customer.fromDatabase(JsonManager.toJsonObject(widget.cs));
   }
 
   Widget main = SizedBox();
@@ -131,49 +129,46 @@ class _WindowTsCreateState extends State<WindowTsCreate> {
             ),
           ),
           /// action
-          Row(
-            children: [
-              Expanded(child:TextButton(
-                  onPressed: () async {
-                    if(tslistCr.length < 1) { WidgetT.showSnackBar(context, text: '최소 1개 이상의 거래기록을 입력 후 시도해주세요.'); return; }
-                    for(var t in tslistCr) {
-                      if(t.amount < 1) { WidgetT.showSnackBar(context, text: '하나 이상의 거래데이터의 금액이 비정상 적입니다. ( 0원 )'); return; }
-                      if(t.transactionAt == 0) {WidgetT.showSnackBar(context, text: '날짜를 정확히 입력해 주세요.'); return; }
-                    }
-
-                    var alert = await DialogT.showAlertDl(context, title: '수납현황' ?? 'NULL');
-                    if(alert == false) {
-                      WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
-                      return;
-                    }
-
-                    for(var ts in tslistCr) {
-                      if(widget.cs != null) ts.csUid = widget.cs!.id;
-                      await ts.update();
-                    }
-
-                    WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
-
-                    await widget.refresh();
-                    widget.parent.onCloseButtonClicked!();
-                  },
-                  style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
-                  child: Container(
-                      color: StyleT.accentColor.withOpacity(0.5), height: 42,
-                      child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          WidgetT.iconMini(Icons.check_circle),
-                          Text('수납 저장', style: StyleT.titleStyle(),),
-                          SizedBox(width: 6,),
-                        ],
-                      )
-                  )
-              ),),
-            ],
-          ),
+          buildAction(),
         ],
       ),
     );
+  }
+
+
+  Widget buildAction() {
+    var saveWidget = ButtonT.Action(
+        context, "수납저장",
+        init: () {
+          if(tslistCr.isEmpty) return Messege.toReturn(context, "최소 1개 이상의 거래기록을 입력 후 시도해주세요.", false);
+
+          for(var t in tslistCr) {
+            if(t.amount < 1) return Messege.toReturn(context, "하나 이상의 거래데이터의 금액이 비정상 적입니다. ( 0원 )", false);
+            if(t.transactionAt == 0) return Messege.toReturn(context, "날짜를 정확히 입력해 주세요.", false);
+          }
+
+          return true;
+        },
+      altText: "수납정보를 저장하시겠습니까?",
+      onTap: () async {
+
+          WidgetT.loadingBottomSheet(context);
+
+        for(var ts in tslistCr) {
+          if(cs != null) ts.csUid = cs!.id;
+          await ts.update();
+        }
+
+        WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
+        Navigator.pop(context);
+
+        await widget.refresh();
+        widget.parent.onCloseButtonClicked!();
+      }
+    );
+
+
+    return Row(  children: [ saveWidget,  ],  );
   }
 
   @override

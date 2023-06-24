@@ -7,6 +7,7 @@ import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_ct.dart';
 import 'package:evers/page/window/window_ct_create.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 
 import '../../helper/dialog.dart';
@@ -174,7 +175,6 @@ class CompTS {
   static dynamic tableUIMain(TS ts, {
     BuildContext? context,
     int? index,
-    Customer? cs,
     Function? onTap,
     Function? setState,
     Function? refresh,
@@ -195,14 +195,14 @@ class CompTS {
               ExcelT.LitGrid(text: ts.id, width: 80, center: true),
               ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(ts.transactionAt.toString()), width: 80, center: true),
               TextT.OnTap(
-                  text: cs == null ? '-' : cs.businessName == '' ? 'ㅡ' : cs.businessName,
+                  text: SystemT.getCSName(ts.csUid),
                   width: 150,
-                  enable: cs == null ? false : cs.businessName != '',
+                  enable: ts.csUid != "",
                   onTap: () async {
                     if(context == null) return;
-                    if(cs == null) { return; }
-                    if(cs.businessName == '') { return; }
+                    if(ts.csUid == "") return;
 
+                    var cs = await DatabaseM.getCustomerDoc(ts.csUid);
                     UIState.OpenNewWindow(context, WindowCS(org_cs: cs));
                     if(setState != null) await setState();
                   }

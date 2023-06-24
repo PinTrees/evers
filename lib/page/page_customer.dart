@@ -70,6 +70,7 @@ class _CustomerPageState extends State<CustomerPage> {
     WidgetT.loadingBottomSheet(context,);
     setState(() {});
 
+    await DatabaseM.initMetaCSName();
     if(widget.csUid != null) {
       cs = await DatabaseM.getCustomerDoc(widget.csUid!);
       mainW();
@@ -98,58 +99,7 @@ class _CustomerPageState extends State<CustomerPage> {
 
       var ccs = await SystemT.getCS(pu.csUid);
       var itemName = await SystemT.getItemName(pu.item);
-      var w = Container(
-        height: 36,
-        decoration: StyleT.inkStyleNone(color: Colors.transparent),
-        child: Row(
-            children: [
-              WidgetT.excelGrid(textSize: 8, label: '${0 + 1}', width: 32),
-              WidgetT.excelGrid(textSize: 8, textLite: true, text: pu.id, width: 120, ),
-              WidgetT.excelGrid(textSize: 10, textLite: true, text: StyleT.dateFormatAtEpoch(pu.purchaseAt.toString()), width: 80, ),
-              WidgetT.excelGrid(textSize: 10,textLite: false,text: '매입', width: 50, textColor: Colors.redAccent.withOpacity(0.5) ),
-
-              Expanded(
-                child: Container(
-                  width: 150, alignment: Alignment.center,
-                  child: (ccs!.businessName != '') ? RichText(
-                    text: TextSpan(children: [
-                      TextSpan(
-                          text: ccs.businessName,
-                          style: TextStyle(color: Colors.blue, fontSize: 10, decoration: TextDecoration.underline, fontWeight: FontWeight.w900)),
-                    ]),
-                  ) : Text('ㅡ', style: TextStyle(fontSize: 10, color: StyleT.textColor),),
-                ),
-              ),
-              Expanded(child: WidgetT.excelGrid(textLite: false, width: 999, text: itemName, textSize: 10)),
-              WidgetT.excelGrid(textSize: 10, textLite: true, text: "", width: 50),
-              WidgetT.excelGrid(textSize: 10, textLite: true,width: 50,  text: StyleT.krw(pu.count.toString()),),
-              WidgetT.excelGrid(textSize: 10, textLite: true,width: 80,  text: StyleT.krw(pu.unitPrice.toString()),),
-              WidgetT.excelGrid(textSize: 10, textLite: true,width: 80,  text: StyleT.krw(pu.supplyPrice.toString()),),
-              WidgetT.excelGrid(textSize: 10, textLite: true,width: 80,  text: StyleT.krw(pu.vat.toString()), ),
-              WidgetT.excelGrid(textSize: 10, textLite: true,width: 80, text: StyleT.krw(pu.totalPrice.toString()),),
-              if(pu.filesMap.length > 0)
-                WidgetT.iconMini(Icons.file_copy_rounded, size: 32),
-              if(pu.filesMap.length == 0)
-                SizedBox(height: 28,width: 28,),
-              InkWell(
-                onTap: () async {
-                  await DialogRE.showInfoPu(context, org: pu);
-                },
-                child: WidgetT.iconMini(Icons.create, size: 32),
-              ),
-              InkWell(
-                onTap: () async {
-                  var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
-                  if(aa) {
-                    await DatabaseM.deletePu(pu);
-                    WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
-                  }
-                },
-                child: WidgetT.iconMini(Icons.delete, size: 32),
-              ),
-            ]
-        ),
-      );
+      var w = SizedBox();
       pu_w.add(w);
       pu_w.add(WidgetT.dividHorizontal(size: 0.35));
   }

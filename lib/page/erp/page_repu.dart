@@ -593,7 +593,7 @@ class PageRePu extends StatelessWidget {
     for(var ts in datas) {
       var cs = await SystemT.getCS(ts.csUid);
       Widget w = CompTS.tableUIMain(ts,
-          context: context, index: index++, cs: cs,
+          context: context, index: index++,
           setState: () { mainView(context, menu); },
           refresh: () { mainView(context, menu, refresh: true); }
       );

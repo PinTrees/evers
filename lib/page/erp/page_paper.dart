@@ -26,27 +26,65 @@ import '../../../ui/ux.dart';
 ///
 /// 생산관리 시스템 페이지 뷰어
 /// @create YM
-class PagePaper extends StatelessWidget {
+
+
+class PagePaper extends StatefulWidget {
+  Widget? topWidget;
+  String menu;
+  Widget? infoWidget;
+  PagePaper({ required this.menu,
+    this.topWidget,
+    this.infoWidget,
+  }) { }
+
+  @override
+  _PagePaperState createState() => _PagePaperState();
+}
+
+class _PagePaperState extends State<PagePaper>  {
   TextEditingController searchInput = TextEditingController();
   var divideHeight = 6.0;
 
   List<FactoryD> factory_list = [];
   List<ProductD> product_list = [];
 
-  bool sort = false;
-  bool query = false;
+  bool sort = false, query = false, load = false;
 
   var currentView = '매입';
 
-  var pur_sort_menu = [ '최신순',  ];
-  var pur_sort_menu_date = [ '최근 1주일', '최근 1개월', '최근 3개월' ];
+  var purSortMenu = [ '최신순',  ];
+  var purSortMenuDate = [ '최근 1주일', '최근 1개월', '최근 3개월' ];
   var crRpmenuRp = '', pur_query = '';
-  DateTime rpStartAt = DateTime.now();
-  DateTime rpLastAt = DateTime.now();
-
-  dynamic init() async {
-  }
+  DateTime startAt = DateTime.now();
+  DateTime lastAt = DateTime.now();
   String menu = '';
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    menu = widget.menu;
+
+    initAsync();
+  }
+
+  dynamic initAsync() async {
+    load = true;
+    setState(() {});
+
+    factory_list = await DatabaseM.getFactory(startDate: query ? startAt.microsecondsSinceEpoch : null, lastDate: query ? lastAt.microsecondsSinceEpoch : null,);
+    product_list = await DatabaseM.getProductList(startDate: query ? startAt.microsecondsSinceEpoch : null, lastDate: query ? lastAt.microsecondsSinceEpoch : null,);
+
+    load = false;
+    setState(() {});
+  }
+
+  /*dynamic fetch() async {
+    factory_list = await DatabaseM.getFactory(startDate: query ? startAt.microsecondsSinceEpoch : null, lastDate: query ? lastAt.microsecondsSinceEpoch : null,);
+    product_list = await DatabaseM.getProductList(startDate: query ? startAt.microsecondsSinceEpoch : null, lastDate: query ? lastAt.microsecondsSinceEpoch : null,);
+  }*/
 
   void search(String search) async {
     if(search == '') {
@@ -93,170 +131,58 @@ class PagePaper extends StatelessWidget {
   var menuPadding = EdgeInsets.fromLTRB(6 * 4, 6 * 1, 6 * 4, 6 * 1);
   var disableTextColor = StyleT.titleColor.withOpacity(0.35);
 
-
   Map<String, double> usedAmount = {};
 
-  /// Main Widget Build Function
-  dynamic mainView(BuildContext context, String menu, { Widget? topWidget, Widget? infoWidget, bool refresh=false  }) async {
-    if(this.menu != menu) {
-      sort = false; searchInput.text = '';
-    }
-    if(refresh) {
-      clear();
-      query = false; sort = false;
-      pur_query = '';
+  Widget buildTitleWidget() {
+    if(menu != widget.menu) {
+      menu = widget.menu;
+      initAsync();
     }
 
-    this.menu = menu;
-
-    List<Widget> childrenW = [];
     Widget titleWidgetT = SizedBox();
+    List<Widget> titleMenuList = [
+      ButtonT.TabMenu(
+          "공장일보 추가", Icons.add_box,
+          onTap: () async {
+            UIState.OpenNewWindow(context, WindowFactoryPaper(refresh: () { initAsync(); }));
+          }
+      ),
+      ButtonT.TabMenu(
+          "생산일보 추가", Icons.add_box,
+          onTap: () {
+            UIState.OpenNewWindow(context, WindowProductPaper(refresh: () { initAsync(); }));
+          }
+      ),
+    ];
 
-    var queryMenu = Column(
+    if(menu == "공장일보") {
+      titleMenuList.insert(0, WidgetT.title('공장일보 목록', size: 18),);
+    }
+    if(menu == "생산일보") {
+      titleMenuList.insert(0, WidgetT.title('생산일보 목록', size: 18),);
+    }
+
+    titleMenuList.insert(1, SizedBox(width: 6 * 2,));
+    return Column(
       children: [
-        Container(
-          padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
-          child: Row(
-            children: [
-              for(var m in pur_sort_menu_date)
-                InkWell(
-                  onTap: () async {
-                    if(pur_query == m) return;
-                    pur_query = m;
-
-                    query_init();
-
-                    rpLastAt = DateTime.now();
-                    if(pur_query == pur_sort_menu_date[0]) {
-                      rpStartAt = DateTime.now().add(const Duration(days: -7));
-                    }
-                    else if(pur_query == pur_sort_menu_date[1]) {
-                      rpStartAt = DateTime.now().add(const Duration(days: -30));
-                    }
-                    else if(pur_query == pur_sort_menu_date[2]) {
-                      rpStartAt = DateTime.now().add(const Duration(days: -90));
-                    }
-
-                    FunT.setStateMain();
-                  },
-                  child: Container(
-                    height: 32,
-                    decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                    padding:menuPadding,
-                    child: WidgetT.text(m, size: 14, bold: true,
-                        color: (m == pur_query) ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                  ),
-                ),
-
-              SizedBox(width: divideHeight * 4,),
-
-              InkWell(
-                onTap: () async {
-                  var selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: rpStartAt, // 초깃값
-                    firstDate: DateTime(2018), // 시작일
-                    lastDate: DateTime(2030), // 마지막일
-                  );
-                  if(selectedDate != null) {
-                    if (selectedDate.microsecondsSinceEpoch < rpLastAt.microsecondsSinceEpoch) rpStartAt = selectedDate;
-                    pur_query = '';
-                  }
-                  FunT.setStateMain();
-                },
-                child: Container(
-                  height: 32,
-                  padding: EdgeInsets.all(divideHeight),
-                  alignment: Alignment.center,
-                  decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                  child:WidgetT.text(StyleT.dateFormat(rpStartAt), size: 14, bold: true,
-                      color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                ),
-              ),
-              WidgetT.text('~',  size: 14, color: StyleT.textColor.withOpacity(0.5)),
-              InkWell(
-                onTap: () async {
-                  var selectedDate = await showDatePicker(
-                    context: context,
-                    initialDate: rpLastAt, // 초깃값
-                    firstDate: DateTime(2018), // 시작일
-                    lastDate: DateTime(2030), // 마지막일
-                  );
-                  if(selectedDate != null) {
-                    rpLastAt = selectedDate;
-                    pur_query = '';
-                  }
-                  FunT.setStateMain();
-                },
-                child: Container(
-                  height: 32,
-                  padding: EdgeInsets.all(divideHeight),
-                  alignment: Alignment.center,
-                  decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                  child:WidgetT.text(StyleT.dateFormat(rpLastAt), size: 14, bold: true,
-                      color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                ),
-              ),
-              InkWell(
-                onTap: () async {
-                  pur_query = '기간검색';
-                  query_init();
-                  FunT.setStateMain();
-                },
-                child: Container(
-                  height: 32,
-                  decoration: StyleT.inkStyleNone(color: Colors.transparent),
-                  padding: EdgeInsets.all(divideHeight),
-                  child: WidgetT.text('기간검색', size: 14, bold: true,
-                      color: (pur_query == '기간검색') ? StyleT.titleColor : StyleT.textColor.withOpacity(0.5)),
-                ),
-              ),
-              SizedBox(width: divideHeight * 4,),
-              InkWell(
-                onTap: () async {
-                  pur_query = '';
-                  query = false;
-
-                  clear();
-
-                  FunT.setStateMain();
-                },
-                child: Container( height: 32,
-                  padding: menuPadding,
-                  child: WidgetT.text('검색초기화', size: 14, bold: true,
-                      color: StyleT.textColor.withOpacity(0.5)),
-                ),
-              ),
-            ],
-          ),
+        ListBoxT.Rows(
+          spacing: 6,
+          children: titleMenuList,
         ),
+        titleWidgetT,
+        //queryMenu,
       ],
     );
+  }
 
-    childrenW.clear();
 
-    List<Widget> titleMenuList = [];
-    titleMenuList.add(ButtonT.TabMenu(
-        "공장일보 추가", Icons.add_box,
-        onTap: () async {
-          UIState.OpenNewWindow(context, WindowFactoryPaper(refresh: FunT.setRefreshMain));
-        }
-    ));
-    titleMenuList.add(ButtonT.TabMenu(
-        "생산일보 추가", Icons.add_box,
-        onTap: () {
-          UIState.OpenNewWindow(context, WindowProductPaper(refresh: FunT.setRefreshMain));
-        }
-    ));
-
+  /// Main Widget Build Function
+  dynamic buildMain() {
+    List<Widget> widgets = [];
 
     /// 생산일보 - 공장일보 통합 관리
     if(menu == '공장일보') {
-      titleMenuList.insert(0, WidgetT.title('공장일보 목록', size: 18),);
-
-      if(factory_list.isEmpty) factory_list = await DatabaseM.getFactory(startDate: query ? rpStartAt.microsecondsSinceEpoch : null, lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,);
       List<FactoryD> data = sort ? factory_list : factory_list;
-
       for(int i = 0; i < data.length; i++) {
         if(i >= data.length) break;
         var fd = data[i];
@@ -338,19 +264,19 @@ class PagePaper extends StatelessWidget {
             ),
           ],
         );
-        childrenW.add(w);
-        childrenW.add(WidgetT.dividHorizontal(size: 0.35));
+        widgets.add(w);
+        widgets.add(WidgetT.dividHorizontal(size: 0.35));
       }
 
       if(!sort) {
-        childrenW.add(InkWell(
+        widgets.add(InkWell(
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
             var list = await DatabaseM.getFactory(
               startAt: (factory_list.length > 0) ? factory_list.last.id : null,
-              startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-              lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
+              startDate: query ? startAt.microsecondsSinceEpoch : null,
+              lastDate: query ? lastAt.microsecondsSinceEpoch : null,
             );
             factory_list.addAll(list);
 
@@ -370,9 +296,6 @@ class PagePaper extends StatelessWidget {
       }
     }
     else if(menu == '생산일보') {
-      titleMenuList.insert(0, WidgetT.title('생산일보 목록', size: 18),);
-
-      if(product_list.isEmpty) product_list = await DatabaseM.getProductList(startDate: query ? rpStartAt.microsecondsSinceEpoch : null, lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,);
       List<ProductD> data = sort ? product_list : product_list;
 
       for(int i = 0; i < data.length; i++) {
@@ -461,19 +384,19 @@ class PagePaper extends StatelessWidget {
             ),
           ],
         );
-        childrenW.add(w);
-        childrenW.add(WidgetT.dividHorizontal(size: 0.35));
+        widgets.add(w);
+        widgets.add(WidgetT.dividHorizontal(size: 0.35));
       }
 
       if(!sort) {
-        childrenW.add(InkWell(
+        widgets.add(InkWell(
           onTap: () async {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
             var list = await DatabaseM.getProductList(
               startAt: (product_list.length > 0) ? product_list.last.id : null,
-              startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-              lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
+              startDate: query ? startAt.microsecondsSinceEpoch : null,
+              lastDate: query ? lastAt.microsecondsSinceEpoch : null,
             );
             product_list.addAll(list);
 
@@ -493,28 +416,16 @@ class PagePaper extends StatelessWidget {
       }
     }
 
-    titleMenuList.insert(1, SizedBox(width: 6 * 2,));
-    var titleWidget = Column(
-      children: [
-        ListBoxT.Rows(
-          spacing: 6,
-          children: titleMenuList,
-        ),
-        titleWidgetT,
-        queryMenu,
-      ],
-    );
-
-    var main = PageWidget.MainPage(
-      topWidget: topWidget,
-      infoWidget: infoWidget,
-      titleWidget: titleWidget,
-      children: childrenW,
-    );
-    return main;
+    return ListBoxT.Columns(children: widgets);
   }
 
   Widget build(context) {
-    return Container();
+    return PageWidget.MainPage(
+      context: context,
+      topWidget: widget.topWidget,
+      infoWidget: widget.infoWidget,
+      titleWidget: buildTitleWidget(),
+      children: [ load ? LinearProgressIndicator(minHeight: 2,) : buildMain(), ],
+    );
   }
 }

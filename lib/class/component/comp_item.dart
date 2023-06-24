@@ -1,10 +1,14 @@
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
+import 'package:evers/class/widget/list.dart';
 import 'package:evers/class/widget/messege.dart';
 import 'package:evers/class/widget/text.dart';
+import 'package:evers/helper/function.dart';
+import 'package:evers/helper/interfaceUI.dart';
 import 'package:evers/helper/pdfx.dart';
 import 'package:evers/page/window/window_ct.dart';
 import 'package:evers/page/window/window_process_create.dart';
+import 'package:evers/page/window/window_process_info.dart';
 import 'package:flutter/material.dart';
 
 import '../../helper/dialog.dart';
@@ -21,17 +25,6 @@ import '../system.dart';
 import '../system/state.dart';
 
 class CompItem {
-  static dynamic tableHeader() {
-     return WidgetUI.titleRowNone([ '순번', '거래처', '계약명', '담당자', '연락처', '', ],
-       [ 32, 250, 250, 150, 150, 999, ], background: true, lite: true);
-  }
-  static dynamic tableHeaderMain() {
-    return Container( padding: EdgeInsets.fromLTRB(6, 0, 6, 6),
-      child: WidgetUI.titleRowNone([ '순번', '거래처', '계약명', '담당자', '연락처', '', ],
-          [ 32, 250, 250, 150, 150, 999, ]),
-    );
-  }
-
 
   /// 이 함수는 검색창의 품목 테이불 상단 위젯을 반환합니다.
   static dynamic tableHeaderSearch() {
@@ -95,6 +88,7 @@ class CompItem {
     return w;
   }
 
+
   static dynamic tableUIMain(BuildContext context, Contract ct, Customer cs, {
     int? index,
     Function? onTap,
@@ -138,6 +132,7 @@ class CompItem {
     return w;
   }
 }
+
 
 
 
@@ -190,7 +185,7 @@ class CompItemTS {
                 ExcelT.LitGrid(text: StyleT.dateInputFormatAtEpoch(itemTs.date.toString()), width: 150, center: true),
                 ExcelT.LitGrid(text: SystemT.getItemName(itemTs.itemUid), width: 200, center: true),
                 ExcelT.LitGrid(text: item.unit, width: 50),
-                ExcelT.LitGrid(text: StyleT.krwInt(itemTs.amount.toInt()), width: 100, center: true),
+                ExcelT.LitGrid(text: StyleT.krwDouble(itemTs.amount), width: 100, center: true),
                 ExcelT.LitGrid(text: StyleT.krwInt(itemTs.unitPrice), width: 100, center: true),
                 ExcelT.LitGrid(text: itemTs.memo, width: 200, expand: true, center: true),
                 ExcelT.LitGrid(text: itemTs.storageLC, width: 200, expand: true),
@@ -245,12 +240,96 @@ class CompItemTS {
             ExcelT.LitGrid(text: item.name + '(원물)', width: 200, center: true),
             ExcelT.LitGrid(text: '미가공', width: 100, center: true),
             ExcelT.LitGrid(text: '완료', width: 100, center: true),
-            ExcelT.LitGrid(text: StyleT.krwInt((itemTs.amount - usedCount).toInt()), width: 200, center: true),
+            ExcelT.LitGrid(text: StyleT.krwDouble(itemTs.amount - usedCount), width: 200, center: true),
           ],
         ),
       ),
     );
 
     return w;
+  }
+
+
+
+
+
+
+  static Widget tableUIMain(BuildContext context,
+      ItemTS itemTS, {
+        required Function refresh,
+        int? index, Customer? cs, Function? onCs, Contract? ct,
+        Function? onTap,
+      }) {
+    Item? item = SystemT.getItem(itemTS.itemUid);
+    return InkWell(
+      onTap: () {
+        if(itemTS.type == "PU") {
+          UIState.OpenNewWindow(context, WindowItemTS(itemTS: itemTS, refresh: refresh));
+        }
+        else if(itemTS.type == "RE") {
+
+        }
+      },
+      child: Container(
+        height: 36,
+        decoration: StyleT.inkStyleNone(color: Colors.transparent),
+        child: Row(
+            children: [
+              ExcelT.LitGrid(text: "${ index ?? 0 + 1 }", width: 32),
+              ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(itemTS.date.toString()), width: 80),
+              ExcelT.Grid(text: MetaT.itemTsType[itemTS.type] ?? 'NULL', width: 50, textSize: 10),
+
+              ListBoxT.Rows(
+                  width: 150,
+                  expand: true,
+                  children: [
+                    TextT.OnTap(
+                        text: '${ cs == null ? '-' : cs.businessName }',
+                        onTap: () async {
+                          if(onCs != null) onCs();
+                        }
+                    ),
+                    TextT.Lit(text: " / "),
+                    TextT.OnTap(
+                        text: '${ ct == null ? '-' : ct.ctName }',
+                        onTap: () async {
+
+                        }
+                    ),
+                  ]
+              ),
+
+              ExcelT.Grid(text: item == null ? '-' : item.name, width: 150, textSize: 10, expand: true, alignment: Alignment.center),
+              ExcelT.LitGrid(text: StyleT.krwDouble(itemTS.amount), width: 80, textSize: 10, alignment: Alignment.center),
+              ExcelT.LitGrid(text: "${itemTS.rh} RH(%)", width: 80, textSize: 10, alignment: Alignment.center),
+              ExcelT.LitGrid(text: "${ itemTS.getStorageLC() }", width: 80, textSize: 10, alignment: Alignment.center),
+              ExcelT.LitGrid(text: "${ itemTS.manager }", width: 80, textSize: 10, alignment: Alignment.center),
+              ButtonT.Icont(
+                  icon: Icons.create,
+                  onTap: () async {
+                    Messege.show(context, "개발중입니다.");
+                  }
+              ),
+              ButtonT.Icont(
+                  icon: Icons.delete,
+                  onTap: () async {
+                    var rst = await DialogT.showAlertDl(context, text: "품목 입출 정보를 삭제하시겠습니까?");
+                    if(!rst)  return Messege.toReturn(context,"취소됨", false);
+                    else {
+                      WidgetT.loadingBottomSheet(context);
+
+                      await itemTS.delete();
+
+                      Messege.show(context, "삭제됨");
+                      Navigator.pop(context);
+
+                      FunT.CallFunction(refresh);
+                    }
+                  }
+              ),
+            ]
+        ),
+      ),
+    );
   }
 }

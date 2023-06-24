@@ -78,7 +78,7 @@ class _WindowCtCreateState extends State<WindowCtCreate> {
   }
 
   dynamic initAsync() async {
-    cs = Customer.fromDatabase(JsonManager.toJsonObject(widget.cs));
+    if(widget.cs != null) cs = Customer.fromDatabase(JsonManager.toJsonObject(widget.cs));
     setState(() {});
   }
 
@@ -420,7 +420,7 @@ class _WindowCtCreateState extends State<WindowCtCreate> {
     var saveWidget = ButtonT.Action(
       context, "계약 저장",
       expend: true,
-      altText: "변경된 계약 정보를 저장하시겠습니까? ",
+      altText: "계약 정보를 저장하시겠습니까? ",
       icon: Icons.save, backgroundColor: StyleT.accentColor.withOpacity(0.5),
       init: () {
         if(cs == null) return Messege.toReturn(context, "거래처 정보를 입력하세요.", false);
@@ -438,11 +438,13 @@ class _WindowCtCreateState extends State<WindowCtCreate> {
       onTap: () async {
         ct.csUid = cs.id;
         ct.updateAt;
-        var data = await DatabaseM.updateContract(ct, files: fileByteList, ctFiles: ctFileByteList);
-        if(data == null) return Messege.toReturn(context, "Database Error", false);
 
-        widget.refresh();
+        var rst = await ct.update(files: fileByteList, ctFiles: ctFileByteList);
+        if(!rst) Messege.show(context, "Database Error");
+        else Messege.show(context, "저장됨");
+
         widget.parent.onCloseButtonClicked!();
+        widget.refresh();
       },
     );
 

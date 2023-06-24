@@ -1,3 +1,4 @@
+import 'package:evers/class/system.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
 import 'package:evers/class/widget/text.dart';
@@ -83,7 +84,7 @@ class CompContract {
     return w;
   }
 
-  static dynamic tableUIMain(BuildContext context, Contract ct, Customer cs, {
+  static dynamic tableUIMain(BuildContext context, Contract ct, {
     int? index,
     Function? onTap,
     Function? setState,
@@ -99,9 +100,11 @@ class CompContract {
               children: [
                 ExcelT.LitGrid(text: '${index ?? '-'}', width: 32, center: true),
                 TextT.OnTap(
-                  text: cs.businessName,
+                  text: SystemT.getCSName(ct.csUid),
                   width: 250,
+                  enable: ct.csUid != "",
                   onTap: () async {
+                    var cs = await DatabaseM.getCustomerDoc(ct.csUid);
                     UIState.OpenNewWindow(context, WindowCS(org_cs: cs,));
                     if(setState != null) setState();
                   }

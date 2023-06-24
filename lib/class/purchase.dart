@@ -34,7 +34,8 @@ class Purchase {
   var id = '';
   var item = '';
 
-  var count = 0;
+  double count = 0.0;
+
   var unitPrice = 0;
   var supplyPrice = 0;
   var vatType = 0;        /// 0 포함, 1 미포함
@@ -56,7 +57,7 @@ class Purchase {
     ctUid = json['ctUid'] ?? '';
     csUid = json['csUid'] ?? '';
     item = json['item'] ?? '';
-    count = json['count'] ?? 0;
+    count = json['count'] ?? 0.0;
     unitPrice = json['unitPrice'] ?? 0;
     supplyPrice = json['supplyPrice'] ?? 0;
     vat = json['vat'] ?? 0;
@@ -114,14 +115,14 @@ class Purchase {
     return cs.businessName + '&:' + ct.ctName + '&:' + it.toString() + '&:' + memo + '&:' + date;
   }
 
-  int getSupplyPrice() {
+  double getSupplyPrice() {
     var a = count * unitPrice - vat;
     return a;
   }
   int init() {
     if(!fixedSup && !fixedVat) {
-      if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
-      if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
+      if(vatType == 0) { totalPrice = (unitPrice * count).round();  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = (unitPrice * count + vat).round();  supplyPrice = (unitPrice * count).round(); }
     }
     else if(fixedSup && fixedVat) {
       if(vatType == 0) { totalPrice = supplyPrice + vat; }
@@ -129,12 +130,12 @@ class Purchase {
     }
     else if(fixedVat) {
       // 부가세가 변경될 경우 데이터를 보장할 수 없음
-      if(vatType == 0) { supplyPrice = unitPrice * count - vat;   totalPrice = supplyPrice + vat; }
-      if(vatType == 1) { totalPrice = unitPrice * count + ((unitPrice * count) / 10).round();  supplyPrice = totalPrice - vat;   }
+      if(vatType == 0) { supplyPrice = (unitPrice * count - vat).round();   totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { totalPrice = (unitPrice * count + ((unitPrice * count) / 10)).round();  supplyPrice = totalPrice - vat;   }
     } else if(fixedSup) {
       // 공급가액이 변경될 경우 데이터를 보장할 수 없음 - 공식 수정 필요
-      if(vatType == 0) { vat = unitPrice * count - supplyPrice;     totalPrice = supplyPrice + vat; }
-      if(vatType == 1) { vat = ((unitPrice * count) / 10).round();  totalPrice = unitPrice * count + vat;   vat = totalPrice - supplyPrice;  }
+      if(vatType == 0) { vat = (unitPrice * count - supplyPrice).round();     totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round();  totalPrice = (unitPrice * count + vat).round();   vat = totalPrice - supplyPrice;  }
     }
     return totalPrice;
   }
@@ -372,7 +373,8 @@ class Purchase {
     var dateIdQuarter = DateStyle.dateYearsQuarter(purchaseAt);
 
     ItemTS? itemTS = await DatabaseM.getItemTrans(id);
-    itemTS!.state = "DEL";
+    itemTS?.state = "DEL";
+    itemTS?.delete();
 
     var db = FirebaseFirestore.instance;
     /// 메인문서 기록
@@ -389,6 +391,7 @@ class Purchase {
     if(isItemTs) {
       itemRef = db.collection('transaction-items').doc(id);
     }
+
     db.runTransaction((transaction) async {
       final docRefSn = await transaction.get(docRef);
       final dateRefSn = await transaction.get(dateRef);
@@ -398,8 +401,8 @@ class Purchase {
       if(itemRef != null) itemSn = await transaction.get(itemRef);
 
       /// 품목 매입의 경우 매입 문서와 함께 추가
-      if(itemSn != null) {
-        if(itemSn!.exists) transaction.update(itemRef, itemTS!.toJson());
+      if(itemSn != null && itemTS != null) {
+        if(itemSn.exists) transaction.update(itemRef, itemTS.toJson());
       }
 
       /// 매입문서 기조 저장경로

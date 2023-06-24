@@ -404,49 +404,6 @@ class DatabaseM {
     );
   }
 
-  static dynamic deletePu(Purchase data,) async {
-    data.state = 'DEL';
-    var dateId = StyleT.dateFormatM(
-        DateTime.fromMicrosecondsSinceEpoch(data.purchaseAt));
-    var dateIdQuarter = DateStyle.dateYearsQuarter(data.purchaseAt);
-    var dateIdHarp = DateStyle.dateYearsHarp(data.purchaseAt);
-
-    var db = FirebaseFirestore.instance;
-    final batch = db.batch();
-
-    var main = db.collection('purchase').doc(data.id);
-    batch.update(main, data.toJson());
-
-    var dateRef = db.collection('meta/date-m/purchase').doc(dateId);
-    batch.update(dateRef, {'list\.${data.id}': null, 'updateAt': DateTime
-        .now()
-        .microsecondsSinceEpoch,});
-
-    var csPurRef = db.collection('customer/${data.csUid}/cs-dateH-purchase')
-        .doc(dateIdHarp);
-    var csPurSn = await csPurRef.get();
-    if (csPurSn.exists) batch.update(
-        csPurRef, {'list\.${data.id}': null, 'updateAt': DateTime
-        .now()
-        .microsecondsSinceEpoch,});
-
-    var csRef = db.collection('customer').doc(data.csUid);
-    batch.update(
-        csRef, {'puCount': FieldValue.increment(-1), 'updateAt': DateTime
-        .now()
-        .microsecondsSinceEpoch,});
-
-    var searchRef = db.collection('meta/search/dateQ-purchase').doc(
-        dateIdQuarter);
-    var searchSn = await searchRef.get();
-    if (searchSn.exists) batch.update(
-        searchRef, {'list\.${data.id}': null, 'updateAt': DateTime
-        .now()
-        .microsecondsSinceEpoch,});
-
-    batch.commit().then((_) {});
-  }
-
   static dynamic getPurchaseWithDate(int start, int end) async {
     Map<String, Purchase> data = {};
     CollectionReference coll = await FirebaseFirestore.instance.collection(
@@ -837,11 +794,9 @@ class DatabaseM {
 
   static dynamic getTransactionCt(String id) async {
     List<TS> data = [];
-    CollectionReference coll = await FirebaseFirestore.instance.collection(
-        'transaction');
-    await coll.orderBy('transactionAt', descending: true).where(
-        'ctUid', isEqualTo: id).get().then((value) {
-      print('get transaction data');
+    CollectionReference coll = await FirebaseFirestore.instance.collection('transaction');
+
+    await coll.orderBy('transactionAt', descending: true).where('type', whereIn: [ "RE", "PU" ] ).where('ctUid', isEqualTo: id).get().then((value) {
       if (value.docs == null) return false;
       print(value.docs.length);
 
@@ -1505,22 +1460,21 @@ class DatabaseM {
 
 
 
-  static dynamic getRevenueAll(
-      { String? startAt, int? startDate, int? lastDate,}) async {
+  static dynamic getRevenueAll() async {
     List<Revenue> data = [];
     CollectionReference coll = FirebaseFirestore.instance.collection('revenue');
 
     await coll.orderBy('state').orderBy('revenueAt', descending: true)
         .where('state', isNotEqualTo: 'DEL').get().then((value) {
-      if (value.docs == null) return false;
-      print(value.docs.length);
+      if (value.docs.isEmpty) return false;
 
-      for (var a in value.docs) {
-        if (a.data() == null) continue;
-        var ct = Revenue.fromDatabase(a.data() as Map);
-        data.add(ct);
-      }
+      value.docs.forEach((e) {
+        if (e.data() == null) return;
+        data.add(Revenue.fromDatabase(e.data() as Map));
+      });
+
     });
+
     return data;
   }
 
@@ -1530,101 +1484,7 @@ class DatabaseM {
     if (data.id == '') data.id = generateRandomString(16);
 
     /// 메타값 무결성 확인
-    await getCtMetaCountCheck();
-    if (data.scUid == '')
-      data.scUid = SystemT.searchMeta.contractCursor.toString();
-    if (data.csName == '')
-      data.csName = (await SystemT.getCS(data.csUid)).businessName;
-    for (var a in data.contractList) {
-      if (a['id'] == null) a['id'] = generateRandomString(16);
-    }
 
-    try {
-      if (files != null) {
-        for (int i = 0; i < files.length; i++) {
-          var f = files.values.elementAt(i);
-          var k = files.keys.elementAt(i);
-
-          if (data.filesMap[k] != null) continue;
-
-          var url = await updateCtFile(data.id, f, k);
-
-          if (url == null) {
-            print('contract file upload failed');
-            continue;
-          }
-
-          data.filesMap[k] = url;
-        }
-      }
-      if (ctFiles != null) {
-        for (int i = 0; i < ctFiles.length; i++) {
-          var f = ctFiles.values.elementAt(i);
-          var k = ctFiles.keys.elementAt(i);
-
-          if (data.contractFiles[k] != null) continue;
-
-          var url = await updateCtFile(data.id, f, k);
-
-          if (url == null) {
-            print('contract file upload failed');
-            continue;
-          }
-
-          data.contractFiles[k] = url;
-        }
-      }
-
-      await FireStoreHub.docUpdate(
-        'contract/${data.id}', 'CT.PATCH', data.toJson(),);
-      await FireStoreHub.docUpdate(
-        'meta/search/contract/${data.scUid}', 'CT.META.PATCH',
-        {
-          'list\.' + data.id: data.csName + '&:' + data.ctName + '&:' +
-              data.fileName + '&:' + data.manager + '&:' + data.memo,
-        },
-        setJson: {
-          'list': {
-            data.id: data.csName + '&:' + data.ctName + '&:' + data.fileName +
-                '&:' + data.manager + '&:' + data.memo,
-          }
-        },);
-    } catch (e) {
-      if (files != null) {
-        for (int i = 0; i < files.length; i++) {
-          var f = files.values.elementAt(i);
-          var k = files.keys.elementAt(i);
-
-          if (data.filesMap[k] != null) continue;
-
-          var url = await updateCtFile(data.id, f, k);
-
-          if (url == null) {
-            print('contract file upload failed');
-            continue;
-          }
-
-          data.filesMap[k] = url;
-        }
-      }
-      if (ctFiles != null) {
-        for (int i = 0; i < ctFiles.length; i++) {
-          var f = ctFiles.values.elementAt(i);
-          var k = ctFiles.keys.elementAt(i);
-
-          if (data.contractFiles[k] != null) continue;
-
-          var url = await updateCtFile(data.id, f, k);
-
-          if (url == null) {
-            print('contract file upload failed');
-            continue;
-          }
-
-          data.contractFiles[k] = url;
-        }
-      }
-    }
   }
 
   static dynamic deleteContract(Contract data,) async {
@@ -1665,8 +1525,7 @@ class DatabaseM {
 
   static dynamic getItemTrans(String uid) async {
     ItemTS? aaa;
-    CollectionReference coll = await FirebaseFirestore.instance.collection(
-        'transaction-items');
+    CollectionReference coll = await FirebaseFirestore.instance.collection('transaction-items');
     await coll.doc(uid).get().then((value) {
       if (!value.exists) return false;
       aaa = ItemTS.fromDatabase(value.data() as Map);
@@ -1891,8 +1750,7 @@ class DatabaseM {
   static dynamic initStreamCSMeta() async {
     Map<dynamic, dynamic> search = {};
 
-    CollectionReference coll = await FirebaseFirestore.instance.collection(
-        'meta');
+    CollectionReference coll = await FirebaseFirestore.instance.collection('meta');
     await coll.doc('customer').snapshots().listen((value) {
       print('get meta customer search data');
       if (value.data() == null) return;
@@ -1911,6 +1769,33 @@ class DatabaseM {
     return search;
   }
 
+
+  /// 이 함수는 거래처의 이름정보만 가져와 저장합니다.
+  static dynamic initMetaCSName() async {
+    CollectionReference coll = await FirebaseFirestore.instance.collection('meta/search/name');
+    await coll.doc('customer').get().then((value) {
+      if(!value.exists) return false;
+      if(value.data() == null) return false;
+      var data = value.data() as Map;
+      SystemT.customerNameMeta.addAll(data);
+    });
+  }
+
+
+  static dynamic getCustomerAll() async {
+    List<Customer> data = [];
+    await FirebaseFirestore.instance.collection('customer').orderBy('state').where('state', whereIn: [ "" ]).get().then((value) {
+      if (value.docs == null) return false;
+      print(value.docs.length);
+
+      for (var a in value.docs) {
+        if (a.data() == null) continue;
+        var cs = Customer.fromDatabase(a.data() as Map);
+        data.add(cs);
+      }
+    });
+    return data;
+  }
   static dynamic getCustomerList({String? startAt}) async {
     List<Customer> data = [];
 
@@ -1978,8 +1863,7 @@ class DatabaseM {
     if (id == '') return null;
 
     Customer? data;
-    CollectionReference coll = await FirebaseFirestore.instance.collection(
-        'customer');
+    CollectionReference coll = await FirebaseFirestore.instance.collection('customer');
     try {
       await coll.doc(id).get().then((value) {
         if (!value.exists) return false;
@@ -2489,7 +2373,7 @@ class DatabaseM {
     return itemProcessList;
   }
 
-  static dynamic getProcessItemGroupList({bool all = false}) async {
+  static dynamic getProcessItemGroupListWithDate({bool all = false}) async {
     List<ProcessItem> itemProcessList = [];
     var mainRoot = FirebaseFirestore.instance.collectionGroup('item-process');
 
@@ -2522,6 +2406,41 @@ class DatabaseM {
 
     return itemProcessList;
   }
+  /*static dynamic getProcessItemGroupList() async {
+    List<ProcessItem> itemProcessList = [];
+    var mainRoot = FirebaseFirestore.instance.collectionGroup('item-process');
+    await mainRoot.orderBy('date', descending: true).get().then((value) {
+      if (value.docs == null) return;
+      print(value.docs.length);
+
+      value.docs.forEach((e) {
+        if (e.data() == null) return;
+        itemProcessList.add(ProcessItem.fromDatabase(e.data()));
+      });
+    });
+
+    return itemProcessList;
+  }*/
+
+
+  static dynamic getProcessListAllWithPu(String puUid) async {
+    List<ProcessItem> itemProcessList = [];
+    var mainRoot = FirebaseFirestore.instance.collection('purchase/$puUid/item-process');
+
+    await mainRoot.orderBy('date', descending: true).where('state', whereIn: [ '']).get().then((value) {
+      if (value.docs.isEmpty) return false;
+      print(value.docs.length);
+
+      value.docs.forEach((e) {
+        if (e.data().isEmpty) return;
+        itemProcessList.add(ProcessItem.fromDatabase(e.data()));
+      });
+    });
+
+    return itemProcessList;
+  }
+
+
 
   static dynamic getProcessItemGroupByPrUid(String uid) async {
     List<ProcessItem> itemProcessList = [];
@@ -2834,13 +2753,24 @@ class DatabaseM {
     return itemDatas;
   }
 
-  static dynamic getItemsStream() async {
-    CollectionReference coll = await FirebaseFirestore.instance.collection(
-        'meta');
+  static dynamic initStreamItemMeta() async {
+    CollectionReference coll = await FirebaseFirestore.instance.collection('meta');
 
     return coll.doc('item').snapshots().listen((value) {
-      print('item snapshots listen data changed');
-      FunT.setStateMain();
+      print('get meta items data');
+      if (value.data() == null) return;
+      var data = value.data() as Map;
+      var itemList = data['list'] as Map;
+      MetaT.itemGroup = data['group'] as Map;
+      SystemT.itemMaps.clear();
+
+      for (var a in itemList.values) {
+        if (a == null) continue;
+        var itemTmp = Item.fromDatabase(a as Map);
+        if (itemTmp.type == 'DEL') continue;
+
+        SystemT.itemMaps[itemTmp.id] = itemTmp;
+      }
     });
   }
 

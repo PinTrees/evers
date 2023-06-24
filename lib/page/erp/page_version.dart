@@ -107,6 +107,30 @@ class _PageSettingInfoState extends State<PageSettingInfo>  {
         spacing:  6 * 2,
           children: [
             ButtonT.IconText(
+                icon: Icons.refresh, text: "매출 재고품목 정보 재구축",
+                onTap: () async {
+                  List<Revenue> reList = await DatabaseM.getRevenueAll();
+                  int index = 0;
+                  for(var re in reList) {
+                    var res = await re.updateItemTS();
+                    Messege.show(context, "데이터 저장완료 ${index++}");
+                  }
+                }
+            ),
+
+            ButtonT.IconText(
+                icon: Icons.refresh, text: "거래처 검색 메타데이터 재구축",
+                onTap: () async {
+                  List<Customer> csList = await DatabaseM.getCustomerAll();
+                  int index = 0;
+                  for(var cs in csList) {
+                    var res = await cs.update();
+                    Messege.show(context, "데이터 저장완료 ${index++}");
+                  }
+                }
+            ),
+
+            ButtonT.IconText(
                 icon: Icons.refresh, text: "거래기록 검색 메타데이터 재구축",
                 onTap: () async {
                   List<TS> tsList = await DatabaseM.getTransactionAll();

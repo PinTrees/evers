@@ -56,7 +56,7 @@ class Revenue {
 
   var vatType = 0;        /// 0 포함, 1 미포함
 
-  var count = 0;        /// 수량
+  double count = 0.0;        /// 수량
   var unitPrice = 0;    /// 단가
   var supplyPrice = 0;  /// 공급가액
   var vat = 0;          /// 부가세
@@ -128,8 +128,8 @@ class Revenue {
   /// 부가세 직접 입력 구분값 추가 저장
   int init() {
     if(!fixedSup && !fixedVat) {
-      if(vatType == 0) { totalPrice = unitPrice * count;  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
-      if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = unitPrice * count + vat;  supplyPrice = unitPrice * count; }
+      if(vatType == 0) { totalPrice = (unitPrice * count).round();  vat = (totalPrice / 11).round(); supplyPrice = totalPrice - vat; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round(); totalPrice = (unitPrice * count + vat).round();  supplyPrice = (unitPrice * count).round(); }
     }
     else if(fixedSup && fixedVat) {
       if(vatType == 0) { totalPrice = supplyPrice + vat; }
@@ -137,12 +137,12 @@ class Revenue {
     }
     else if(fixedVat) {
       // 부가세가 변경될 경우 데이터를 보장할 수 없음
-      if(vatType == 0) { supplyPrice = unitPrice * count - vat;   totalPrice = supplyPrice + vat; }
-      if(vatType == 1) { totalPrice = unitPrice * count + ((unitPrice * count) / 10).round();  supplyPrice = totalPrice - vat;   }
+      if(vatType == 0) { supplyPrice = (unitPrice * count - vat).round();   totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { totalPrice = (unitPrice * count + ((unitPrice * count) / 10)).round();  supplyPrice = totalPrice - vat;   }
     } else if(fixedSup) {
       // 공급가액이 변경될 경우 데이터를 보장할 수 없음 - 공식 수정 필요
-      if(vatType == 0) { vat = unitPrice * count - supplyPrice;     totalPrice = supplyPrice + vat; }
-      if(vatType == 1) { vat = ((unitPrice * count) / 10).round();  totalPrice = unitPrice * count + vat;   vat = totalPrice - supplyPrice;  }
+      if(vatType == 0) { vat = (unitPrice * count - supplyPrice).round();     totalPrice = supplyPrice + vat; }
+      if(vatType == 1) { vat = ((unitPrice * count) / 10).round();  totalPrice = (unitPrice * count + vat).round();   vat = totalPrice - supplyPrice;  }
     }
     return totalPrice;
   }
@@ -193,6 +193,28 @@ class Revenue {
   }
 
 
+
+  dynamic updateItemTS() async {
+    if(item == "") return false;
+    var itemData = SystemT.getItem(item);
+
+    if(itemData == null) return false;
+
+    ItemTS itemTS = ItemTS.fromRe(this);
+    await itemTS.update();
+  }
+
+  dynamic deleteItemTS() async {
+    ItemTS? itemTs = await DatabaseM.getItemTrans(id);
+    if(itemTs != null) {
+      itemTs.state = "DEL";
+      await itemTs.update();
+    }
+  }
+
+
+
+
   /// 이 함수는 해당 클래스를 직렬화하여 데이터베이스에 저장합니다.
   /// @Create YM
   dynamic update({Revenue? org, Map<String, Uint8List>? files, }) async {
@@ -204,8 +226,9 @@ class Revenue {
     if(id == '')  { create = true; }
     if(create) await createUid();
     if(id == '') return false;
-    // 현재까지 정상적으로 실행된 경우
-    // id 존재
+
+    /// 품목 연결 정보 업데이트
+    updateItemTS();
     
     var orgDateId = '-';
     var orgDateQuarterId = '-';
@@ -313,12 +336,18 @@ class Revenue {
       onError: (e) { print("Error updatePurchase() $e"); return false; }
     );
   }
-  
+
+
+
   /// 이 함수는 데이터베이스에서 해당 클래스를 제거합니다.
   /// 데이터베이스 삭제 호출 - 트랜잭션 구현됨
   dynamic delete() async {
     state = 'DEL';
     if(id == '')  { return false; }
+
+    /// 품목 연결정보 제거
+    deleteItemTS();
+
     var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(revenueAt));
     var dateIdHarp = DateStyle.dateYearsHarp(revenueAt);
     var dateIdQuarter = DateStyle.dateYearsQuarter(revenueAt);
@@ -411,7 +440,7 @@ class Revenue {
           ExcelT.LitGrid(width: 100, text: StyleT.dateInputFormatAtEpoch(revenueAt.toString()), center: true),
           ExcelT.Grid(width: 250, text: SystemT.getItemName(item), expand: true, textSize: 10),
           ExcelT.LitGrid(text: itemData.unit, width: 50, center: true),
-          ExcelT.LitGrid(text: StyleT.krwInt(count), width: 80, center: true),
+          ExcelT.LitGrid(text: StyleT.krwDouble(count), width: 80, center: true),
           ExcelT.LitGrid(text: StyleT.krwInt(unitPrice), width: 80, center: true),
           ExcelT.LitGrid(text: StyleT.krwInt(supplyPrice), width: 80, center: true),
           ExcelT.LitGrid(text: StyleT.krwInt(vat), width: 80, center: true),

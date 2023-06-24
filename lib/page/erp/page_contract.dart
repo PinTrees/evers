@@ -102,6 +102,7 @@ class _PageContractState extends State<PageContract>  {
     sort = false;
 
     await UserSystem.userData.init();
+    await DatabaseM.initMetaCSName();
 
     csSearchHistory = UserSystem.userData.customerSearch;
     selectCsList = await Search.searchCSOrder(UserSystem.userData.customerSelect);
@@ -265,8 +266,7 @@ class _PageContractState extends State<PageContract>  {
     var data = sort ? ctSortList : ctList;
     int index = 1;
     for(var ct in data) {
-      var cs = ctCsMap[ct.csUid] ?? Customer.fromDatabase({});
-      widgets.add(CompContract.tableUIMain(context, ct, cs, index: index++));
+      widgets.add(CompContract.tableUIMain(context, ct, index: index++));
       widgets.add(WidgetT.dividHorizontal(size: 0.35));
     }
 

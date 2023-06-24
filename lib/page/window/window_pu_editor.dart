@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:evers/class/component/comp_pu.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/class/widget/list.dart';
+import 'package:evers/class/widget/messege.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/dialog_item.dart';
@@ -113,16 +114,14 @@ class _WindowPUEditorState extends State<WindowPUEditor> {
       icon: Icons.delete_forever,
       text: "매입 삭제",
       onTap: () async {
-        if(!await DialogT.showAlertDl(context, text:'삭제하시겠습니까?')) {
-          WidgetT.showSnackBar(context, text: '취소됨');
-          return;
-        }
-
+        if(!await DialogT.showAlertDl(context, text:'삭제하시겠습니까?')) return Messege.toReturn(context, "취소됨", false);
         WidgetT.loadingBottomSheet(context);
-        await DatabaseM.deletePu(pu);
-        Navigator.pop(context);
+
+        await pu.delete();
 
         WidgetT.showSnackBar(context, text: '삭제됨');
+        Navigator.pop(context);
+
         widget.refresh();
         widget.parent.onCloseButtonClicked!();
         },

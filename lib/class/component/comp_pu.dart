@@ -10,6 +10,7 @@ import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/page/window/window_pu_editor.dart';
 import 'package:evers/page/window/window_ts_editor.dart';
+import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -95,7 +96,7 @@ class CompPU {
 
               ExcelT.LitGrid(text: SystemT.getItemName(pu.item), width: 100, expand: true, bold: true),
               ExcelT.LitGrid(text: SystemT.getItem(pu.item) == null ? 'ㅡ' : SystemT.getItem(pu.item)!.unit, width: 50, ),
-              ExcelT.LitGrid(text: StyleT.krwInt(pu.count), width: 50, ),
+              ExcelT.LitGrid(text: StyleT.krwDouble(pu.count), width: 50, ),
               ExcelT.LitGrid(text: StyleT.krwInt(pu.unitPrice), width: 80, ),
               ExcelT.LitGrid(text: StyleT.krwInt(pu.supplyPrice), width: 80, ),
               ExcelT.LitGrid(text: StyleT.krwInt(pu.vat), width: 80, ),
@@ -109,8 +110,11 @@ class CompPU {
               ButtonT.IconAction(
                 context, Icons.delete, altText: "매입 데이터를 삭제하시겠습니까?",
                 onTap: () async {
-                  await DatabaseM.deletePu(pu);
+                  WidgetT.loadingBottomSheet(context);
+                  await pu.delete();
+
                   WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
+                  Navigator.pop(context);
                   if(refresh != null) await refresh();
                 }
               )
@@ -151,7 +155,7 @@ class CompPU {
 
             ExcelT.LitGrid(text: SystemT.getItemName(pu.item), width: 100, expand: true, bold: true),
             ExcelT.LitGrid(text: SystemT.getItem(pu.item) == null ? 'ㅡ' : SystemT.getItem(pu.item)!.unit, width: 50, ),
-            ExcelT.LitGrid(text: StyleT.krwInt(pu.count), width: 50, ),
+            ExcelT.LitGrid(text: StyleT.krwDouble(pu.count), width: 50, ),
             ExcelT.LitGrid(text: StyleT.krwInt(pu.unitPrice), width: 80, ),
             ExcelT.LitGrid(text: StyleT.krwInt(pu.supplyPrice), width: 80, ),
             ExcelT.LitGrid(text: StyleT.krwInt(pu.vat), width: 80, ),
@@ -269,10 +273,10 @@ class CompPU {
               ExcelT.LitGrid(text: item == null ? '-' : item.unit, width: 50, center: true),
               ExcelT.LitInput(context, 'pu.info::수량', width: 50, textSize: 10,
                   onEdited: (i, data) {
-                    pu.count = int.tryParse(data) ?? 0;
+                    pu.count = double.tryParse(data) ?? 0;
                   },
                   setState: setState,
-                  text: StyleT.krw(pu.count.toString()), value: pu.count.toString()),
+                  text: StyleT.krwDouble(pu.count), value: pu.count.toString()),
 
               ExcelT.LitInput(context, 'pu.info::단가', width: 80, textSize: 10,
                 onEdited: (i, data) {
@@ -472,8 +476,8 @@ class CompPU {
               ExcelT.LitGrid(text: item == null ? '-' : item.unit, width:  50, center: true),
               ExcelT.LitInput(context, "${index}::pu.수량", width: 80,index: index,
                   setState: setState,
-                  onEdited: (i, data) { pu.count = int.tryParse(data) ?? 0;  },
-                  text: StyleT.krw(pu.count.toString()), value: pu.count.toString()
+                  onEdited: (i, data) { pu.count = double.tryParse(data) ?? 0;  },
+                  text: StyleT.krwDouble(pu.count), value: pu.count.toString()
               ),
               ExcelT.LitInput(context, "${index}::pu.단가", width: 80, index: index,
                 setState: setState,
@@ -633,7 +637,7 @@ class CompPU {
                   ExcelT.LitGrid(center: true, text: StyleT.dateInputFormatAtEpoch(pu.purchaseAt.toString()), width: 80),
                   ExcelT.LitGrid(center: true, text: item == null ? pu.item : item.name == "" ? pu.item : item.name, width: 200, expand: true),
                   ExcelT.LitGrid(center: true, text: item == null ? '-' : item.unit == "" ? '-' : item.unit, width: 50),
-                  ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.count),),
+                  ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwDouble(pu.count),),
                   ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.unitPrice),),
                   ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.supplyPrice),),
                   ExcelT.LitGrid(center: true, width: 80, text: StyleT.krwInt(pu.vat),),

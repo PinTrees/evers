@@ -94,8 +94,6 @@ class _ViewPaymentListState extends State<ViewPaymentList> {
   DateTime startAt = DateTime.now();
   DateTime lastAt = DateTime.now();
 
-  Map<String, Customer> csMap = {};
-
   Map<dynamic, int> account = {};
   int balance = 0;
 
@@ -116,13 +114,8 @@ class _ViewPaymentListState extends State<ViewPaymentList> {
     lastAt = DateTime.now();
     startAt = DateTime(2022, 1, 1);
 
+    await DatabaseM.initMetaCSName();
     tsDateList = await DatabaseM.getTransactionWithDate(startAt.microsecondsSinceEpoch, lastAt.microsecondsSinceEpoch);
-    int index = 0;
-    for(var ts in tsDateList) {
-      if(index++ > pageCount) break;
-      if(ts.csUid == "") continue;
-      if(!csMap.containsKey(ts.csUid)) csMap[ts.csUid] = await SystemT.getCS(ts.csUid);
-    }
 
     for(var a in SystemT.accounts.values) {
       var amount = await DatabaseM.getAmountAccount(a.id);
@@ -205,13 +198,6 @@ class _ViewPaymentListState extends State<ViewPaymentList> {
     tsDateList = await DatabaseM.getTransactionWithDate(startAt.microsecondsSinceEpoch, lastAt.microsecondsSinceEpoch);
 
     pageIndex = 0;
-    int index = 0;
-    for(var ts in tsDateList) {
-      if(index++ > pageCount) break;
-      if(ts.csUid == "") continue;
-      if(!csMap.containsKey(ts.csUid)) csMap[ts.csUid] = await SystemT.getCS(ts.csUid);
-    }
-
     load = false;
     setState(() {});
   }
@@ -419,10 +405,9 @@ class _ViewPaymentListState extends State<ViewPaymentList> {
       for(int i = startPage; i < startPage + pageCount; i++) {
         if(i >= dataList.length) break;
         var ts = dataList[i];
-        var cs = csMap[ts.csUid] ?? Customer.fromDatabase({});
 
         Widget w = CompTS.tableUIMain( ts,
-            context: context, index: i + 1, cs: cs,
+            context: context, index: i + 1,
             setState: () { setState(() {}); },
             refresh: () { initAsync(); }
         );

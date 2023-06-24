@@ -54,26 +54,6 @@ import '../../ui/ip.dart';
 import '../../ui/ux.dart';
 
 
-/*enum CustomerMenu {
-  //all("all", '전체보기', Icons.calendar_month),
-  newTap('newTap', '새탭에서 보기', Icons.calendar_view_week ),
-  //repu('repu', '매입매출만 보기', Icons.calendar_view_day);
-*//*
-  const CustomerMenu(this.code, this.displayName, this.icon);
-  final String code;
-  final String displayName;
-  final IconData icon;
-
-  factory CustomerMenu.getByCode(String code){
-    return CustomerMenu.values.firstWhere((value)
-    => value.code == code,
-        orElse: () => CustomerMenu.month
-    );
-  }*//*
-}*/
-
-
-
 class WindowCS extends WindowBaseMDI {
   Function? refresh;
   Customer org_cs;
@@ -114,17 +94,15 @@ class _WindowCSState extends State<WindowCS> {
   }
 
   void initAsync() async {
-    await widget.org_cs.update();
     await DatabaseSearch.setSelect_CS(widget.org_cs.id);
 
-    cs = Customer.fromDatabase(JsonManager.toJsonObject(widget.org_cs));
+    cs = await DatabaseM.getCustomerDoc(widget.org_cs.id);
     purs = await widget.org_cs.getPurchase();
     purs.sort((a, b) => b.purchaseAt.compareTo(a.purchaseAt) );
 
-
     if(cs.state == 'DEL') {
-      //Navigator.pop(context);
-      WidgetT.showSnackBar(context, text: '삭제되었습니다.');
+      WidgetT.showSnackBar(context, text: '삭제됨');
+      widget.parent.onCloseButtonClicked!();
       return;
     }
 

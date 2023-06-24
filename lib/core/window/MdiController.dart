@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
 import 'package:evers/page/window/window_ct_create.dart';
+import 'package:evers/page/window/window_item.dart';
 import 'package:evers/page/window/window_ledger_revenue.dart';
 import 'package:evers/page/window/window_paper_product.dart';
 import 'package:evers/page/window/window_process_create.dart';
@@ -73,6 +74,8 @@ class MdiController{
 
     if(widget is WindowShopItemEditor) resizableWindow.title = "제품 상세정보 수정창";
     if(widget is WindowShopItemCreate) resizableWindow.title = "신규 제품 생성창";
+
+    if(widget is WindowItemCreator) resizableWindow.title = "품목 정보창";
   }
 
   ResizableWindow createWindow(BuildContext context, { double? pw, double? ph, }) {

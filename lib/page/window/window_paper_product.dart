@@ -221,6 +221,8 @@ class _WindowProductPaperState extends State<WindowProductPaper> {
                     await DatabaseM.updateProductDWithFile(productD, files: fileByteList);
 
                     WidgetT.showSnackBar(context, text: '저장됨');
+                    Navigator.pop(context);
+
                     await widget.refresh();
                     widget.parent.onCloseButtonClicked!();
                   },

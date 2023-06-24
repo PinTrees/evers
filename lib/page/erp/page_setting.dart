@@ -193,11 +193,10 @@ class PageSetting extends StatelessWidget {
               InkWell(
                 onTap: () async {
                   WidgetT.loadingBottomSheet(context, text: '매입 삭제중');
-                  var dataList = await DatabaseM.getPur_withCS(cs.id);
+                  List<Purchase> dataList = await DatabaseM.getPur_withCS(cs.id);
 
                   for(var data in dataList) {
-                    print(data.toJson());
-                    await DatabaseM.deletePu(data);
+                    await data.delete();
                   }
 
                   Navigator.pop(context);

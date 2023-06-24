@@ -198,6 +198,7 @@ class Search {
 
     return search;
   }
+
   static dynamic searchCSOrder(List<dynamic> searchOrder) async {
     List<Customer> search = [];
 
@@ -292,7 +293,7 @@ class Search {
         if(dataList is List<TS>) {
           /// Database 쿼리식에서 제한하는 형태로 변경
           dataList.removeWhere((ts) => ts.type != 'RE');
-          if(tsList.isNotEmpty) tsMap[dataList.first.ctUid] = dataList;
+          if(dataList.isNotEmpty) tsMap[dataList.first.ctUid] = dataList;
         }
         else if(dataList is List<Revenue>) {
           if(dataList.isNotEmpty) revMap[dataList.first.ctUid] = dataList;

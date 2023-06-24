@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:evers/class/component/comp_item.dart';
 import 'package:evers/class/component/comp_process.dart';
+import 'package:evers/class/database/balance.dart';
 import 'package:evers/class/database/process.dart';
 import 'package:evers/class/widget/button.dart';
 import 'package:evers/class/widget/excel.dart';
@@ -9,6 +11,7 @@ import 'package:evers/dialog/dialog_itemts.dart';
 import 'package:evers/dialog/dialog_tag.dart';
 import 'package:evers/helper/function.dart';
 import 'package:evers/helper/style.dart';
+import 'package:evers/page/window/window_item.dart';
 import 'package:evers/page/window/window_process_info.dart';
 import 'package:evers/ui/dialog_revenue.dart';
 import 'package:evers/ui/ex.dart';
@@ -52,7 +55,7 @@ class PageFactory extends StatelessWidget {
   TextEditingController searchInput = TextEditingController();
   var divideHeight = 6.0;
 
-  List<ItemTS> itemTs_list = [];
+  List<ItemTS> itemTsList = [];
   List<ItemTS> itemProductList = [];
 
   List<ProcessItem> processList = [];
@@ -73,32 +76,11 @@ class PageFactory extends StatelessWidget {
   }
   String menu = '';
 
- /* void search(String search) async {
-    if(search == '') {
-      sort = false;
-      pur_query = '';
-      query = false;
-
-
-      FunT.setStateMain();
-      return;
-    }
-
-    sort = true; query = false;
-    if(menu == '매입매출관리') {
-    }
-    else if(menu == '수납관리') {
-    }
-
-    FunT.setStateMain();
-  }
-  */
-
-
   void query_init() {
     sort = false; query = true;
   }
   void clear() async {
+    itemTsList.clear();
     itemProductList.clear();
     processAllList.clear();
     processingAmount.clear();
@@ -128,17 +110,21 @@ class PageFactory extends StatelessWidget {
   /// Main Widget Build Function
   dynamic mainView(BuildContext context, String menu, { Widget? topWidget, Widget? infoWidget, bool refresh=false  }) async {
     if(this.menu != menu) {
+      this.menu = menu;
       sort = false; searchInput.text = '';
+      refresh = true;
     }
+
     if(refresh) {
       clear();
       query = false; sort = false;
       pur_query = '';
 
       if(menu == "생산관리") {
+        await ItemBalance.init();
         itemProductList = await DatabaseM.getItemTranListProduct();
         /// 추후 날짜별 목록 스냅샷에서 로드하는 형태로 변경이 필요합니다.
-        processAllList = await DatabaseM.getProcessItemGroupList(all: true);
+        processAllList = await DatabaseM.getProcessItemGroupListWithDate(all: true);
 
         processList.clear();
         for(var pr in processAllList) {
@@ -170,7 +156,6 @@ class PageFactory extends StatelessWidget {
       }
     }
 
-    this.menu = menu;
 
     List<Widget> childrenW = [];
     Widget titleWidgetT = SizedBox();
@@ -183,7 +168,7 @@ class PageFactory extends StatelessWidget {
         Widget w = SizedBox();
         w = InkWell(
           onTap: () async {
-            await DialogIT.showItemDl(context, org: itemTmp);
+            UIState.OpenNewWindow(context, WindowItemCreator(refresh: FunT.setRefreshMain, item: itemTmp, ));
           },
           child: Container( height: 32,
             decoration: StyleT.inkStyleNone(color: Colors.transparent),
@@ -201,8 +186,7 @@ class PageFactory extends StatelessWidget {
                     child: WidgetT.iconMini(itemTmp.display ? Icons.check_box: Icons.check_box_outline_blank),),
                   TextButton(
                       onPressed: () async {
-                        await DialogIT.showItemDl(context, org: itemTmp);
-                        FunT.setStateDT();
+                        UIState.OpenNewWindow(context, WindowItemCreator(refresh: FunT.setRefreshMain, item: itemTmp, ));
                       },
                       style: StyleT.buttonStyleNone(round: 0, elevation: 0, padding: 0, color: Colors.transparent, strock: 1),
                       child: Container( height: 32, width: 32,
@@ -229,6 +213,15 @@ class PageFactory extends StatelessWidget {
     }
 
     else if(menu == "품목입출현황") {
+      if(itemTsList.isEmpty) {
+        itemTsList = await DatabaseM.getItemTranList(
+          startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
+          lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
+        );
+      }
+
+
+
       childrenW.add(Column(
         children: [
           Row(
@@ -259,26 +252,18 @@ class PageFactory extends StatelessWidget {
           WidgetT.dividHorizontal(size: 0.7),
         ],
       ));
-      if(itemTs_list.length < 1) {
-        itemTs_list = await DatabaseM.getItemTranList(
-          startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
-          lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
-        );
-      }
 
       int i = 0;
-      var data = sort ? itemTs_list : itemTs_list;
+      var data = sort ? itemTsList : itemTsList;
       for(var itemTs in data) {
         i++;
         Widget w = SizedBox();
         var cs = await SystemT.getCS(itemTs.csUid) ?? Customer.fromDatabase({});
         var ct = await SystemT.getCt(itemTs.ctUid) ?? Contract.fromDatabase({});
 
-        var item = SystemT.getItem(itemTs.itemUid);
-        w = itemTs.OnTableUI(index: i, cs: cs, ct: ct, item: item,
-            onTap: () async {
-              UIState.OpenNewWindow(context, WindowItemTS(itemTS: itemTs, refresh: FunT.setRefreshMain));
-            }
+        w = CompItemTS.tableUIMain(context, itemTs,
+          index: i, cs: cs, ct: ct,
+          refresh: FunT.setRefreshMain,
         );
 
         childrenW.add(w);
@@ -291,11 +276,11 @@ class PageFactory extends StatelessWidget {
             WidgetT.loadingBottomSheet(context, text: '로딩중');
 
             var list = await DatabaseM.getItemTranList(
-              startAt: (itemTs_list.length > 0) ? itemTs_list.last.id : null,
+              startAt: (itemTsList.length > 0) ? itemTsList.last.id : null,
               startDate: query ? rpStartAt.microsecondsSinceEpoch : null,
               lastDate: query ? rpLastAt.microsecondsSinceEpoch : null,
             );
-            itemTs_list.addAll(list);
+            itemTsList.addAll(list);
 
             Navigator.pop(context);
             await FunT.setStateMain();
@@ -324,7 +309,7 @@ class PageFactory extends StatelessWidget {
               ExcelT.LitGrid(text: '-', width: 28),
               ExcelT.LitGrid(text: v.name, width: 200, center: true),
               ExcelT.LitGrid(text: MetaT.itemGroup[v.group] ?? '-', width: 150, center: true),
-              ExcelT.LitGrid(text: StyleT.krwInt(SystemT.getItemBalance(k)) + v.unit, width: 100, center: true),
+              ExcelT.LitGrid(text: StyleT.krwDouble(ItemBalance.amountItem(k)) + v.unit, width: 100, center: true),
               ExcelT.LitGrid(text: StyleT.krwDouble(processingAmount[k]) + v.unit, width: 100, center: true),
               ExcelT.LitGrid(text: StyleT.krwDouble(processOutputAmount[k]) + v.unit, width: 100, center: true),
             ],

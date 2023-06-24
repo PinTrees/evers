@@ -480,6 +480,8 @@ class DialogT extends StatelessWidget {
                                   keyboardType: TextInputType.text,
                                   onEditingComplete: () async {
                                     if(searchInput.text == "") { WidgetT.showSnackBar(context, text: "검색어를 입력해 주세요."); return; }
+
+                                    await DatabaseM.getItems();
                                     itemList = await SystemT.searchItem(searchInput.text, SystemT.itemMaps.values.toList());
                                     setStateS(() {});
                                   },

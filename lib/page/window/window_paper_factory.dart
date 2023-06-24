@@ -56,7 +56,6 @@ class _WindowFactoryPaperState extends State<WindowFactoryPaper> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
     initAsync();
   }
 
@@ -71,6 +70,7 @@ class _WindowFactoryPaperState extends State<WindowFactoryPaper> {
 
     setState(() {});
   }
+
   Widget mainBuild() {
     return Container(
       child: Column(
@@ -206,41 +206,37 @@ class _WindowFactoryPaperState extends State<WindowFactoryPaper> {
             ),
           ),
           /// action
-          Row(
-            children: [
-              Expanded(child:TextButton(
-                  onPressed: () async {
-                    var alert = await DialogT.showAlertDl(context, title: factoryD.memo ?? 'NULL');
-                    if(alert == false) {
-                      WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
-                      return;
-                    }
-
-                    WidgetT.loadingBottomSheet(context, text: '저장중');
-
-                    factoryD.date = date.microsecondsSinceEpoch;
-                    await DatabaseM.updateFactoryDWithFile(factoryD, files: fileByteList);
-
-                    WidgetT.showSnackBar(context, text: '저장됨');
-                    await widget.refresh();
-                    widget.parent.onCloseButtonClicked!();
-                  },
-                  style: StyleT.buttonStyleNone(padding: 0, round: 0, strock: 0, elevation: 8, color:Colors.white),
-                  child: Container(
-                      color: StyleT.accentColor.withOpacity(0.5), height: 42,
-                      child: Row( mainAxisSize: MainAxisSize.max, mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          WidgetT.iconMini(Icons.check_circle),
-                          Text('공장일보 저장', style: StyleT.titleStyle(),),
-                          SizedBox(width: 6,),
-                        ],
-                      )
-                  )
-              ),),
-            ],
-          ),
+          buildAction(),
         ],
       ),
+    );
+  }
+
+
+  Widget buildAction() {
+    var saveWidget = ButtonT.Action(
+        context, "공장일보 저장", icon: Icons.save,
+        init: () {
+          if(factoryD.memo == "") return Messege.toReturn(context, "메모를 비워둘 수 없습니다.", false);
+          return true;
+        },
+        altText: "공장일보를 저장하시겠습니까?",
+        onTap: () async {
+          WidgetT.loadingBottomSheet(context, text: '저장중');
+
+          factoryD.date = date.microsecondsSinceEpoch;
+          await DatabaseM.updateFactoryDWithFile(factoryD, files: fileByteList);
+
+          WidgetT.showSnackBar(context, text: '저장됨');
+          Navigator.pop(context);
+
+          await widget.refresh();
+          widget.parent.onCloseButtonClicked!();
+      }
+    );
+
+    return Row(
+      children: [ saveWidget, ],
     );
   }
 

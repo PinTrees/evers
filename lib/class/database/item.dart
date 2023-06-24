@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evers/class/database/process.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/helper/style.dart';
 import 'package:evers/ui/ux.dart';
@@ -63,6 +64,44 @@ class Item {
 
 
 
+  dynamic update() async {
+    var create = false;
+    var result = false;
+
+    if (id == '') {
+      create = true;
+      id = DatabaseM.generateRandomString(8);
+    }
+
+    var db = FirebaseFirestore.instance;
+    /// 메인문서 기록
+    final docRef = db.collection("meta").doc('item');
+    await db.runTransaction((transaction) async {
+      final docRefSn = await transaction.get(docRef);
+
+      /// 매입문서 기조 저장경로
+      if(docRefSn.exists) {
+        transaction.update(docRef, {
+          'list\.$id': toJson(),
+          'count': FieldValue.increment(1)
+        });
+      } else {
+        transaction.set(docRef, {
+          'list\.$id': toJson(),
+          'count': FieldValue.increment(1)
+        });
+      }
+
+    }).then((value) {
+      print("DocumentSnapshot successfully updated!");
+      result = true;
+    }, onError: (e) {
+      print("Error update Contract() $e");
+      result = false;
+    },);
+
+    return result;
+  }
 
 
 
@@ -135,7 +174,9 @@ class ItemTS {
 
   var rpUid = '';       /// 매입매출번호
   var itemUid = '';     /// 품목 고유번호
-  var amount = 0.0;       /// 입고량
+
+  double amount = 0.0;       /// 입고량
+
   var storageLC = '';     /// 입고창고위치
 
   var ctUid = '';         /// 입고계약
@@ -180,16 +221,23 @@ class ItemTS {
   }
   ItemTS.fromRe(Revenue revenue) {
     type = 'RE';
+
+    id = revenue.id;
     rpUid = revenue.id;
     itemUid = revenue.item;
-    amount = revenue.count * -1;
+
     csUid = revenue.csUid;
     ctUid = revenue.ctUid;
+
+    date = revenue.revenueAt;
+    amount = revenue.count.toDouble();
+    unitPrice = revenue.unitPrice;
   }
   ItemTS.fromPu(Purchase purchase) {
     type = 'PU';
     id = purchase.id;
     rpUid = purchase.id;
+
     itemUid = purchase.item;
     csUid = purchase.csUid;
     ctUid = purchase.ctUid;
@@ -207,6 +255,7 @@ class ItemTS {
     itemUid = pu.item;
     csUid = pu.csUid;
     ctUid = pu.ctUid;
+
     date = pu.purchaseAt;
     amount = pu.count.toDouble();
     unitPrice = pu.unitPrice;
@@ -253,6 +302,7 @@ class ItemTS {
   dynamic getHistory({ int? startAt, int? lastAt }) async {
 
   }
+
   dynamic createUID() async {
     // 문서가 제거되도 복원 가능성이 있으므로 org 구현 없음
     var dateIdDay = DateStyle.dateYearMD(date);
@@ -407,7 +457,63 @@ class ItemTS {
   }
 
   dynamic delete() async {
+    state = "DEL";
 
+    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(date));
+    var dateIdHarp = DateStyle.dateYearsHarp(date);
+    var dateIdQuarter = DateStyle.dateYearsQuarter(date);
+
+    //var searchText = await getSearchText();
+    Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
+    var db = FirebaseFirestore.instance;
+
+    List<ProcessItem> processList = await DatabaseM.getProcessListAllWithPu(rpUid);
+    processList.forEach((e) { e.delete(); });
+
+    /// 내부 트랜잭션 다시 작성
+    /// 테스트 필요
+    /// 메인문서 기록
+    final docRef = db.collection("transaction-items").doc(id);
+    final dateRef = db.collection('meta/date-m/transaction-items').doc(dateId);
+
+    if(csUid != '') ref['cs'] = db.collection('customer').doc(csUid);
+    if(csUid != '') ref['csDetail'] = db.collection('customer/${csUid}/cs-dateH-item_ts').doc(dateIdHarp);
+
+    if(ctUid != '') ref['ct'] = db.collection('contract').doc(ctUid);
+    if(ctUid != '') ref['ctDetail'] = db.collection('contract/${ctUid}/ct-dateH-item_ts').doc(dateIdHarp);
+
+    /// 매입 트랜잭션을 수행합니다.
+    return await db.runTransaction((transaction) async {
+      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
+      final  docRefSn = await transaction.get(docRef);
+      final  docDateRefSn = await transaction.get(dateRef);
+      if(ref['cs'] != null) sn['cs'] = await transaction.get(ref['cs']!);
+      if(ref['csDetail'] != null) sn['csDetail'] = await transaction.get(ref['csDetail']!);
+
+      if(ref['ct'] != null) sn['ct'] = await transaction.get(ref['ct']!);
+      if(ref['ctDetail'] != null) sn['ctDetail'] = await transaction.get(ref['ctDetail']!);
+
+      /// 트랜잭션 내부
+      if(docRefSn.exists) {
+        transaction.update(docRef, toJson());
+      }
+      if(docDateRefSn.exists) {
+        transaction.update(dateRef, { id: toJson(),});
+      }
+
+      if(ref['cs'] != null) {
+        transaction.update(ref['cs']!, {'tsiCount': FieldValue.increment(-1), 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+        if(sn['csDetail']!.exists) transaction.update(ref['csDetail']!, { id: FieldValue.delete(), });
+      }
+
+      if(ref['ct'] != null) {
+        if(sn['ct']!.exists) transaction.update(ref['ct']!, {'tsiCount': FieldValue.increment(-1),});
+        if(sn['ctDetail']!.exists) transaction.update(ref['ctDetail']!, { id: FieldValue.delete(), });
+      }
+    }).then(
+            (value) { print("DocumentSnapshot successfully updated!"); return true; },
+        onError: (e) { print("Error update ts item() $e"); return false; }
+    );
   }
 
 
@@ -422,76 +528,6 @@ class ItemTS {
             [ 28, 200, 150, 100, 100, 100, 100 ]),
         WidgetT.dividHorizontal(size: 0.7),
       ],
-    );
-  }
-
-  Widget OnTableUI({int? index, Customer? cs, Function? onCs, Contract? ct, Item? item,
-    Function? onTap,
-  }) {
-    return InkWell(
-      onTap: () {
-        if(onTap != null) onTap();
-      },
-      child: Container(
-        height: 36,
-        decoration: StyleT.inkStyleNone(color: Colors.transparent),
-        child: Row(
-            children: [
-              ExcelT.LitGrid(text: "${ index ?? 0 + 1 }", width: 32),
-              ExcelT.LitGrid(text: StyleT.dateFormatAtEpoch(date.toString()), width: 80),
-              ExcelT.Grid(text: MetaT.itemTsType[type] ?? 'NULL', width: 50, textSize: 10),
-
-              ListBoxT.Rows(
-                  width: 150,
-                  expand: true,
-                  children: [
-                    TextT.OnTap(
-                      //expand: true,
-                        text: '${ cs == null ? '-' : cs.businessName }',
-                        onTap: () async {
-                          if(onCs != null) onCs();
-                        }
-                    ),
-                    TextT.Lit(text: " / "),
-                    TextT.OnTap(
-                      //expand: true,
-                        text: '${ ct == null ? '-' : ct.ctName }',
-                        onTap: () async {
-                          /*var result = await DialogCT.showInfoCt(context, ct);
-                          return result;*/
-                        }
-                    ),
-                  ]
-              ),
-
-              ExcelT.Grid(text: item == null ? '-' : item.name, width: 150, textSize: 10, expand: true, alignment: Alignment.center),
-              ExcelT.LitGrid(text: StyleT.krw(amount.toString()),
-                  width: 80, textSize: 10, alignment: Alignment.center),
-              ExcelT.LitGrid(text: "${rh} RH(%)",
-                  width: 80, textSize: 10, alignment: Alignment.center),
-              ExcelT.LitGrid(text: "${ getStorageLC() }",
-                  width: 80, textSize: 10, alignment: Alignment.center),
-              ExcelT.LitGrid(text: "${ manager }",
-                  width: 80, textSize: 10, alignment: Alignment.center),
-              //WidgetT.excelGrid(textLite: true, text:item?.unit, width: 50),
-              InkWell(
-                onTap: () async {
-                },
-                child: WidgetT.iconMini(Icons.create, size: 32),
-              ),
-              InkWell(
-                onTap: () async {
-                  /* var aa = await DialogT.showAlertDl(context, text: '데이터를 삭제하시겠습니까?');
-                      if(aa) {
-                        await FireStoreT.deletePu(itemTs);
-                        WidgetT.showSnackBar(context, text: '매입 데이터를 삭제했습니다.');
-                      }*/
-                },
-                child: WidgetT.iconMini(Icons.delete, size: 32),
-              ),
-            ]
-        ),
-      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:evers/page/window/window_article_create.dart';
 import 'package:evers/page/window/window_cs.dart';
 import 'package:evers/page/window/window_cs_create.dart';
 import 'package:evers/page/window/window_ct_create.dart';
+import 'package:evers/page/window/window_item.dart';
 import 'package:evers/page/window/window_ledger_revenue.dart';
 import 'package:evers/page/window/window_ledger_revenue_create.dart';
 import 'package:evers/page/window/window_pageA_create.dart';
@@ -90,6 +91,8 @@ class UIState {
 
     /// 공장일보 및 생산일보 창 사이즈
     if(window is WindowFactoryPaper || window is WindowProductPaper) width = 800;
+
+    if(window is WindowItemCreator) width = 600;
 
     if(window is WindowPUCreate || window is WindowPUEditor || window is WindowPUCreateWithCS) width = 1000;
     if(window is WindowReCreate || window is WindowReEditor || window is WindowReCreateWithCt) width = 1000;

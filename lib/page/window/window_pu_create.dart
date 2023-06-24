@@ -238,9 +238,9 @@ class _WindowPUCreateWithCSState extends State<WindowPUCreateWithCS> {
             if(widget.cs == null) { WidgetT.showSnackBar(context, text: '거래처는 비워둘 수 없습니다.'); return; }
             if(payment == '즉시' && payType == '') { WidgetT.showSnackBar(context, text: '결제방법은 비워둘 수 없습니다.'); return;  }
 
-            for(var p in pus) {
+            /*for(var p in pus) {
               if(p.unitPrice == 0 || p.supplyPrice == 0) { WidgetT.showSnackBar(context, text: '매입금액은 0일 수 없습니다.'); return;  }
-            }
+            }*/
 
             var alert = await DialogT.showAlertDl(context, text: "매입정보를 저장하시겠습니까?");
             if(alert == false) {  WidgetT.showSnackBar(context, text: '취소됨'); return;   }
@@ -810,9 +810,9 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
     if(cs == null) { WidgetT.showSnackBar(context, text: '거래처는 비워둘 수 없습니다.'); return; }
     if(payment == '즉시' && payType == '') { WidgetT.showSnackBar(context, text: '결제방법은 비워둘 수 없습니다.'); return;  }
 
-    for(var p in pus) {
+    /*for(var p in pus) {
       if(p.unitPrice == 0 || p.supplyPrice == 0) { WidgetT.showSnackBar(context, text: '매입금액은 0일 수 없습니다.'); return;  }
-    }
+    }*/
 
     var alert = await DialogT.showAlertDl(context, text: "매입정보를 저장하시겠습니까?");
     if(alert == false) {  WidgetT.showSnackBar(context, text: '취소됨'); return;   }

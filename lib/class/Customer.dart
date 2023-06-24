@@ -1,4 +1,5 @@
 
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -122,11 +123,69 @@ class Customer {
     };
   }
   
-  // Firebase Core 함수 삭제
-  dynamic update() async {
-    Customer? data = await DatabaseM.getCustomerDoc(id);
-    if(data != null) fromDatabase(data.toJson());
+  dynamic update({ Map<String, Uint8List>? files }) async {
+    var create = false, result = false;
+
+    if(id == "") {
+      id = DatabaseM.generateRandomString(16);
+      create = true;
+    }
+    if(id == "") return false;
+
+    try {
+      if (files != null) {
+        for (int i = 0; i < files.length; i++) {
+          var f = files.values.elementAt(i);
+          var k = files.keys.elementAt(i);
+
+          if (filesMap[k] != null) continue;
+          var url = await DatabaseM.updateCsFile(id, f, k);
+
+          if (url == null) continue;
+          filesMap[k] = url;
+        }
+      }
+    } catch (e) {}
+
+    var searchText = getSearchText();
+
+    await FireStoreHub.docUpdate('meta/customer', 'CS.PATCH', { 'search\.${id}': searchText, 'updateAt': DateTime.now().microsecondsSinceEpoch,},
+        setJson: { 'search': { searchText}, 'updateAt': DateTime.now().microsecondsSinceEpoch,});
+
+    var db = FirebaseFirestore.instance;
+    /// 메인문서 기록
+    final docRef = db.collection("customer").doc(id);
+    /// 검색 기록 문서 경로로
+    final searchRef = db.collection('meta/search/name').doc('customer');
+
+    await db.runTransaction((transaction) async {
+      final docRefSn = await transaction.get(docRef);
+      final searchSn = await transaction.get(searchRef);
+
+      /// 매입문서 기조 저장경로
+      if(docRefSn.exists) {
+        transaction.update(docRef, toJson());
+      } else {
+        transaction.set(docRef, toJson());
+      }
+
+      if(searchSn.exists) {
+        transaction.update(searchRef, { id: businessName, },);
+      } else {
+        transaction.set(searchRef, { id : businessName },);
+      }
+    }).then((value) {
+      print("DocumentSnapshot successfully updated!");
+      result = true;
+    },
+      onError: (e) { print("Error updatePurchase() $e");
+      result = false;
+      },
+    );
+
+    return result;
   }
+
 
   dynamic getContractList() async {
     List<Contract>? data = await DatabaseM.getCtWithCs(id);

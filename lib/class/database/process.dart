@@ -193,8 +193,11 @@ class ProcessItem {
 
       /// 출고품일 경우 기초 재고 및 작업내역값에서도 적용
       if(isOutput) {
-        if(mainBalanceSn.exists) transaction.update(mainBalanceRef, { id: amount.abs() });
-        else transaction.set(mainBalanceRef, { id: amount.abs() });
+        if(mainBalanceSn.exists) {
+          transaction.update(mainBalanceRef, { id: amount.abs()});
+        } else {
+          transaction.set(mainBalanceRef, { id: amount.abs()});
+        }
       }
 
       if(docParentSn != null) {
@@ -231,5 +234,54 @@ class ProcessItem {
 
 
   dynamic delete() async {
+    if(rpUid == '') return false;
+    if(id == '') return false;
+
+    state = "DEL";
+    var dateId = StyleT.dateFormatM(DateTime.fromMicrosecondsSinceEpoch(date));
+    var dateIdHarp = DateStyle.dateYearsHarp(date);
+    var dateIdQuarter = DateStyle.dateYearsQuarter(date);
+
+    /// 내부 트랜잭션 다시 작성
+    /// 테스트 필요
+    /// 메인문서 기록
+    Map<String, DocumentReference<Map<String, dynamic>>> ref = {};
+    var db = FirebaseFirestore.instance;
+
+    final docRef = db.collection("purchase/$rpUid/item-process").doc(id);
+    var docParentRef = null;
+    final balanceRef = db.collection('balance/dateQ-process/${itUid}').doc(dateIdQuarter);
+    final mainBalanceRef = db.collection('meta/itemInven/${itUid}').doc(dateIdQuarter);
+
+    /// 매입 트랜잭션을 수행합니다.
+    return await db.runTransaction((transaction) async {
+      Map<String, DocumentSnapshot<Map<String, dynamic>>> sn = {};
+      final docRefSn = await transaction.get(docRef);
+      final balanceSn = await transaction.get(balanceRef);
+      final mainBalanceSn = await transaction.get(mainBalanceRef);
+
+      DocumentSnapshot<Map<String, dynamic>>? docParentSn = null;
+      if(docParentRef != null) docParentSn = await transaction.get(docParentRef);
+
+      /// 트랜잭션 내부
+      if(docRefSn.exists) transaction.update(docRef, toJson());
+
+      /// 출고품이 아닐경우 사용량 재고에서 카운트
+      /// 해당 로직은 최초 가공공정 등록시에만 실행되는 로직입니다.
+      if(!isOutput && !isDone) {
+        if(mainBalanceSn.exists) transaction.update(mainBalanceRef, { id: amount.abs() });
+        else transaction.set(mainBalanceRef, { id: amount.abs() });
+      }
+
+      /// 출고품일 경우 기초 재고 및 작업내역값에서도 적용
+      if(isOutput) {
+        if(mainBalanceSn.exists) transaction.update(mainBalanceRef, { id: amount.abs() * -1 });
+        else transaction.set(mainBalanceRef, { id: amount.abs() * -1 });
+      }
+    }).then((value) {
+      print("DocumentSnapshot successfully updated!"); return true;
+    }, onError: (e) {
+      print("Error update ts item() $e"); return false;
+    });
   }
 }

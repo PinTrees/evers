@@ -110,7 +110,6 @@ class _WindowCTState extends State<WindowCT> {
     purWidgets.add(CompPU.tableHeader());
     for(int i = 0; i < purList.length; i++) {
       var pu = purList[i];
-      var item = SystemT.getItem(pu.item) ?? Item.fromDatabase({});
       pu.init();
       allPay += pu.totalPrice;
 
@@ -118,7 +117,9 @@ class _WindowCTState extends State<WindowCT> {
         context, pu,
         index: i + 1,
         setState: () { setState(() {}); },
+        refresh: () { initAsync(); }
       );
+
       purWidgets.add(w);
       purWidgets.add(WidgetT.dividHorizontal(size: 0.35));
     }

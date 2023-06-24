@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:evers/class/system.dart';
 import 'package:evers/helper/firebaseCore.dart';
 import 'package:evers/helper/style.dart';
+import 'package:excel/excel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart';
 import 'package:intl/intl.dart';
@@ -224,115 +225,82 @@ class Contract {
 
   dynamic update({ Map<String, Uint8List>? files, Map<String, Uint8List>? ctFiles,}) async {
     var create = false;
+    var result = false;
 
     if(id == "") {
       create = true;
       await createUid();
     }
+
     /// 정상적으로 신규 키값이 할당되지 않았을 경우 로직을 종료합니다.
     if (id == '') return false;
 
-    /// 메타값 무결성 확인
-    ///await getCtMetaCountCheck();
-
     /// 검색 정보 시스템을 변경합니다.
-    /*if (data.scUid == '')
-      data.scUid = SystemT.searchMeta.contractCursor.toString();
-    if (data.csName == '')
-      data.csName = (await SystemT.getCS(data.csUid)).businessName;
-    */
-
     /// 계약의 상세내용에 대해 각 id 값을 추가합니다.
     for (var a in contractList) {
       if (a['id'] == null) a['id'] = DatabaseM.generateRandomString(16);
     }
 
-   /* try {
-      if (files != null) {
-        for (int i = 0; i < files.length; i++) {
-          var f = files.values.elementAt(i);
-          var k = files.keys.elementAt(i);
+    await DatabaseM.getCtMetaCountCheck();
+    if (scUid == '') scUid = SystemT.searchMeta.contractCursor.toString();
+    if (csName == '') csName = (await SystemT.getCS(csUid)).businessName;
 
-          if (data.filesMap[k] != null) continue;
+    for (var a in contractList) {
+      if (a['id'] == null) a['id'] = DatabaseM.generateRandomString(16);
+    }
 
-          var url = await updateCtFile(data.id, f, k);
+    if (files != null) {
+      for(var k in files.keys) {
+        var file = files[k];
+        if (file == null) continue;
 
-          if (url == null) {
-            print('contract file upload failed');
-            continue;
-          }
-
-          data.filesMap[k] = url;
-        }
+        var url = await DatabaseM.updateCtFile(id, file, k);
+        if (url != null) filesMap[k] = url;
       }
-      if (ctFiles != null) {
-        for (int i = 0; i < ctFiles.length; i++) {
-          var f = ctFiles.values.elementAt(i);
-          var k = ctFiles.keys.elementAt(i);
+    }
+    if (ctFiles != null) {
+      for(var k in ctFiles.keys) {
+        var file = ctFiles[k];
+        if (file == null) continue;
 
-          if (data.contractFiles[k] != null) continue;
+        var url = await DatabaseM.updateCtFile(id, file, k);
+        if (url != null) contractFiles[k] = url;
+      }
+    }
 
-          var url = await updateCtFile(data.id, f, k);
+    var searchText = csName + '&:' + ctName + '&:' + fileName + '&:' + manager + '&:' + memo;
 
-          if (url == null) {
-            print('contract file upload failed');
-            continue;
-          }
+    var db = FirebaseFirestore.instance;
+    /// 메인문서 기록
+    final docRef = db.collection("contract").doc(id);
+    /// 검색 기록 문서 경로로
+    final searchRef = db.collection('meta/search/contract').doc(scUid);
 
-          data.contractFiles[k] = url;
-        }
+    await db.runTransaction((transaction) async {
+      final docRefSn = await transaction.get(docRef);
+      final SearchSn = await transaction.get(searchRef);
+
+      /// 매입문서 기조 저장경로
+      if(docRefSn.exists) {
+        transaction.update(docRef, toJson());
+      } else {
+        transaction.set(docRef, toJson());
       }
 
-      await FireStoreHub.docUpdate(
-        'contract/${data.id}', 'CT.PATCH', data.toJson(),);
-      await FireStoreHub.docUpdate(
-        'meta/search/contract/${data.scUid}', 'CT.META.PATCH',
-        {
-          'list\.' + data.id: data.csName + '&:' + data.ctName + '&:' +
-              data.fileName + '&:' + data.manager + '&:' + data.memo,
-        },
-        setJson: {
-          'list': {
-            data.id: data.csName + '&:' + data.ctName + '&:' + data.fileName +
-                '&:' + data.manager + '&:' + data.memo,
-          }
-        },);
-    } catch (e) {
-      if (files != null) {
-        for (int i = 0; i < files.length; i++) {
-          var f = files.values.elementAt(i);
-          var k = files.keys.elementAt(i);
-
-          if (data.filesMap[k] != null) continue;
-
-          var url = await updateCtFile(data.id, f, k);
-
-          if (url == null) {
-            print('contract file upload failed');
-            continue;
-          }
-
-          data.filesMap[k] = url;
-        }
+      if(SearchSn.exists) {
+        transaction.update(searchRef, { 'list\.${id}': searchText, 'updateAt': DateTime.now().microsecondsSinceEpoch, },);
+      } else {
+        transaction.set(searchRef, { 'list' : { id : searchText },   'updateAt': DateTime.now().microsecondsSinceEpoch,  },);
       }
-      if (ctFiles != null) {
-        for (int i = 0; i < ctFiles.length; i++) {
-          var f = ctFiles.values.elementAt(i);
-          var k = ctFiles.keys.elementAt(i);
+    }).then((value) {
+      print("DocumentSnapshot successfully updated!");
+      result = true;
+    }, onError: (e) {
+      print("Error update Contract() $e");
+      result = false;
+    },);
 
-          if (data.contractFiles[k] != null) continue;
-
-          var url = await updateCtFile(data.id, f, k);
-
-          if (url == null) {
-            print('contract file upload failed');
-            continue;
-          }
-
-          data.contractFiles[k] = url;
-        }
-      }
-    }*/
+    return result;
   }
 
 
@@ -348,7 +316,7 @@ class Contract {
 
     var count = 0;
     var clCount = int.tryParse(cl['count'] ?? '') ?? -1;
-    for(var re in revs) count += re.count;
+    for(var re in revs) count += re.count.toInt();
 
     return clCount - count;
   }
@@ -364,7 +332,7 @@ class Contract {
     a.ctIndexId == ctIndex);
 
     var count = 0;
-    for(var re in revs) count += re.count;
+    for(var re in revs) count += re.count.toInt();
 
     return  count;
   }

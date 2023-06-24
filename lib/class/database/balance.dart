@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:evers/class/database/process.dart';
 import 'package:evers/class/purchase.dart';
 import 'package:evers/helper/style.dart';
+import 'package:excel/excel.dart';
 import '../../helper/firebaseCore.dart';
 import '../../helper/interfaceUI.dart';
 import '../Customer.dart';
@@ -84,5 +86,35 @@ class Balance {
   }
   int getLastBalance() {
     return allBalance - (reTsAmount - puTsAmount);
+  }
+}
+
+
+
+
+class ItemBalance {
+  static var startAt = 0;
+  static var lastAt = 0;
+
+  static Map<String, double> amount = {};
+
+  static dynamic init({ int? startAt, int? lastAt }) async {
+    if(startAt != null) ItemBalance.startAt = startAt;
+    if(lastAt != null) ItemBalance.lastAt = lastAt;
+
+    List<ItemTS> itemTsList = await DatabaseM.getItemTranList(startDate: startAt, lastDate: lastAt);
+
+    amount.clear();
+    itemTsList.forEach((e) {
+      var a = e.type == "RE" ? e.amount * -1 : e.amount;
+      if(amount.containsKey(e.itemUid)) amount[e.itemUid] = amount[e.itemUid]! + a;
+      else amount[e.itemUid] = a;
+    });
+
+    //List<ProcessItem> processed = await DatabaseM.getProductList(startDate: startAt, lastDate: lastAt);
+  }
+
+  static double amountItem(String id) {
+    return amount[id] ?? 0.0;
   }
 }

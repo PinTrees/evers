@@ -343,6 +343,7 @@ class StyleT {
     var f = NumberFormat.simpleCurrency(locale: "ko_KR", name: "", decimalDigits: 0);
     return f.format(k);
   }
+
   static String krwInt(int? data) {
     if(data == null) return ' - ';
 
@@ -350,11 +351,10 @@ class StyleT {
     return f.format(data);
   }
 
-
   static String krwDouble(double? data) {
     if(data == null) return '0';
 
-    var f = NumberFormat.simpleCurrency(locale: "ko_KR", name: "", decimalDigits: 0);
+    var f = NumberFormat('###,###,###,###,###,###,###.###');
     return f.format(data);
   }
 
