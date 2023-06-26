@@ -229,7 +229,8 @@ class Purchase {
     var searchText = await getSearchText();
 
     /// 거래명세서 파일 업로드
-    if(files != null) {
+    if(files != null)
+    {
       try {
         for(int i = 0; i < files.length; i++) {
           var f = files.values.elementAt(i);
@@ -271,12 +272,9 @@ class Purchase {
     final itemInvenRef = db.collection('meta/itemInven/${item}').doc(dateIdQuarter);
 
     var itemRef = null;
-    if(isItemTs) {
-      if(itemTs == null) {
-        itemTs = await DatabaseM.getItemTrans(id);
-        if(itemTs != null) itemTs.fromPu(this);
-        else itemTs = ItemTS.fromPu(this);
-      }
+    if(isItemTs)
+    {
+      itemTs = ItemTS.fromPu(this);
       itemRef = db.collection('transaction-items').doc(id);
     }
 

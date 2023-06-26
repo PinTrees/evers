@@ -594,44 +594,28 @@ class _WindowCSState extends State<WindowCS> {
   }
 
   Widget actionWidgets() {
-    return  Column(
-      children: [
-        /*Row(
-          children: [
-            *//*ButtonT.ActionLegacy("신규 품목 매입 등록",
-              expend: true,
-              icon: Icons.input, backgroundColor: Colors.blueGrey.withOpacity(0.5),
-              onTap: () async {
-                WidgetT.showSnackBar(context, text: "품목에 대한매입은 계약을 비워둘 수 없습니다. 계약화면에서 추가해주세요.");
-              },
-            ),*//*
-          ],
-        ),*/
-        Row(
-          children: [
-            ButtonT.ActionLegacy("거래처 저장",
-              expend: true, icon: Icons.save,
-              backgroundColor: StyleT.accentColor.withOpacity(0.5),
-              onTap: () async {
-                if(cs.businessName == '') {
-                  WidgetT.showSnackBar(context, text:'상호명을 입력해 주세요.'); return;
-                }
 
-                var alert = await DialogT.showAlertDl(context, title: cs.businessName ?? 'NULL');
-                if(alert == false) {
-                  WidgetT.showSnackBar(context, text: '시스템에 저장을 취소했습니다.');
-                  return;
-                }
+    var saveWidget = ButtonT.Action(
+        context, "거래처 저장",
+        init: () {
+          if(cs.businessName == "") return Messege.toReturn(context, "상호명을 비워둘 수 없습니다.", false);
+          return true;
+        },
+      altText: "거래처를 저장하시겠습니까?",
+      onTap: () {
+        WidgetT.loadingBottomSheet(context);
 
-                await DatabaseM.updateCustomer(cs, files: fileByteList,);
-                WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
-                widget.parent.onCloseButtonClicked!();
-              },
-            ),
-          ],
-        ),
-      ],
+        cs.update(files: fileByteList);
+
+        Messege.show(context, "저장됨");
+        Navigator.pop(context);
+
+        FunT.CallFunction(widget.refresh);;
+        widget.parent.onCloseButtonClicked!();
+      }
     );
+
+    return  Column(  children: [ saveWidget ], );
   }
 
   @override

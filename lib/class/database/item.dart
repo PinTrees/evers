@@ -219,6 +219,7 @@ class ItemTS {
 
     memo = json['memo'] ?? '';
   }
+
   ItemTS.fromRe(Revenue revenue) {
     type = 'RE';
 
@@ -233,6 +234,7 @@ class ItemTS {
     amount = revenue.count.toDouble();
     unitPrice = revenue.unitPrice;
   }
+
   ItemTS.fromPu(Purchase purchase) {
     type = 'PU';
     id = purchase.id;
@@ -244,21 +246,6 @@ class ItemTS {
     date = purchase.purchaseAt;
     amount = purchase.count.toDouble();
     unitPrice = purchase.unitPrice;
-
-    var item = SystemT.getItem(itemUid);
-    if(item == null) return;
-  }
-
-  void fromPu(Purchase pu) {
-    type = 'PU';
-    rpUid = pu.id;
-    itemUid = pu.item;
-    csUid = pu.csUid;
-    ctUid = pu.ctUid;
-
-    date = pu.purchaseAt;
-    amount = pu.count.toDouble();
-    unitPrice = pu.unitPrice;
 
     var item = SystemT.getItem(itemUid);
     if(item == null) return;

@@ -337,14 +337,18 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
       itemTs.add(its);
     }
 
-    if(widget.ct != null) ct = Contract.fromDatabase(JsonManager.toJsonObject(widget.ct!));
-
     initAsync();
   }
 
   /// 이 함수는 동기 초기화를 시도합니다.
   /// 상속구조로 재설계 되어야 합니다.
   void initAsync() async {
+    if(widget.ct != null)
+    {
+      ct = Contract.fromDatabase(JsonManager.toJsonObject(widget.ct!));
+      cs = await DatabaseM.getCustomerDoc(ct!.csUid);
+    }
+
     setState(() {});
   }
 
@@ -354,8 +358,14 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
   Widget mainBuild() {
     Widget mainWidget = SizedBox();
 
-    if(!widget.isItemPurchase) mainWidget = buildPurchaseNormal();
-    else mainWidget = buildPurchaseWithItem();
+    if(!widget.isItemPurchase)
+    {
+      mainWidget = buildPurchaseNormal();
+    }
+    else
+    {
+      mainWidget = buildPurchaseWithItem();
+    }
 
 
     return Container(
@@ -371,8 +381,6 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
       ),
     );
   }
-
-
 
 
 
@@ -781,6 +789,7 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
     var alert = await DialogT.showAlertDl(context, text: "매입정보를 저장하시겠습니까?");
     if(alert == false) return Messege.toReturn(context, '취소됨', false);
 
+    WidgetT.loadingBottomSheet(context);
 
     /// ==========================================================
     /// =============== Database Update =====================================
@@ -801,8 +810,11 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
 
     /// ==========================================================
     /// =============== Exit =====================================
-    WidgetT.showSnackBar(context, text: '시스템에 성공적으로 저장되었습니다.');
+    WidgetT.showSnackBar(context, text: '저장됨');
     Navigator.pop(context);
+
+    widget.refresh();
+    widget.parent.onCloseButtonClicked!();
   }
 
   /// 이 함수는 기록한 일반 매입정보를 데이터베이스에 저장하고 결과를 반환합니다.
@@ -842,8 +854,6 @@ class _WindowPUCreateState extends State<WindowPUCreate> {
   /// 이 함수는 하단의 액션버튼 위젯을 렌더링 합니다.
   /// 상속구조로 재설계 되어야 합니다.
   Widget buildAction() {
-
-
     Function onSave = () {};
     if(widget.isItemPurchase) onSave = itemPurchaseSave;
     else onSave = normalPurchaseSave;

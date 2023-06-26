@@ -329,33 +329,32 @@ class _WindowCsCreateState extends State<WindowCsCreate> {
 
 
   Widget actionWidgets() {
-    return  Column(
-      children: [
-        Row(
-          children: [
-            ButtonT.Action(
-              context, "거래처 저장",
-              expend: true, icon: Icons.save,
-              backgroundColor: StyleT.accentColor.withOpacity(0.5),
-              init: () {
-                if(cs.businessName == "") return Messege.toReturn(context, "상호명은 비워둘 수 없습니다.", false);
-                if(cs.representative == "") return Messege.toReturn(context, "대표는 비워둘 수 없습니다.", false);
-                return true;
-              },
-              altText: "신규 거래처 정보를 저장하시겠습니까?",
-              onTap: () async {
-                var result = await DatabaseM.updateCustomer(cs, files: fileByteList,);
-                if(!result) Messege.toReturn(context, "Database Error", false);
-                else Messege.toReturn(context, "저장됨", false);
 
-                widget.refresh();
-                widget.parent.onCloseButtonClicked!();
-              },
-            ),
-          ],
-        ),
-      ],
+    var saveWidget = ButtonT.Action(
+      context, "거래처 저장",
+      expend: true, icon: Icons.save,
+      backgroundColor: StyleT.accentColor.withOpacity(0.5),
+      init: () {
+        if(cs.businessName == "") return Messege.toReturn(context, "상호명은 비워둘 수 없습니다.", false);
+        if(cs.representative == "") return Messege.toReturn(context, "대표는 비워둘 수 없습니다.", false);
+        return true;
+      },
+      altText: "신규 거래처 정보를 저장하시겠습니까?",
+      onTap: () async {
+        WidgetT.loadingBottomSheet(context);
+
+        var result = await cs.update(files: fileByteList,);
+
+        Navigator.pop(context);
+        if(!result) Messege.toReturn(context, "Database Error", false);
+        else Messege.toReturn(context, "저장됨", false);
+
+        widget.refresh();
+        widget.parent.onCloseButtonClicked!();
+      },
     );
+
+    return  Row( children: [ saveWidget ],);
   }
 
   @override

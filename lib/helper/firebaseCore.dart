@@ -1707,45 +1707,7 @@ class DatabaseM {
     }
   }
 
-  static dynamic updateCustomer(Customer data,
-      { Map<String, Uint8List>? files }) async {
-    if (data.id == '') data.id = generateRandomString(16);
 
-    try {
-      if (files != null) {
-        for (int i = 0; i < files.length; i++) {
-          var f = files.values.elementAt(i);
-          var k = files.keys.elementAt(i);
-
-          if (data.filesMap[k] != null) continue;
-
-          var url = await updateCsFile(data.id, f, k);
-
-          if (url == null) {
-            print('cs file upload failed');
-            continue;
-          }
-
-          data.filesMap[k] = url;
-        }
-      }
-    } catch (e) {}
-
-    // 03.08 요청사항
-    // 거래처 대표명으로 검색 필요
-    // 데이터베이스 텍스트 검색 구조 변경
-    var searchText = data.getSearchText();
-    await FireStoreHub.docUpdate(
-        'customer/${data.id}', 'CS.PATCH', data.toJson());
-    await FireStoreHub.docUpdate('meta/customer', 'CS.PATCH',
-        { 'search\.${data.id}': searchText, 'updateAt': DateTime
-            .now()
-            .microsecondsSinceEpoch,},
-        setJson: { 'search': { searchText}, 'updateAt': DateTime
-            .now()
-            .microsecondsSinceEpoch,}
-    );
-  }
 
   static dynamic initStreamCSMeta() async {
     Map<dynamic, dynamic> search = {};
